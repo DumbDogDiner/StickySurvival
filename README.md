@@ -1,3 +1,3 @@
-# kotlin-plugin-base
+# StickySurvival
 
-Gradle configuration for plugin.yml creation, kotlin compilation, and jar shadowing, all out of the box
+Survival Games (commonly known as Hunger Games) plugin for the DDD server.
