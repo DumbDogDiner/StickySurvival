@@ -1,0 +1,267 @@
+# StickySurvival configuration
+
+# Time units are in SECONDS, not ticks.
+
+# Where players will spawn in the lobby. If set to "world spawn", this will be the world's actual spawn point.
+lobby spawn: world spawn
+
+# See the README for instructions on how to add worlds.
+worlds: []
+
+# How long players will wait for the game to start after the minimum number of players is reached.
+countdown: 10
+
+# How long, after a game ends, until all players are automatically removed from the world.
+results time: 5
+
+# How long a player must wait between attempts to join games.
+join cooldown: 10
+
+# How long players will be able to roam without taking damage (free roam).
+no damage time: 30
+
+# Amount to reward players for winning.
+reward: 100
+
+random chest: # (care package)
+  interval: 300 # Time interval in between random chest drops.
+  min items: 1 # Minimum amount of items that can be in a random chest. The bonus loot is used.
+  max items: 8 # Maximum amount
+
+tracking stick:
+  name: '&aTracking Stick' # Name of tracking stick, 'Uses: n' is automatically appended
+  lore: [ '&3&oTrack down and finish', '&3&ooff your enemies!' ] # Lore for tracking stick
+  uses: 4 # Uses for the tracking stick
+  basic loot weight: 1 # Weight of stick in chest loot.
+  bonus loot weight: 1 # Weight of stick in bonus loot.
+  give on players left: 4 # Give a tracking stick to every player once this many players are left.
+
+# Blocks that can be broken; they will not drop anything
+breakable blocks:
+  - grass
+  - tall_grass
+  - fern
+  - large_fern
+  - wither_rose
+  - poppy
+  - dandelion
+  - cobweb
+
+# Containers that will use the bonus loot instead of the basic loot
+# As a shortcut, "shulker_boxes" will match all 17 shulker box types
+bonus containers:
+  - trapped_chest
+  - barrel
+  - shulker_boxes
+
+# Kits: can specify armor, items, and potion effects
+kits:
+  archer:
+    helmet: {item: leather_helmet, color: red, name: '&aArcher Helmet', enchantments: {vanishing_curse: 1}}
+    items:
+      - {item: bread, amount: 2, name: '&aGamer Bread'}
+      - {item: bow, name: '&aRobin Hood Bow', enchantments: {vanishing_curse: 1}}
+      - {item: arrow, amount: 8, name: '&aArrow'}
+      - {item: splash_potion, effects: [{type: instant_health, duration: 0, amplifier: 0}], name: '&aSplash Potion of Healing', color: 16121905}
+  warrior:
+    helmet: {item: leather_helmet, color: green, name: '&aWarrior Helmet', enchantments: {vanishing_curse: 1}}
+    items:
+      - {item: bread, amount: 2, name: '&aGamer Bread'}
+      - {item: stone_axe, name: '&aBattle Axe', enchantments: {vanishing_curse: 1}}
+      - {item: splash_potion, effects: [{type: instant_health, duration: 0, amplifier: 0}], name: '&aSplash Potion of Healing', color: 16121905}
+  alchemist:
+    helmet: {item: leather_helmet, color: white, name: '&aAlchemist Helmet', enchantments: {vanishing_curse: 1}}
+    items:
+      - {item: bread, amount: 2, name: '&aGamer Bread'}
+      - {item: blaze_rod, name: '&aMagic Wand', enchantments: {vanishing_curse: 1, knockback: 1}}
+      - {item: splash_potion, amount: 3, ehchantments: {vanishing_curse: 1},
+         effects: [{type: instant_health, duration: 0, amplifier: 0}], name: '&aSplash Potion of Healing', color: 16121905}
+      - {item: splash_potion, amount: 3, ehchantments: {vanishing_curse: 1},
+         effects: [{type: instant_damage, duration: 0, amplifier: 0}], name: '&aSplash Potion of Harming', color: 6554211}
+      - {item: splash_potion, amount: 3, ehchantments: {vanishing_curse: 1},
+         effects: [{type: poison, duration: 280, amplifier: 0}], name: '&aSplash Potion of Potion', color: 6011438}
+  rogue:
+    helmet: {item: leather_helmet, color: black, name: '&aRogue Helmet', enchantments: {binding_curse: 1, vanishing_curse: 1}}
+    effects:
+      - {type: speed, duration: forever, amplifier: 0}
+  tank:
+    helmet: {item: leather_helmet, color: cyan, name: '&aTank Helmet', enchantments: {blast_protection: 1, vanishing_curse: 1}}
+    items:
+      - {item: bread, amount: 6, name: '&aGamer Bread'}
+    effects:
+      - {type: absorption, duration: forever, amplifier: 0}
+      - {type: slowness, duration: forever, amplifier: 0}
+      - {type: resistance, duration: forever, amplifier: 0}
+      - {type: glowing, duration: forever, amplifier: 0}
+
+# More weight -> greater chance of item, default weight is 1
+basic loot:
+  min: 1 # Minimum # of items
+  max: 2 # Maximum
+  entries:
+    - {item: stone_sword, weight: 8}
+    - {item: wooden_sword, weight: 14}
+    - {item: wooden_axe, weight: 8}
+    - {item: golden_sword, weight: 12}
+    - {item: iron_sword, weight: 5}
+    - {item: stone_axe, weight: 7}
+    - {item: stone_hoe, weight: 13}
+    - {item: iron_shovel, weight: 6}
+    - {item: leather_chestplate, weight: 12}
+    - {item: leather_leggings, weight: 14}
+    - {item: chainmail_chestplate, weight: 10}
+    - {item: chainmail_leggings, weight: 10}
+    - {item: chainmail_boots, weight: 10}
+    - {item: iron_helmet, weight: 5}
+    - {item: iron_chestplate, weight: 7}
+    - {item: iron_leggings, weight: 8}
+    - {item: iron_boots, weight: 7}
+    - {item: bow, weight: 16}
+    - {item: arrow, amount: 4, weight: 20}
+    - {item: arrow, amount: 7, weight: 14}
+    - {item: fishing_rod, weight: 13}
+    - {item: golden_helmet, weight: 11}
+    - {item: golden_chestplate, weight: 11}
+    - {item: bone, weight: 22}
+    - {item: golden_leggings, weight: 10}
+    - {item: golden_boots, weight: 12}
+    - {item: snowball, amount: 4, weight: 5}
+    - {item: flint_and_steel, name: '&eFlint and Steel', weight: 2}
+    - {item: cookie, amount: 3, weight: 17}
+    - {item: melon_slice, amount: 2, weight: 18}
+    - {item: melon_slice, amount: 5, weight: 16}
+    - {item: cooked_beef, weight: 16}
+    - {item: cooked_cod, amount: 2, weight: 16}
+    - {item: cooked_salmon, amount: 3, weight: 7}
+    - {item: cooked_chicken, weight: 14}
+    - {item: cooked_porkchop, amount: 2, weight: 14}
+    - {item: golden_carrot, name: '&eGolden Carrot', weight: 3}
+    - {item: golden_carrot, amount: 2, name: '&eGolden Carrot', weight: 2}
+    - {item: apple, amount: 2, weight: 19}
+    - {item: mushroom_stew, weight: 8}
+    - {item: suspicious_stew, name: '&bSuspicious Stew'}
+    - {item: rotten_flesh, amount: 2, weight: 8}
+    - {item: mutton, weight: 9}
+    - {item: cooked_mutton, amount: 2, weight: 6}
+    - {item: chicken, weight: 5}
+    - {item: beef, amount: 2, weight: 8}
+    - {item: porkchop, weight: 13}
+    - {item: cod, weight: 4}
+    - {item: honey_bottle, amount: 2, name: '&eHoney Bottle', weight: 4}
+    - {item: beetroot_soup, weight: 4}
+    - {item: pufferfish}
+    - {item: carrot, amount: 2, weight: 8}
+    - {item: baked_potato, amount: 3, weight: 4}
+    - {item: baked_potato, weight: 13}
+    - {item: rabbit_stew, weight: 2}
+    - {item: pumpkin_pie, amount: 2, weight: 7}
+    - {item: splash_potion, name: '&rSplash Potion of Swiftness', effects: [{type: speed, duration: 180, amplifier: 0}], color: 8446975, weight: 14}
+    - {item: splash_potion, name: '&rSplash Potion of Healing', effects: [{type: instant_health, duration: 0, amplifier: 1}], color: 16121905, weight: 14}
+    - {item: splash_potion, name: '&rSplash Potion of Poison', effects: [{type: poison, duration: 240, amplifier: 0}], color: 6011438, weight: 14}
+    - {item: splash_potion, name: '&rSplash Potion of Regeneration', effects: [{type: regeneration, duration: 120, amplifier: 0}], color: 16744702, weight: 14}
+    - {item: milk_bucket, name: '&bBucket of Milk'}
+    - {item: leather_chestplate, name: '&eEnchanted Leather Chestplate', enchantments: {projectile_protection: 1}, weight: 3}
+    - {item: leather_boots, name: '&eEnchanted Leather Boots', enchantments: {projectile_protection: 1}, weight: 3}
+    - {item: leather_leggings, name: '&eEnchanted Leather Leggings', enchantments: {projectile_protection: 1}, weight: 3}
+    - {item: leather_helmet, name: '&eEnchanted Leather Helmet', enchantments: {projectile_protection: 1}, weight: 2}
+    - {item: stone_sword, name: '&eEnchanted Stone Sword', enchantments: {knockback: 1}, weight: 3}
+    - {item: wooden_sword, name: '&eEnchanted Wooden Sword', enchantments: {sweeping: 2}, weight: 2}
+    - {item: diamond_sword, name: '&d&oSlicer No Slicing', lore: ['&3&oSimple, yet reliable.', '&3&oAlways a solid choice!'],
+       enchantments: {vanishing_curse: 1, sharpness: 1}}
+    - {item: iron_sword, name: '&d&oJudgement Day', lore: ['&3&oA holy blade responsible', '&3&ofor sending the undead', '&3&oback to the underworld.'],
+       enchantments: {vanishing_curse: 1, knockback: 1, smite: 4}}
+    - {item: diamond_chestplate, name: '&d&oSpike Suit', lore: ['&3&oFitted with bamboo pungees', '&3&oto scare your attackers!'],
+       enchantments: {vanishing_curse: 1, thorns: 1}}
+    - {item: golden_leggings, name: '&d&oBlast Pants', lore: ['&3&oThe ultimate TNT-busting power!'],
+       enchantments: {vanishing_curse: 1, blast_protection: 3}}
+    - {item: chainmail_helmet, name: '&d&oFursuit Head', lore: ['&3&oEquipped with eye protection', '&3&oto keep pesky arrows away!'],
+       enchantments: {vanishing_curse: 1, projectile_protection: 2}}
+    - {item: chainmail_boots, name: '&d&oFluffy Feetpaws', lore: ['&3&oSoft and fluffy! Where', '&3&othey lack in defense,', '&3&othey make up for in', '&3&outility.'],
+       enchantments: {vanishing_curse: 1, protection: 1, feather_falling: 3, depth_strider: 2}}
+    - {item: bow, name: '&d&oBig Bad Bow', lore: ['&3&oPainful strikes keep', '&3&oyour enemies away!'],
+       enchantments: {vanishing_curse: 1, punch: 1, power: 1}}
+    - {item: golden_axe, name: '&d&oThe Banhammer', lore: ['&3&oDecisive strikes leave', '&3&oyour enemies &c&oflaming&7!'],
+       enchantments: {vanishing_curse: 1, fire_aspect: 2}}
+    - {item: spectral_arrow, amount: 12, name: '&d&oMagic Arrows', lore: ['&3&oTrack your enemies with', '&3&othese magic arrows!'],
+       enchantments: {vanishing_curse: 1}}
+    - {item: blaze_rod, name: '&d&oStar Rod', lore: ['&3&oThis ancient wand will', '&3&osend your enemies &c&oflying&7!'],
+       enchantments: {vanishing_curse: 1, knockback: 7}}
+    - {item: trident, name: '&d&oNeptune', lore: ['&3&oAgile and nimble,', '&3&olike the ocean itself!'],
+       enchantments: {vanishing_curse: 1, loyalty: 1}}
+    - {item: crossbow, name: '&d&oThe Deputy', lore: ['&3&oA weapon suited', '&3&oonly for a marksman!'],
+       enchantments: {vanishing_curse: 1, piercing: 4}}
+    - {item: tnt, amount: 6, name: '&d&oSticky Bomb', lore: ['&3&oRight click to throw!', '&3&o&mJust make sure you aim it well...'],
+       enchantments: {vanishing_curse: 1}}
+    - {item: enchanted_golden_apple, name: '&6&lThe Forbidden Fruit', lore: ['&3&oCompletely unnecessary, but', '&3&owholly delicious!'],
+       enchantments: {vanishing_curse: 1}}
+    - {item: iron_boots, name: '&d&oSteel-Toe Boots', lore: ['&3&oPeculiar? Yes.', '&3&oUseful? Maybe.'],
+       enchantments: {vanishing_curse: 1, frost_walker: 1}}
+    - {item: tipped_arrow, amount: 4, name: '&d&oBlood Arrows', lore: ['&3&oThese high-powered arrows', '&3&omean business.'],
+       effects: [{type: instant_damage, duration: 0, amplifier: 0}],
+       enchantments: {vanishing_curse: 1}}
+    - {item: tipped_arrow, amount: 4, name: '&d&oSerpent''s Kiss', lore: ['&3&oThese toxic arrows will', '&3&oleave your foe poisoned!'],
+       effects: [{type: poison, duration: 5, amplifier: 0}],
+       enchantments: {vanishing_curse: 1}}
+    - {item: shield, name: '&d&oShield of El Dorado', lore: ['&3&oThe shield of a rather...', '&3&intrepid...adventurer...'],
+       enchantments: {vanishing_curse: 1}}
+    - {item: crossbow, name: '&d&oBuckshot', lore: ['&3&oOne shot, three projectiles.', '&3&oWho can complain?'],
+       enchantments: {vanishing_curse: 1, multishot: 1, quick_charge: 2}}
+    - {item: diamond_axe, name: '&bDiamond Axe'}
+    - {item: diamond_sword, name: '&bDiamond Sword'}
+    - {item: diamond_boots, name: '&bDiamond Boots'}
+    - {item: diamond_leggings, name: '&bDiamond Leggings'}
+    - {item: diamond_helmet, name: '&bDiamond Helmet'}
+    - {item: diamond_chestplate, name: '&bDiamond Chestplate'}
+    - {item: golden_apple, name: '&bGolden Apple'}
+
+bonus loot:
+  min: 1
+  max: 1
+  entries:
+    - {item: diamond_sword, name: '&d&oSlicer No Slicing', lore: ['&3&oSimple, yet reliable.', '&3&oAlways a solid choice!'],
+       enchantments: {vanishing_curse: 1, sharpness: 1}}
+    - {item: iron_sword, name: '&d&oJudgement Day', lore: ['&3&oA holy blade responsible', '&3&ofor sending the undead', '&3&oback to the underworld.'],
+       enchantments: {vanishing_curse: 1, knockback: 1, smite: 4}}
+    - {item: diamond_chestplate, name: '&d&oSpike Suit', lore: ['&3&oFitted with bamboo pungees', '&3&oto scare your attackers!'],
+       enchantments: {vanishing_curse: 1, thorns: 1}}
+    - {item: golden_leggings, name: '&d&oBlast Pants', lore: ['&3&oThe ultimate TNT-busting power!'],
+       enchantments: {vanishing_curse: 1, blast_protection: 3}}
+    - {item: chainmail_helmet, name: '&d&oFursuit Head', lore: ['&3&oEquipped with eye protection', '&3&oto keep pesky arrows away!'],
+       enchantments: {vanishing_curse: 1, projectile_protection: 2}}
+    - {item: chainmail_boots, name: '&d&oFluffy Feetpaws', lore: ['&3&oSoft and fluffy! Where', '&3&othey lack in defense,', '&3&othey make up for in', '&3&outility.'],
+       enchantments: {vanishing_curse: 1, protection: 1, feather_falling: 3, depth_strider: 2}}
+    - {item: bow, name: '&d&oBig Bad Bow', lore: ['&3&oPainful strikes keep', '&3&oyour enemies away!'],
+       enchantments: {vanishing_curse: 1, punch: 1, power: 1}}
+    - {item: golden_axe, name: '&d&oThe Banhammer', lore: ['&3&oDecisive strikes leave', '&3&oyour enemies &c&oflaming&7!'],
+       enchantments: {vanishing_curse: 1, fire_aspect: 2}}
+    - {item: spectral_arrow, amount: 12, name: '&d&oMagic Arrows', lore: ['&3&oTrack your enemies with', '&3&othese magic arrows!'],
+       enchantments: {vanishing_curse: 1}}
+    - {item: blaze_rod, name: '&d&oStar Rod', lore: ['&3&oThis ancient wand will', '&3&osend your enemies &c&oflying&7!'],
+       enchantments: {vanishing_curse: 1, knockback: 7}}
+    - {item: trident, name: '&d&oNeptune', lore: ['&3&oAgile and nimble,', '&3&olike the ocean itself!'],
+       enchantments: {vanishing_curse: 1, loyalty: 1}}
+    - {item: crossbow, name: '&d&oThe Deputy', lore: ['&3&oA weapon suited', '&3&oonly for a marksman!'],
+       enchantments: {vanishing_curse: 1, piercing: 4}}
+    - {item: tnt, amount: 6, name: '&d&oSticky Bomb', lore: ['&3&oRight click to throw!', '&3&o&mJust make sure you aim it well...'],
+       enchantments: {vanishing_curse: 1}}
+    - {item: enchanted_golden_apple, name: '&6&lThe Forbidden Fruit', lore: ['&3&oCompletely unnecessary, but', '&3&owholly delicious!'],
+       enchantments: {vanishing_curse: 1}}
+    - {item: iron_boots, name: '&d&oSteel-Toe Boots', lore: ['&3&oPeculiar? Yes.', '&3&oUseful? Maybe.'],
+       enchantments: {vanishing_curse: 1, frost_walker: 1}}
+    - {item: tipped_arrow, amount: 4, name: '&d&oBlood Arrows', lore: ['&3&oThese high-powered arrows', '&3&omean business.'],
+       effects: [{type: instant_damage, duration: 0, amplifier: 0}],
+       enchantments: {vanishing_curse: 1}}
+    - {item: tipped_arrow, amount: 4, name: '&d&oSerpent''s Kiss', lore: ['&3&oThese toxic arrows will', '&3&oleave your foe poisoned!'],
+       effects: [{type: poison, duration: 5, amplifier: 0}],
+       enchantments: {vanishing_curse: 1}}
+    - {item: shield, name: '&d&oShield of El Dorado', lore: ['&3&oThe shield of a rather...', '&3&intrepid...adventurer...'],
+       enchantments: {vanishing_curse: 1}}
+    - {item: crossbow, name: '&d&oBuckshot', lore: ['&3&oOne shot, three projectiles.', '&3&oWho can complain?'],
+       enchantments: {vanishing_curse: 1, multishot: 1, quick_charge: 2}}
+    - {item: diamond_axe, name: '&bDiamond Axe'}
+    - {item: diamond_sword, name: '&bDiamond Sword'}
+    - {item: diamond_boots, name: '&bDiamond Boots'}
+    - {item: diamond_leggings, name: '&bDiamond Leggings'}
+    - {item: diamond_helmet, name: '&bDiamond Helmet'}
+    - {item: diamond_chestplate, name: '&bDiamond Chestplate'}
+    - {item: golden_apple, name: '&bGolden Apple'}

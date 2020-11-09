@@ -1,0 +1,53 @@
+chat:
+  cooldown: "&cPlease wait before entering another game."
+  joining: "&eJoining &f%s&e..."
+
+  join: "%s&e has joined the game."
+  leave: "%s&6 has left the game."
+  death: "%s&c has died."
+
+  countdown: "&eThe game will start in &f%d&e seconds..."
+  countdown cancelled: "&eToo few players to start.&6 Waiting for more."
+
+  refill: "&eChests have been refilled."
+
+  start: "&eThe game has begun!&6 You have &f%d&6 seconds to roam without taking damage!"
+  damage enabled: "&6You can now take damage."
+  random chest drop: "&eA care package has dropped at &f%d, %d"
+  tracking stick obtain: "&eYou have been given a tracking stick!&6 Click to track players!"
+  tracking stick locate: "%s&b is &f%d&b blocks away at &f%d, %d, %d"
+  tracking stick empty: "&cThis tracking stick is out of uses!"
+  border: "&eThe border is coming!&6 You have &f%d&6 seconds to get to the center of the arena!"
+  winner: "&f%s&a is the winner!"
+  draw: "&cThe game ended in a draw."
+  reward: "&cYou won &a%d&c coins for winning!"
+  kit prompt: "&bSelect a kit using &f/sg kit <kit name>"
+  kit select: "&6You selected the &f%s&6 kit."
+  kit remove: "&6You removed your kit."
+
+boss bar:
+  waiting: "&7Waiting for at least &f%d&7 more players."
+  countdown: "&aGame starts in &f%d&a seconds"
+  no damage: "&6Damage is enabled in &f%d&6 seconds"
+  active: "&bGame ends in &f%d&bm &f%d&bs"
+  winner: "&aGame won by &f%s"
+  draw: "&7No one won"
+
+lobby:
+  empty: "&7Empty"
+  waiting: "&bWaiting"
+  starting: "&dStarting"
+  active: "&6Active"
+  complete: "&aComplete"
+
+  more needed: "%d&b more players needed"
+  space left: "%d&d more players can join"
+  alive: "%d&6 tributes remaining"
+  winner: "&aWon by &f%s"
+
+  click: "&lClick to join"
+  spectate: "Click to spectate"
+
+title:
+  death: "&c&lYOU DIED!"
+  killer: "&cKilled by &f%s"
