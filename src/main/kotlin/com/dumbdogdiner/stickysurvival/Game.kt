@@ -267,6 +267,10 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
         world.broadcastSound(Sound.BLOCK_NOTE_BLOCK_HAT, 1F, 1F)
     }
 
+    fun forceStartGame() {
+        beginStartCountdown()
+    }
+
     fun startGame() {
         countdown = noDamageTime
 

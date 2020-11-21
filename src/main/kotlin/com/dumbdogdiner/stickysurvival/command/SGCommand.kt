@@ -77,6 +77,13 @@ class SGCommand(pluginInstance: StickySurvival) : AsyncCommand("survivalgames", 
             args.matches("kit", ANY) -> sgKit(sender, args[1])
             args.matches("kits") -> sgKits(sender)
             args.matches("reload") -> sgReload(sender)
+            args.matches("forcestart") -> {
+                if (!sender.isOp) return ExitCode.EXIT_PERMISSION_DENIED
+                if (sender !is Player) return ExitCode.EXIT_MUST_BE_PLAYER
+                val game = sender.world.game ?: return ExitCode.EXIT_INVALID_STATE
+                schedule { game.forceStartGame() }
+                return ExitCode.EXIT_SUCCESS
+            }
 
             else -> ExitCode.EXIT_INVALID_SYNTAX
         }
