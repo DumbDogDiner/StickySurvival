@@ -440,11 +440,9 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
         for (inventory in inventories) {
             val loc = inventory.location ?: location
             var i = filledChests[loc] ?: 0
-            var j = 0
             while (i < refillCount) {
                 loot.insertItems(inventory)
                 i += 1
-                j += 1
             }
             filledChests[loc] = refillCount
         }
