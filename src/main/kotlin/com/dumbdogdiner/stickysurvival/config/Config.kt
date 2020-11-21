@@ -106,7 +106,7 @@ class Config(
         cfg["bonus containers"].map { container ->
             val name = container.asString()
             if (name == "shulker_boxes") {
-                Material.values().filter { it.key.key.endsWith("_shulker_box") }
+                Material.values().filter { it.key.key.endsWith("shulker_box") }
             } else {
                 listOf(getKeyed(name))
             }

@@ -34,7 +34,6 @@ import com.dumbdogdiner.stickysurvival.util.broadcastMessage
 import com.dumbdogdiner.stickysurvival.util.broadcastSound
 import com.dumbdogdiner.stickysurvival.util.freeze
 import com.dumbdogdiner.stickysurvival.util.hasJoinPermission
-import com.dumbdogdiner.stickysurvival.util.info
 import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.reset
 import com.dumbdogdiner.stickysurvival.util.safeFormat
