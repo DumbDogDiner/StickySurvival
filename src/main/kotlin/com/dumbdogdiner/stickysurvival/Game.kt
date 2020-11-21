@@ -446,7 +446,6 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
                 i += 1
                 j += 1
             }
-            info("Refilled @ $loc $j times")
             filledChests[loc] = refillCount
         }
     }
