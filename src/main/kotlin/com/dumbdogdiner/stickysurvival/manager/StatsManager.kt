@@ -26,10 +26,10 @@ import java.util.UUID
 
 object StatsManager {
     private val players = mutableMapOf<UUID, PlayerStats>()
-    private val wins = TopStats.load("wins", PlayerStats::wins)
-    private val losses = TopStats.load("losses", PlayerStats::losses)
-    private val kills = TopStats.load("kills", PlayerStats::kills)
-    private val games = TopStats.load("games", PlayerStats::games)
+    private val wins = TopStats.load("wins") { it.wins }
+    private val losses = TopStats.load("losses") { it.losses }
+    private val kills = TopStats.load("kills") { it.kills }
+    private val games = TopStats.load("games") { it.games }
 
     fun load(player: Player) {
         val id = profileId(player)

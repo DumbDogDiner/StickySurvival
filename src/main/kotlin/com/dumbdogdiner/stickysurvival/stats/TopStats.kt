@@ -27,7 +27,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import org.bukkit.Bukkit
 import java.util.UUID
-import kotlin.reflect.KProperty
 
 class TopStats private constructor(val name: String) {
     private val collection = mutableListOf<Pair<UUID, Long>>()
@@ -91,7 +90,7 @@ class TopStats private constructor(val name: String) {
         private fun findFile(name: String) =
             StickySurvival.instance.dataFolder.resolve("stats").resolve("top").also { it.mkdirs() }.resolve("$name.dat")
 
-        private fun restoreStats(name: String, field: KProperty<Long>): MutableList<Pair<UUID, Long>>? {
+        private fun restoreStats(name: String, field: (PlayerStats) -> Long): MutableList<Pair<UUID, Long>>? {
             val folders = StickySurvival.instance.dataFolder.resolve("stats").also { it.mkdirs() }.listFiles()
             if (folders == null) {
                 warn("Could not restore stats for $name: couldn't ls the stats folder")
@@ -109,13 +108,13 @@ class TopStats private constructor(val name: String) {
                 it.asSequence()
             }.map {
                 val uuid = UUID.fromString(it.substringBeforeLast(".dat"))
-                uuid to field.call(PlayerStats.load(uuid))
+                uuid to field.invoke(PlayerStats.load(uuid))
             }.toMutableList().apply {
                 sortByDescending { (_, stat) -> stat }
             }
         }
 
-        fun load(name: String, field: KProperty<Long>): TopStats {
+        fun load(name: String, field: (PlayerStats) -> Long): TopStats {
             val file = findFile(name)
             if (!file.exists()) {
                 // i noticed while testing that my leaderboard went empty once (not deleted, just empty).
