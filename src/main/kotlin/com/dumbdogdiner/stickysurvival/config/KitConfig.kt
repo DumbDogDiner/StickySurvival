@@ -36,12 +36,12 @@ class KitConfig(
 ) {
     constructor(name: String, cfg: ConfigHelper) : this(
         name,
-        cfg["helmet"].maybe(::itemFromConfig),
-        cfg["chestplate"].maybe(::itemFromConfig),
-        cfg["leggings"].maybe(::itemFromConfig),
-        cfg["boots"].maybe(::itemFromConfig),
-        cfg["items"].maybeGet()?.map(::itemFromConfig) ?: emptyList(),
-        cfg["effects"].maybeGet()?.map(::effectFromConfig) ?: emptyList(),
+        cfg["helmet"].maybe { itemFromConfig(it) },
+        cfg["chestplate"].maybe { itemFromConfig(it) },
+        cfg["leggings"].maybe { itemFromConfig(it) },
+        cfg["boots"].maybe { itemFromConfig(it) },
+        cfg["items"].maybeGet()?.map { itemFromConfig(it) } ?: emptyList(),
+        cfg["effects"].maybeGet()?.map { effectFromConfig(it) } ?: emptyList(),
     )
 
     fun giveTo(player: Player) {

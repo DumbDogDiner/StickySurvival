@@ -57,7 +57,7 @@ object WorldManager {
     val lobbyWorld: World = Bukkit.getWorldContainer().resolve("server.properties").reader().use { reader ->
         val properties = Properties().apply { load(reader) }
         val levelName = properties["level-name"] as? String
-        levelName?.let(Bukkit::getWorld) ?: Bukkit.getWorlds().first()
+        levelName?.let { Bukkit.getWorld(it) } ?: Bukkit.getWorlds().first()
     }
 
     fun playerJoinCooldownExists(player: Player) = when (val lastJoinTime = lastJoinTimes[player]) {

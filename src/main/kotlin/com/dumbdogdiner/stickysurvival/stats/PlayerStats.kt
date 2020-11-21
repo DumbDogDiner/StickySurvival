@@ -25,7 +25,6 @@ import de.tr7zw.nbtapi.NBTContainer
 import de.tr7zw.nbtapi.NBTFile
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
-import java.io.File
 import java.util.UUID
 
 data class PlayerStats(val uuid: UUID, val kills: Long, val wins: Long, val losses: Long) {
@@ -58,7 +57,7 @@ data class PlayerStats(val uuid: UUID, val kills: Long, val wins: Long, val loss
             StickySurvival.instance.dataFolder
                 .resolve("stats")
                 .resolve(uuid.toString().take(2))
-                .apply(File::mkdirs)
+                .also { it.mkdirs() }
                 .resolve("$uuid.dat")
 
         fun load(playerId: UUID): PlayerStats {

@@ -66,7 +66,7 @@ fun itemFromConfig(cfg: ConfigHelper): ItemStack {
     }
     cfg["effects"].maybe { effects ->
         if (itemMeta is PotionMeta) {
-            for (effect in effects.map(::effectFromConfig)) {
+            for (effect in effects.map { effectFromConfig(it) }) {
                 itemMeta.addCustomEffect(effect, true)
             }
         }

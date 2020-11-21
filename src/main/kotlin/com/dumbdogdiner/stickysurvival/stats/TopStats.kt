@@ -26,7 +26,6 @@ import de.tr7zw.nbtapi.NBTFile
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import org.bukkit.Bukkit
-import java.io.File
 import java.util.UUID
 import kotlin.reflect.KProperty
 
@@ -90,10 +89,10 @@ class TopStats private constructor(val name: String) {
         private val restoreStatsFolderRegex = Regex("^[0-9a-f][0-9a-f]$")
 
         private fun findFile(name: String) =
-            StickySurvival.instance.dataFolder.resolve("stats").resolve("top").apply(File::mkdirs).resolve("$name.dat")
+            StickySurvival.instance.dataFolder.resolve("stats").resolve("top").also { it.mkdirs() }.resolve("$name.dat")
 
         private fun restoreStats(name: String, field: KProperty<Long>): MutableList<Pair<UUID, Long>>? {
-            val folders = StickySurvival.instance.dataFolder.resolve("stats").apply(File::mkdirs).listFiles()
+            val folders = StickySurvival.instance.dataFolder.resolve("stats").also { it.mkdirs() }.listFiles()
             if (folders == null) {
                 warn("Could not restore stats for $name: couldn't ls the stats folder")
                 return null
