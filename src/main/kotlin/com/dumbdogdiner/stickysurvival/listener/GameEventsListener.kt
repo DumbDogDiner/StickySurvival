@@ -215,12 +215,12 @@ object GameEventsListener : Listener {
     @EventHandler
     fun onPlayerInteract(event: PlayerInteractEvent) {
         val player = event.player
-        val item = event.item ?: return
         val game = player.world.game ?: return
-        if (event.player.type == EntityType.PLAYER && !game.playerIsTribute(event.player)) {
+        if (!game.playerIsTribute(event.player)) {
             event.isCancelled = true // spectators may not interact
             return
         }
+        val item = event.item ?: return
         game.useTrackingStick(player, item)
     }
 
