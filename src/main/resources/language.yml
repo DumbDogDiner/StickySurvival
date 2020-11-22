@@ -20,7 +20,7 @@ chat:
   border: "&eThe border is coming!&6 You have &f%d&6 seconds to get to the center of the arena!"
   winner: "&f%s&a is the winner!"
   draw: "&cThe game ended in a draw."
-  reward: "&cYou won &a%d&c coins for winning!"
+  reward: "&cYou won &a%s&c coins for winning!"
   kit prompt: "&bSelect a kit using &f/sg kit <kit name>"
   kit select: "&6You selected the &f%s&6 kit."
   kit remove: "&6You removed your kit."

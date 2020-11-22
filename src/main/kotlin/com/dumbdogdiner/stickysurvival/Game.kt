@@ -65,6 +65,7 @@ import org.bukkit.persistence.PersistentDataType
 import org.bukkit.util.Vector
 import java.util.WeakHashMap
 import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
 class Game(val world: World, val config: WorldConfig, private val hologram: LobbyHologram) {
     enum class Phase { WAITING, ACTIVE, COMPLETE }
@@ -413,7 +414,7 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
 
         if (winner0 != null) {
             StickySurvival.economy?.depositPlayer(winner0, settings.reward)
-            winner0.sendMessage(messages.chat.reward.safeFormat(settings.reward))
+            winner0.sendMessage(messages.chat.reward.safeFormat(if (settings.reward== settings.reward.roundToLong().toDouble()) settings.reward.toLong() else settings.reward))
         }
 
         phase = Phase.COMPLETE
