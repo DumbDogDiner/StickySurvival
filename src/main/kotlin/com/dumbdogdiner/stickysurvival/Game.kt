@@ -414,7 +414,7 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
 
         if (winner0 != null) {
             StickySurvival.economy?.depositPlayer(winner0, settings.reward)
-            winner0.sendMessage(messages.chat.reward.safeFormat(if (settings.reward== settings.reward.roundToLong().toDouble()) settings.reward.toLong() else settings.reward))
+            winner0.sendMessage(messages.chat.reward.safeFormat(if (settings.reward == settings.reward.roundToLong().toDouble()) settings.reward.toLong() else settings.reward))
         }
 
         phase = Phase.COMPLETE
