@@ -58,7 +58,7 @@ class TimerRunnable(game: Game) : GameRunnable(game) {
                     } else {
                         game.checkForWinner()
                         if (game.winner == null) game.endAsDraw()
-                        cancel()
+                        safelyCancel()
                     }
                 }
             }
@@ -68,7 +68,7 @@ class TimerRunnable(game: Game) : GameRunnable(game) {
                     "Countdown was still running after the game was completed, which shouldn't happen, but won't" +
                         "cause any issues. Cancelling the countdown now."
                 )
-                cancel()
+                safelyCancel()
             }
         }
     }
