@@ -133,10 +133,9 @@ object GameEventsListener : Listener {
     @EventHandler
     fun onPlayerMove(event: PlayerMoveEvent) {
         val config = (event.player.world.game ?: return).config
-        // keep players in bounds
+        // keep players in bounds (intentionally ignore y bounds)
         val newLocation = event.player.location.apply {
             x = x.coerceIn(config.xBounds)
-            y = y.coerceIn(config.yBounds)
             z = z.coerceIn(config.zBounds)
         }
         if (newLocation != event.player.location) {
