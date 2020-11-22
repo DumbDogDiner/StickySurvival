@@ -233,6 +233,8 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
         world.broadcastMessage(messages.chat.join.safeFormat(player.name))
         player.sendMessage(messages.chat.kitPrompt)
 
+        setKit(player, settings.kits.random())
+
         if (tributes.size >= config.minPlayers && countdown == -1) {
             beginStartCountdown()
         }
@@ -503,12 +505,6 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
 
     fun setKit(player: Player, kit: KitConfig) {
         kits[player] = kit
-        player.sendMessage(messages.chat.kitSelect.safeFormat(kit.name))
-    }
-
-    fun removeKit(player: Player) {
-        kits -= player
-        player.sendMessage(messages.chat.kitRemove)
     }
 
     fun killsFor(player: Player) = kills[player] ?: 0

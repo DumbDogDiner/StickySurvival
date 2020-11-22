@@ -20,6 +20,7 @@ package com.dumbdogdiner.stickysurvival.command
 
 import com.dumbdogdiner.stickyapi.bukkit.command.AsyncCommand
 import com.dumbdogdiner.stickyapi.bukkit.command.ExitCode
+import com.dumbdogdiner.stickysurvival.Game
 import com.dumbdogdiner.stickysurvival.StickySurvival
 import com.dumbdogdiner.stickysurvival.manager.WorldManager
 import com.dumbdogdiner.stickysurvival.util.game
@@ -29,6 +30,8 @@ import com.dumbdogdiner.stickysurvival.util.hasKitPermission
 import com.dumbdogdiner.stickysurvival.util.hasKitsPermission
 import com.dumbdogdiner.stickysurvival.util.hasLeavePermission
 import com.dumbdogdiner.stickysurvival.util.hasReloadPermission
+import com.dumbdogdiner.stickysurvival.util.messages
+import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.schedule
 import com.dumbdogdiner.stickysurvival.util.settings
 import com.dumbdogdiner.stickysurvival.util.waitFor
@@ -73,7 +76,6 @@ class SGCommand(pluginInstance: StickySurvival) : AsyncCommand("survivalgames", 
         return when {
             args.matches("join", ANY) -> sgJoin(sender, args[1])
             args.matches("leave") -> sgLeave(sender)
-            args.matches("kit") -> sgKit(sender, null)
             args.matches("kit", ANY) -> sgKit(sender, args[1])
             args.matches("kits") -> sgKits(sender)
             args.matches("reload") -> sgReload(sender)
@@ -136,7 +138,7 @@ class SGCommand(pluginInstance: StickySurvival) : AsyncCommand("survivalgames", 
         }
     }
 
-    private fun sgKit(sender: CommandSender, kitName: String?): ExitCode {
+    private fun sgKit(sender: CommandSender, kitName: String): ExitCode {
         return when {
             !sender.hasKitPermission()
             -> ExitCode.EXIT_PERMISSION_DENIED
@@ -145,14 +147,12 @@ class SGCommand(pluginInstance: StickySurvival) : AsyncCommand("survivalgames", 
 
             else -> {
                 val game = sender.world.game ?: return ExitCode.EXIT_INVALID_STATE
-                if (kitName == null) {
-                    game.removeKit(sender)
-                } else {
-                    val kit = settings.kits.find {
-                        it.name == kitName
-                    } ?: return ExitCode.EXIT_INVALID_SYNTAX
-                    game.setKit(sender, kit)
-                }
+                if (game.phase != Game.Phase.WAITING) return ExitCode.EXIT_INVALID_STATE
+                val kit = settings.kits.find {
+                    it.name == kitName
+                } ?: return ExitCode.EXIT_INVALID_SYNTAX
+                game.setKit(sender, kit)
+                sender.sendMessage(messages.chat.kitSelect.safeFormat(kit.name))
                 ExitCode.EXIT_SUCCESS
             }
         }
