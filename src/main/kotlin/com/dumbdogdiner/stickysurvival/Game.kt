@@ -336,13 +336,13 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
         tributes -= player
         logTributes()
 
-        player.spectate()
-
         for (item in player.inventory) {
             if (item != null && !item.containsEnchantment(Enchantment.VANISHING_CURSE)) {
                 world.dropItemNaturally(player.location, item)
             }
         }
+
+        player.spectate()
 
         player.sendTitle(Title(messages.title.death, killerMessage))
         world.broadcastMessage(messages.chat.death.safeFormat(player.name))
