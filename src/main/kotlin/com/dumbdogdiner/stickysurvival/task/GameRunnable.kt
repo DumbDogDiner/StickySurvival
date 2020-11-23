@@ -40,6 +40,10 @@ abstract class GameRunnable(protected val game: Game) : BukkitRunnable() {
         runTaskTimer(StickySurvival.instance, delay * 20, period * 20)
     }
 
+    fun runEveryTick() {
+        runTaskTimer(StickySurvival.instance, 0, 1)
+    }
+
     fun safelyCancel() {
         val id = try {
             taskId

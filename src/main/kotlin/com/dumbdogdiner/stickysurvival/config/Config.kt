@@ -22,14 +22,12 @@ import com.dumbdogdiner.stickysurvival.StickySurvival
 import com.dumbdogdiner.stickysurvival.manager.WorldManager
 import com.dumbdogdiner.stickysurvival.util.getKeyed
 import com.dumbdogdiner.stickysurvival.util.substituteAmpersand
-import com.dumbdogdiner.stickysurvival.util.trackingStickKey
-import com.dumbdogdiner.stickysurvival.util.trackingStickName
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.inventory.ItemStack
-import org.bukkit.persistence.PersistentDataType
+import org.bukkit.inventory.meta.CompassMeta
 
 class Config(
     val worldConfigs: Map<String, WorldConfig>,
@@ -40,12 +38,10 @@ class Config(
     val randomChestInterval: Long,
     randomChestLootMin: Int,
     randomChestLootMax: Int,
-    val trackingStickName: String,
-    trackingStickLore: List<String>,
-    trackingStickUses: Int,
-    trackingStickBasicWeight: Int,
-    trackingStickBonusWeight: Int,
-    val trackingStickPlayersLeft: Int,
+    trackingCompassName: String,
+    trackingCompassLore: List<String>,
+    trackingCompassBasicWeight: Int,
+    trackingCompassBonusWeight: Int,
     val resultsTime: Long,
     val joinCooldown: Long,
     val breakableBlocks: Set<Material>,
@@ -57,11 +53,10 @@ class Config(
 ) {
     val randomChestLoot = LootConfig(randomChestLootMin, randomChestLootMax, basicLoot.entries)
 
-    val trackingStick = ItemStack(Material.STICK).also { item ->
-        item.lore = trackingStickLore.map { it.substituteAmpersand() }
-        item.itemMeta = item.itemMeta.also { meta ->
-            meta.persistentDataContainer.set(trackingStickKey, PersistentDataType.INTEGER, trackingStickUses)
-            meta.setDisplayName(trackingStickName(trackingStickUses, this))
+    private val trackingCompass = ItemStack(Material.COMPASS).also { item ->
+        item.lore = trackingCompassLore.map { it.substituteAmpersand() }
+        item.itemMeta = (item.itemMeta as CompassMeta).also { meta ->
+            meta.setDisplayName(trackingCompassName.substituteAmpersand())
         }
     }
 
@@ -92,12 +87,10 @@ class Config(
         cfg["random chest"]["interval"].asLong(),
         cfg["random chest"]["min items"].asInt(),
         cfg["random chest"]["max items"].asInt(),
-        cfg["tracking stick"]["name"].asString(),
-        cfg["tracking stick"]["lore"].map { it.asString() },
-        cfg["tracking stick"]["uses"].asInt(),
-        cfg["tracking stick"]["basic loot weight"].asInt(),
-        cfg["tracking stick"]["bonus loot weight"].asInt(),
-        cfg["tracking stick"]["give on players left"].asInt(),
+        cfg["tracking compass"]["name"].asString(),
+        cfg["tracking compass"]["lore"].map { it.asString() },
+        cfg["tracking compass"]["basic loot weight"].asInt(),
+        cfg["tracking compass"]["bonus loot weight"].asInt(),
         cfg["results time"].asLong(),
         cfg["join cooldown"].asLong(),
         cfg["breakable blocks"].map {
@@ -124,14 +117,14 @@ class Config(
 
     val basicLoot = basicLoot.let {
         val entries = it.entries.toMutableList().apply {
-            repeat(trackingStickBasicWeight) { add(trackingStick) }
+            repeat(trackingCompassBasicWeight) { add(trackingCompass) }
         }
         LootConfig(it.min, it.max, entries)
     }
 
     val bonusLoot = bonusLoot.let {
         val entries = it.entries.toMutableList().apply {
-            repeat(trackingStickBonusWeight) { add(trackingStick) }
+            repeat(trackingCompassBonusWeight) { add(trackingCompass) }
         }
         LootConfig(it.min, it.max, entries)
     }

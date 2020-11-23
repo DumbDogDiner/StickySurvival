@@ -30,6 +30,7 @@ import com.dumbdogdiner.stickysurvival.task.AutoQuitRunnable
 import com.dumbdogdiner.stickysurvival.task.ChestRefillRunnable
 import com.dumbdogdiner.stickysurvival.task.RandomDropRunnable
 import com.dumbdogdiner.stickysurvival.task.TimerRunnable
+import com.dumbdogdiner.stickysurvival.task.TrackingCompassRunnable
 import com.dumbdogdiner.stickysurvival.util.broadcastMessage
 import com.dumbdogdiner.stickysurvival.util.broadcastSound
 import com.dumbdogdiner.stickysurvival.util.freeze
@@ -39,8 +40,6 @@ import com.dumbdogdiner.stickysurvival.util.reset
 import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.settings
 import com.dumbdogdiner.stickysurvival.util.spectate
-import com.dumbdogdiner.stickysurvival.util.trackingStickKey
-import com.dumbdogdiner.stickysurvival.util.trackingStickName
 import com.dumbdogdiner.stickysurvival.util.warn
 import com.google.common.collect.HashBiMap
 import org.bukkit.Bukkit
@@ -60,11 +59,8 @@ import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.DoubleChestInventory
 import org.bukkit.inventory.Inventory
-import org.bukkit.inventory.ItemStack
-import org.bukkit.persistence.PersistentDataType
 import org.bukkit.util.Vector
 import java.util.WeakHashMap
-import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
 class Game(val world: World, val config: WorldConfig, private val hologram: LobbyHologram) {
@@ -77,6 +73,7 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
     private val randomDrop = RandomDropRunnable(this)
     private val chestRefill = ChestRefillRunnable(this)
     private val autoQuit = AutoQuitRunnable(this)
+    private val trackingCompass = TrackingCompassRunnable(this)
 
     // Player metadata
     private val kills = WeakHashMap<Player, Int>()
@@ -290,6 +287,8 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
             chestRefill.runTaskTimer(config.chestRefill, config.chestRefill)
         }
 
+        trackingCompass.runEveryTick()
+
         logTributes()
 
         phase = Phase.ACTIVE
@@ -327,6 +326,7 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
         randomDrop.safelyCancel()
         autoQuit.safelyCancel()
         chestRefill.safelyCancel()
+        trackingCompass.safelyCancel()
         WorldManager.unloadGame(this)
     }
 
@@ -351,13 +351,6 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
         world.broadcastMessage(messages.chat.death.safeFormat(player.name))
         world.broadcastSound(Vector(0, 20, 0), Sound.ENTITY_GENERIC_EXPLODE, 4F, 0.75F)
         updateDisplays()
-
-        if (getTributesLeft() == settings.trackingStickPlayersLeft) {
-            world.broadcastMessage(messages.chat.trackingStickObtain)
-            for (tribute in tributes) {
-                tribute.inventory.addItem(settings.trackingStick)
-            }
-        }
 
         checkForWinner()
     }
@@ -515,26 +508,5 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
 
     private fun logTributes() {
         tributeLog += "${tributes.joinToString()} at ${Bukkit.getServer().currentTick}"
-    }
-
-    fun useTrackingStick(player: Player, stick: ItemStack) {
-        val uses = stick.itemMeta.persistentDataContainer.get(trackingStickKey, PersistentDataType.INTEGER) ?: return
-        if (uses == 0) {
-            player.sendMessage(messages.chat.trackingStickEmpty)
-        } else {
-            stick.itemMeta = stick.itemMeta.apply {
-                persistentDataContainer.set(trackingStickKey, PersistentDataType.INTEGER, uses - 1)
-                setDisplayName(trackingStickName(uses - 1))
-            }
-            val location = player.location
-            val nearestPlayer = tributes.asSequence()
-                .filter { it != player }
-                .minByOrNull { it.location.distanceSquared(location) }
-            if (nearestPlayer != null) {
-                val dist = nearestPlayer.location.distance(location).roundToInt()
-                val (x, y, z) = nearestPlayer.location.run { listOf(x, y, z) }.map { it.roundToInt() }
-                player.sendMessage(messages.chat.trackingStickLocate.safeFormat(nearestPlayer.name, dist, x, y, z))
-            }
-        }
     }
 }

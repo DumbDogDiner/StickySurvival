@@ -28,13 +28,11 @@ random chest: # (care package)
   min items: 1 # Minimum amount of items that can be in a random chest. The bonus loot is used.
   max items: 8 # Maximum amount
 
-tracking stick:
-  name: '&aTracking Stick' # Name of tracking stick, 'Uses: n' is automatically appended
-  lore: [ '&3&oTrack down and finish', '&3&ooff your enemies!' ] # Lore for tracking stick
-  uses: 4 # Uses for the tracking stick
-  basic loot weight: 1 # Weight of stick in chest loot.
-  bonus loot weight: 1 # Weight of stick in bonus loot.
-  give on players left: 4 # Give a tracking stick to every player once this many players are left.
+tracking compass:
+  name: '&aTracking Compass' # Name of tracking compass
+  lore: [ '&3&oTrack down and finish', '&3&ooff your enemies!' ] # Lore for tracking compass
+  basic loot weight: 1 # Weight of compass in chest loot.
+  bonus loot weight: 1 # Weight of compass in bonus loot.
 
 # Blocks that can be broken; they will not drop anything
 breakable blocks:

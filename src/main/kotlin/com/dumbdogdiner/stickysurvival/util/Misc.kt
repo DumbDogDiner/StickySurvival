@@ -134,10 +134,6 @@ val messages
 val worlds
     get() = settings.worldConfigs
 
-val trackingStickKey = NamespacedKey(StickySurvival.instance, "tracking_stick")
-
-fun trackingStickName(uses: Int, config: Config = settings) = "${config.trackingStickName}&r Uses: $uses".substituteAmpersand()
-
 fun <T> newWeakSet(): MutableSet<T> = Collections.newSetFromMap(WeakHashMap<T, Boolean>())
 
 @Suppress("unchecked_cast")

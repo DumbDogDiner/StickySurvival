@@ -218,10 +218,7 @@ object GameEventsListener : Listener {
         val game = player.world.game ?: return
         if (!game.playerIsTribute(event.player)) {
             event.isCancelled = true // spectators may not interact
-            return
         }
-        val item = event.item ?: return
-        game.useTrackingStick(player, item)
     }
 
     @EventHandler
