@@ -96,6 +96,11 @@ class LobbyHologram(val worldName: String) {
 
     fun update() {
         val game = WorldManager.getLoadedGame(worldName)
+        val areChunksForceLoaded = BooleanArray(armorStands.size)
+        for ((i, armorStand) in armorStands.withIndex()) {
+            areChunksForceLoaded[i] = armorStand.chunk.isForceLoaded
+            armorStand.chunk.isForceLoaded = true
+        }
         if (game != null) {
             val tributesLeft = game.getTributesLeft()
             val spaceLeft = game.getSpaceLeft()
@@ -137,5 +142,8 @@ class LobbyHologram(val worldName: String) {
             armorStand4.customName = messages.lobby.click
         }
         armorStand3.isCustomNameVisible = armorStand3.customName != null
+        for ((i, armorStand) in armorStands.withIndex()) {
+            armorStand.chunk.isForceLoaded = areChunksForceLoaded[i]
+        }
     }
 }
