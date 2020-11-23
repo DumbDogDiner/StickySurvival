@@ -24,38 +24,42 @@ import org.bukkit.Bukkit
 import org.bukkit.scheduler.BukkitRunnable
 
 abstract class GameRunnable(protected val game: Game) : BukkitRunnable() {
-    fun runTask() {
+    fun maybeRunTask() = ifNotScheduled {
         runTask(StickySurvival.instance)
     }
 
-    fun runTaskAsync() {
+    fun maybeRunTaskAsync() = ifNotScheduled {
         runTaskAsynchronously(StickySurvival.instance)
     }
 
-    fun runTaskLater(delay: Long) {
+    fun maybeRunTaskLater(delay: Long) = ifNotScheduled {
         runTaskLater(StickySurvival.instance, delay * 20)
     }
 
-    fun runTaskTimer(delay: Long, period: Long) {
+    fun maybeRunTaskTimer(delay: Long, period: Long) = ifNotScheduled {
         runTaskTimer(StickySurvival.instance, delay * 20, period * 20)
     }
 
-    fun runEveryTick() {
+    fun maybeRunTaskEveryTick() = ifNotScheduled {
         runTaskTimer(StickySurvival.instance, 0, 1)
     }
 
-    fun safelyCancel() {
-        val id = try {
-            taskId
-        } catch (_: IllegalStateException) {
-            return
-        }
-
+    fun safelyCancel() = ifScheduled { id ->
         Bukkit.getScheduler().cancelTask(id)
 
         // this doesn't feel right, but there's no other way to do it from what i can tell
         val taskField = BukkitRunnable::class.java.getDeclaredField("task")
         taskField.isAccessible = true
         taskField.set(this, null)
+    }
+
+    private fun maybeTaskId() = try { taskId } catch (_: IllegalStateException) { null }
+
+    private fun ifScheduled(f: (Int) -> Unit) {
+        f(maybeTaskId() ?: return) // run if taskId is not null
+    }
+
+    private fun ifNotScheduled(f: () -> Unit) {
+        maybeTaskId() ?: f() // run if taskId is null
     }
 }

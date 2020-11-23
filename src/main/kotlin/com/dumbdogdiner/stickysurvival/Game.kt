@@ -200,7 +200,7 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
 
         world.broadcastMessage(messages.chat.damageEnabled)
 
-        randomDrop.runTaskTimer(settings.randomChestInterval, settings.randomChestInterval)
+        randomDrop.maybeRunTaskTimer(settings.randomChestInterval, settings.randomChestInterval)
     }
 
     fun addPlayer(player: Player): Boolean {
@@ -257,7 +257,7 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
 
     private fun beginStartCountdown() {
         countdown = settings.countdown
-        timer.runTaskTimer(1, 1)
+        timer.maybeRunTaskTimer(1, 1)
         world.broadcastMessage(messages.chat.countdown.safeFormat(settings.countdown))
         playCountdownClick()
     }
@@ -284,10 +284,10 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
         world.broadcastSound(Vector(0, 20, 0), Sound.ENTITY_DONKEY_DEATH, 4F, 0.5F)
 
         if (config.chestRefill > 0) {
-            chestRefill.runTaskTimer(config.chestRefill, config.chestRefill)
+            chestRefill.maybeRunTaskTimer(config.chestRefill, config.chestRefill)
         }
 
-        trackingCompass.runEveryTick()
+        trackingCompass.maybeRunTaskEveryTick()
 
         logTributes()
 
@@ -394,7 +394,7 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
     }
 
     private fun finalizeGame() {
-        autoQuit.runTaskLater(settings.resultsTime)
+        autoQuit.maybeRunTaskLater(settings.resultsTime)
         randomDrop.safelyCancel()
         timer.safelyCancel()
 
