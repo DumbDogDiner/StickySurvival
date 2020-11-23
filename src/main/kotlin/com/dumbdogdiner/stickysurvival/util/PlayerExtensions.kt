@@ -114,6 +114,7 @@ fun Player.spectate() {
     inventory.clear()
     isCollidable = false
     isInvulnerable = true
+    foodLevel = 20
     saturation = Float.POSITIVE_INFINITY
     gameMode = GameMode.ADVENTURE
     allowFlight = true
