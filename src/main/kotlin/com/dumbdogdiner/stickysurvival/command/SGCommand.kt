@@ -177,7 +177,13 @@ class SGCommand(pluginInstance: StickySurvival) : AsyncCommand("survivalgames", 
 
             else -> {
                 StickySurvival.instance.reloadConfig()
-                schedule { WorldManager.loadFromConfig() }
+                schedule {
+                    if (WorldManager.loadFromConfig()) {
+                        sender.sendMessage("The configuration was reloaded successfully.")
+                    } else {
+                        sender.sendMessage("The configuration could not be reloaded. The default configuration is being used as a fallback. See the console for more information.")
+                    }
+                }
                 ExitCode.EXIT_SUCCESS
             }
         }

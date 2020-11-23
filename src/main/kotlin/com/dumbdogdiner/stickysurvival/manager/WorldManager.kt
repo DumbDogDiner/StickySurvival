@@ -153,7 +153,7 @@ object WorldManager {
         loadedGames.clear()
     }
 
-    fun loadFromConfig() {
+    fun loadFromConfig(): Boolean {
         unloadAll()
 
         Config.current = try {
@@ -162,6 +162,7 @@ object WorldManager {
             e.printStackTrace()
             warn("Invalid rule config; using default rules.")
             Config.default
+            return false
         }
 
         holograms.addAll(
@@ -169,6 +170,8 @@ object WorldManager {
                 LobbyHologram(it)
             }
         )
+
+        return true
     }
 
     private fun copyWorldFolder(from: String, to: String) {
