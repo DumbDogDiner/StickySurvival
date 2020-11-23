@@ -96,14 +96,11 @@ class StickySurvival : JavaPlugin() {
         }
 
         info("Getting Vault economy.")
-        economy = classLoader.loadClass("net.milkbowl.vault.economy.Economy")?.let {
-            server.servicesManager.getRegistration(it)?.provider as Economy?
-        }
-
-        if (economy == null) {
-            if (server.pluginManager.getPlugin("Vault") == null) {
-                warn("Vault could not be found. Rewards will not be given.")
-            } else {
+        if (server.pluginManager.getPlugin("Vault") == null) {
+            warn("Vault could not be found. Rewards will not be given.")
+        } else {
+            economy = server.servicesManager.getRegistration(Economy::class.java)?.provider
+            if (economy == null) {
                 warn("Vault was found, but an economy provider was not. Rewards will not be given. Did you forget Wallet?")
             }
         }
