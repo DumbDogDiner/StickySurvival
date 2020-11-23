@@ -209,7 +209,7 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
         }
 
         if (phase != Phase.WAITING) {
-            return player.teleport(config.center.clone().also { it.world = world }).also {
+            return player.teleport(tributes.random().location).also {
                 if (it) {
                     LobbyInventoryManager.saveInventory(player)
                     player.spectate()
