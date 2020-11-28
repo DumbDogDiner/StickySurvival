@@ -135,8 +135,9 @@ object WorldManager {
             player.goToLobby()
         }
 
+        val mayDoWarning = Bukkit.getWorld(world.name) != null
         Bukkit.unloadWorld(world, false)
-        if (Bukkit.getPluginManager().getPlugin("Multiverse-Core") != null) {
+        if (mayDoWarning && Bukkit.getPluginManager().getPlugin("Multiverse-Core") != null) {
             info("The above warning from Multiverse should be ignored.")
         }
         deleteWorldFolder(name)
