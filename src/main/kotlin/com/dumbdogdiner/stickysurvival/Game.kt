@@ -473,21 +473,20 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
             for (chest in chests) {
                 if (cornucopia == null || chest.location !in cornucopia) {
                     if (Random.nextDouble() >= ratio) {
+                        // sometimes a double chest will be split in half, but i can't figure out why...
+                        // maybe chunk load order?
                         if (chest is Chest && chest.inventory is DoubleChestInventory) {
                             val leftSide = (chest.inventory as DoubleChestInventory).leftSide.location
                             val rightSide = (chest.inventory as DoubleChestInventory).rightSide.location
-                            // the side here is arbitrary, but if we didn't check for a specific side, double chests
-                            // would have twice the chances of being removed
-                            if (rightSide == (chest as BlockState).location) {
-                                // if a double chest straddles two chunks, it can't be fully removed, so let it be
-                                // i might look into this later, doesn't seem like a huge problem though
-                                if (leftSide?.chunk == rightSide.chunk) {
+                            if (leftSide != null && rightSide != null) {
+                                // the side here is arbitrary, but if we didn't check for a specific side, double chests
+                                // would have twice the chances of being removed
+                                if (rightSide == (chest as BlockState).location) {
                                     chunk.world.getBlockAt(leftSide).type = Material.AIR
                                     chunk.world.getBlockAt(rightSide).type = Material.AIR
                                 }
                             }
                         } else {
-                            // info("Removing some other container")
                             chunk.world.getBlockAt(chest.location).type = Material.AIR
                         }
                     }
