@@ -20,7 +20,6 @@ chat:
   reward: "&cYou won &a%s&c coins for winning!"
   kit prompt: "&bSelect a kit using &f/sg kit <kit name>"
   kit select: "&6You selected the &f%s&6 kit."
-  kit remove: "&6You removed your kit."
 
 boss bar:
   waiting: "&7Waiting for at least &f%d&7 more players."

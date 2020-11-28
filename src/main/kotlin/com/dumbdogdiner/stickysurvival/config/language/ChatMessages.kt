@@ -38,7 +38,6 @@ class ChatMessages(
     val randomChestDrop: String,
     val kitPrompt: String,
     val kitSelect: String,
-    val kitRemove: String,
 ) {
     constructor(cfg: ConfigHelper) : this (
         cfg.loadMessage("cooldown"),
@@ -58,6 +57,5 @@ class ChatMessages(
         cfg.loadMessage("random chest drop"),
         cfg.loadMessage("kit prompt"),
         cfg.loadMessage("kit select"),
-        cfg.loadMessage("kit remove"),
     )
 }
