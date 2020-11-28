@@ -19,17 +19,34 @@
 package com.dumbdogdiner.stickysurvival.task
 
 import com.dumbdogdiner.stickysurvival.Game
+import com.dumbdogdiner.stickysurvival.util.safeFormat
+import com.dumbdogdiner.stickysurvival.util.settings
+import org.bukkit.Material
+import kotlin.math.roundToInt
 
 class TrackingCompassRunnable(game: Game) : GameRunnable(game) {
     override fun run() {
         val currentTributes = game.world.players.filter { game.playerIsTribute(it) }
         for (player in currentTributes) {
-            player.compassTarget = currentTributes.asSequence().filter {
+            val closestPlayer = currentTributes.asSequence().filter {
                 it != player // find all players that are not this player
             }.sortedBy {
                 it.location.distanceSquared(player.location) // sort by closest
-            }.firstOrNull()?.location
-                ?: player.location // if no other players found, just use the current player location as an arbitrary value
+            }.firstOrNull()
+            if (player.inventory.itemInMainHand.type == Material.COMPASS || player.inventory.itemInOffHand.type == Material.COMPASS) {
+                if (closestPlayer != null) {
+                    val loc = closestPlayer.location
+                    player.compassTarget = loc
+                    player.sendActionBar(
+                        settings.trackingCompassMessage.safeFormat(
+                            closestPlayer.name,
+                            loc.x.roundToInt(),
+                            loc.y.roundToInt(),
+                            loc.z.roundToInt(),
+                        )
+                    )
+                }
+            }
         }
     }
 }

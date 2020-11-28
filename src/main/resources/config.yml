@@ -31,6 +31,7 @@ random chest: # (care package)
 tracking compass:
   name: '&aTracking Compass' # Name of tracking compass
   lore: [ '&3&oTrack down and finish', '&3&ooff your enemies!' ] # Lore for tracking compass
+  message: '&eNearest player: &f%s&e at &f%d&e, &f%d&e, &f%d'
   basic loot weight: 1 # Weight of compass in chest loot.
   bonus loot weight: 1 # Weight of compass in bonus loot.
 
