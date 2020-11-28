@@ -24,6 +24,7 @@ import com.dumbdogdiner.stickysurvival.StickySurvival
 import com.dumbdogdiner.stickysurvival.config.Config
 import com.dumbdogdiner.stickysurvival.config.ConfigHelper
 import com.dumbdogdiner.stickysurvival.util.goToLobby
+import com.dumbdogdiner.stickysurvival.util.info
 import com.dumbdogdiner.stickysurvival.util.newWeakSet
 import com.dumbdogdiner.stickysurvival.util.schedule
 import com.dumbdogdiner.stickysurvival.util.settings
@@ -135,6 +136,9 @@ object WorldManager {
         }
 
         Bukkit.unloadWorld(world, false)
+        if (Bukkit.getPluginManager().getPlugin("Multiverse-Core") != null) {
+            info("The above warning from Multiverse should be ignored.")
+        }
         deleteWorldFolder(name)
 
         AnimatedScoreboardManager.removeWorld(name)
