@@ -169,11 +169,16 @@ object WorldManager {
             return false
         }
 
-        holograms.addAll(
-            worlds.keys.map {
-                LobbyHologram(it)
+        for ((worldName, _) in worlds) {
+            holograms += LobbyHologram(worldName)
+            val activeFolder = Bukkit.getWorldContainer().resolve("$worldName-active")
+            if (activeFolder.isDirectory) {
+                warn("It appears that an active game folder for $worldName was not deleted properly. This should not happen.")
+                if (!activeFolder.deleteRecursively()) {
+                    warn("Cannot automatically delete folder $worldName-active")
+                }
             }
-        )
+        }
 
         return true
     }
