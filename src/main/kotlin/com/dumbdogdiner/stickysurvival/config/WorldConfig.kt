@@ -40,6 +40,8 @@ class WorldConfig(
     val borderEnd: Int,
     val borderFinalSize: Double,
     val spawnPoints: List<Location>,
+    val chestRatio: Double,
+    val cornucopia: WorldBound?,
 ) {
     constructor(worldName: String, cfg: ConfigHelper) : this(
         cfg["friendly name"].asStringOr(worldName),
@@ -74,6 +76,14 @@ class WorldConfig(
                 it["z"].asDouble(),
                 it["yaw"].asFloatOr(0f),
                 it["pitch"].asFloatOr(0f),
+            )
+        },
+        cfg["chest percentage"].asDoubleOr(100.0) / 100.0,
+        cfg["cornucopia"].maybe {
+            WorldBound(
+                it["min"]["x"].asInt()..it["max"]["x"].asInt(),
+                it["min"]["y"].asInt()..it["max"]["y"].asInt(),
+                it["min"]["z"].asInt()..it["max"]["z"].asInt(),
             )
         }
     )

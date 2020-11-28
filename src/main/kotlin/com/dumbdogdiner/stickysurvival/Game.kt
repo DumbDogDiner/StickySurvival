@@ -44,14 +44,16 @@ import com.dumbdogdiner.stickysurvival.util.warn
 import com.google.common.collect.HashBiMap
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
+import org.bukkit.Chunk
 import org.bukkit.GameMode
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.Particle
 import org.bukkit.Sound
 import org.bukkit.World
+import org.bukkit.block.BlockState
+import org.bukkit.block.Chest
 import org.bukkit.block.Container
-import org.bukkit.block.DoubleChest
 import org.bukkit.boss.BarColor
 import org.bukkit.boss.BarStyle
 import org.bukkit.enchantments.Enchantment
@@ -62,6 +64,7 @@ import org.bukkit.inventory.Inventory
 import org.bukkit.util.Vector
 import java.util.WeakHashMap
 import kotlin.math.roundToLong
+import kotlin.random.Random
 
 class Game(val world: World, val config: WorldConfig, private val hologram: LobbyHologram) {
     enum class Phase { WAITING, ACTIVE, COMPLETE }
@@ -94,6 +97,7 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
     private val currentlyOpenChests = mutableSetOf<Location>()
 
     private val randomChests = HashBiMap.create<Location, Inventory>()
+    private val visitedChunks = mutableSetOf<Long>()
 
     // for debugging, trying to figure out why sometimes games end with zero players
     private val tributeLog = mutableListOf<String>()
@@ -425,8 +429,8 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
             else -> settings.basicLoot
         }
 
-        val inventories = if (chest is DoubleChest) {
-            val inv = chest.getInventory() as DoubleChestInventory
+        val inventories = if (chest.inventory is DoubleChestInventory) {
+            val inv = chest.inventory as DoubleChestInventory
             listOf(inv.leftSide, inv.rightSide)
         } else {
             listOf(chest.inventory)
@@ -455,6 +459,40 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
     fun fillOpenChests() {
         for (loc in currentlyOpenChests) {
             maybeFill(loc)
+        }
+    }
+
+    fun removeSomeChests(chunk: Chunk) {
+        val ratio = config.chestRatio
+        if (ratio >= 1.0) return // don't run this method if we aren't going to remove chests
+        val chests = chunk.tileEntities.filter { it.type == Material.CHEST || it.type in settings.bonusContainers }
+        if (chests.isEmpty()) return // ignore chunks with no chests
+        val chunkKey = chunk.chunkKey
+        if (visitedChunks.add(chunkKey)) {
+            val cornucopia = config.cornucopia
+            for (chest in chests) {
+                if (cornucopia == null || chest.location !in cornucopia) {
+                    if (Random.nextDouble() >= ratio) {
+                        if (chest is Chest && chest.inventory is DoubleChestInventory) {
+                            val leftSide = (chest.inventory as DoubleChestInventory).leftSide.location
+                            val rightSide = (chest.inventory as DoubleChestInventory).rightSide.location
+                            // the side here is arbitrary, but if we didn't check for a specific side, double chests
+                            // would have twice the chances of being removed
+                            if (rightSide == (chest as BlockState).location) {
+                                // if a double chest straddles two chunks, it can't be fully removed, so let it be
+                                // i might look into this later, doesn't seem like a huge problem though
+                                if (leftSide?.chunk == rightSide.chunk) {
+                                    chunk.world.getBlockAt(leftSide).type = Material.AIR
+                                    chunk.world.getBlockAt(rightSide).type = Material.AIR
+                                }
+                            }
+                        } else {
+                            // info("Removing some other container")
+                            chunk.world.getBlockAt(chest.location).type = Material.AIR
+                        }
+                    }
+                }
+            }
         }
     }
 

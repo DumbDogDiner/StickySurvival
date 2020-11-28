@@ -40,5 +40,12 @@ Worlds should each be in their own world folder, and the folder name should only
     - **max**: The maximum bound for the world.
 - **spawn points**:
     The list of available spawn points where players will spawn.
+- **chest percentage** *(optional)*:
+    The percent of chests that will appear each game, e.g. a value of 100 means all chests will appear, and a value of 0
+    means no chests will appear. Defaults to 100.
+- **cornucopia** *(optional)*:
+    An area in the map where all chests will appear, regardless of the value in chest percentage.
+    - **min**: The lower coordinates.
+    - **max**: The upper coordinates.
 
 **Additionally**, each world must be listed in `config.yml`.

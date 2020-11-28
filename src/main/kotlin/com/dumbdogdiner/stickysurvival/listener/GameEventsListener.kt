@@ -47,6 +47,7 @@ import org.bukkit.event.player.PlayerChangedWorldEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerMoveEvent
+import org.bukkit.event.world.ChunkLoadEvent
 
 object GameEventsListener : Listener {
     // Code in this listener should be kept pretty minimal. The Game class should do most of the work.
@@ -240,5 +241,10 @@ object GameEventsListener : Listener {
         if (event.player.world.game?.playerIsTribute(event.player) == false) {
             event.isCancelled = true
         }
+    }
+
+    @EventHandler
+    fun onChunkLoad(event: ChunkLoadEvent) {
+        event.world.game?.removeSomeChests(event.chunk)
     }
 }
