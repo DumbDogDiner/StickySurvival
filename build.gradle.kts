@@ -41,7 +41,7 @@ dependencies {
     compileOnly("me.clip:placeholderapi:2.10.0")
 
     implementation("de.tr7zw:item-nbt-api-plugin:2.6.0")
-    implementation("com.dumbdogdiner:stickyapi:1.5.0")
+    implementation("com.dumbdogdiner:stickyapi:2.0.0")
 }
 
 tasks {

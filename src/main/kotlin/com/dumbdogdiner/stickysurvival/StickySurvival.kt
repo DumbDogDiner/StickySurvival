@@ -18,9 +18,8 @@
 
 package com.dumbdogdiner.stickysurvival
 
-import com.dumbdogdiner.stickyapi.bukkit.util.CommandUtil
 import com.dumbdogdiner.stickyapi.bukkit.util.StartupUtil
-import com.dumbdogdiner.stickysurvival.command.SGCommand
+import com.dumbdogdiner.stickysurvival.command.sgCommandBuilder
 import com.dumbdogdiner.stickysurvival.config.Config
 import com.dumbdogdiner.stickysurvival.config.ConfigHelper
 import com.dumbdogdiner.stickysurvival.listener.FasterWorldLoadsListener
@@ -34,6 +33,7 @@ import com.dumbdogdiner.stickysurvival.util.info
 import com.dumbdogdiner.stickysurvival.util.severe
 import com.dumbdogdiner.stickysurvival.util.warn
 import net.milkbowl.vault.economy.Economy
+import org.bukkit.Bukkit
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.plugin.java.JavaPlugin
@@ -75,7 +75,7 @@ class StickySurvival : JavaPlugin() {
         WorldManager.loadFromConfig()
 
         info("Registering /sg command.")
-        CommandUtil.registerCommand(server, SGCommand(this))
+        Bukkit.getCommandMap().register(name, sgCommandBuilder.build(this))
 
         for (
             listener in setOf(
