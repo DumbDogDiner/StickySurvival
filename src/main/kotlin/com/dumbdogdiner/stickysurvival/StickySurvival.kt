@@ -33,7 +33,6 @@ import com.dumbdogdiner.stickysurvival.util.info
 import com.dumbdogdiner.stickysurvival.util.severe
 import com.dumbdogdiner.stickysurvival.util.warn
 import net.milkbowl.vault.economy.Economy
-import org.bukkit.Bukkit
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.plugin.java.JavaPlugin
@@ -75,7 +74,7 @@ class StickySurvival : JavaPlugin() {
         WorldManager.loadFromConfig()
 
         info("Registering /sg command.")
-        Bukkit.getCommandMap().register(name, sgCommandBuilder.build(this))
+        sgCommandBuilder.register(this)
 
         for (
             listener in setOf(
