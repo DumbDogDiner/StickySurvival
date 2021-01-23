@@ -20,3 +20,5 @@ bin/
 
 .gradle/
 build/
+
+debug/spigot/spigot.yml
