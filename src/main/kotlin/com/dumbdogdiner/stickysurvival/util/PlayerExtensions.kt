@@ -111,6 +111,7 @@ fun Player.freeze() {
 }
 
 fun Player.spectate() {
+    clearPotionEffects()
     inventory.clear()
     isCollidable = false
     isInvulnerable = true
