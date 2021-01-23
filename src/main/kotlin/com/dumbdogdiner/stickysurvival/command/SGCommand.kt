@@ -26,11 +26,6 @@ import com.dumbdogdiner.stickysurvival.StickySurvival
 import com.dumbdogdiner.stickysurvival.manager.WorldManager
 import com.dumbdogdiner.stickysurvival.util.game
 import com.dumbdogdiner.stickysurvival.util.goToLobby
-import com.dumbdogdiner.stickysurvival.util.hasJoinPermission
-import com.dumbdogdiner.stickysurvival.util.hasKitPermission
-import com.dumbdogdiner.stickysurvival.util.hasKitsPermission
-import com.dumbdogdiner.stickysurvival.util.hasLeavePermission
-import com.dumbdogdiner.stickysurvival.util.hasReloadPermission
 import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.schedule
@@ -48,7 +43,7 @@ val sgCommandBuilder: BukkitCommandBuilder = BukkitCommandBuilder("survivalgames
         val argArray = args.rawArgs.toTypedArray()
         when {
             argArray.matches("kit", ANY) -> {
-                if (sender.hasKitPermission()) {
+                if (sender.hasPermission("stickysurvival.kit")) {
                     settings.kits.map { it.name }.filter { it.startsWith(argArray[1]) }.toMutableList()
                 } else {
                     mutableListOf()
@@ -56,7 +51,7 @@ val sgCommandBuilder: BukkitCommandBuilder = BukkitCommandBuilder("survivalgames
             }
 
             argArray.matches("join", ANY) -> {
-                if (sender.hasJoinPermission()) {
+                if (sender.hasPermission("stickysurvival.join")) {
                     worlds.keys.filter { it.startsWith(argArray[1]) }.toMutableList()
                 } else {
                     mutableListOf()
@@ -64,7 +59,7 @@ val sgCommandBuilder: BukkitCommandBuilder = BukkitCommandBuilder("survivalgames
             }
 
             argArray.matches(ANY) -> {
-                setOf("join", "leave", "reload", "kit", "kits").filter {
+                setOf("join", "leave", "reload", "kit", "kits", "forcestart").filter {
                     sender.hasPermission("stickysurvival.$it") && it.startsWith(argArray[0])
                 }.toMutableList()
             }
@@ -78,6 +73,7 @@ val sgCommandBuilder: BukkitCommandBuilder = BukkitCommandBuilder("survivalgames
         BukkitCommandBuilder("join")
             .synchronous(false)
             .requiresPlayer()
+            .permission("stickysurvival.join")
             .onError { exit, sender, _, _ -> printError(exit, sender) }
             .onExecute { sender, args, _ ->
                 sender as Player
@@ -86,8 +82,6 @@ val sgCommandBuilder: BukkitCommandBuilder = BukkitCommandBuilder("survivalgames
                 when {
                     !args.valid()
                     -> ExitCode.EXIT_INVALID_SYNTAX
-                    !sender.hasJoinPermission()
-                    -> ExitCode.EXIT_PERMISSION_DENIED
                     sender.world.game != null
                     -> ExitCode.EXIT_INVALID_STATE
                     WorldManager.isPlayerWaitingToJoin(sender)
@@ -116,6 +110,7 @@ val sgCommandBuilder: BukkitCommandBuilder = BukkitCommandBuilder("survivalgames
         BukkitCommandBuilder("leave")
             .synchronous(false)
             .requiresPlayer()
+            .permission("stickysurvival.leave")
             .onError { exit, sender, _, _ -> printError(exit, sender) }
             .onExecute { sender, args, _ ->
                 sender as Player
@@ -123,8 +118,6 @@ val sgCommandBuilder: BukkitCommandBuilder = BukkitCommandBuilder("survivalgames
                 when {
                     !args.valid()
                     -> ExitCode.EXIT_INVALID_SYNTAX
-                    !sender.hasLeavePermission()
-                    -> ExitCode.EXIT_PERMISSION_DENIED
                     sender.world.game == null
                     -> ExitCode.EXIT_INVALID_STATE
 
@@ -140,6 +133,7 @@ val sgCommandBuilder: BukkitCommandBuilder = BukkitCommandBuilder("survivalgames
         BukkitCommandBuilder("kit")
             .synchronous(false)
             .requiresPlayer()
+            .permission("stickysurvival.kit")
             .onError { exit, sender, _, _ -> printError(exit, sender) }
             .onExecute { sender, args, _ ->
                 sender as Player
@@ -148,8 +142,6 @@ val sgCommandBuilder: BukkitCommandBuilder = BukkitCommandBuilder("survivalgames
                 when {
                     !args.valid()
                     -> ExitCode.EXIT_INVALID_SYNTAX
-                    !sender.hasKitPermission()
-                    -> ExitCode.EXIT_PERMISSION_DENIED
 
                     else -> {
                         val game = sender.world.game ?: return@onExecute ExitCode.EXIT_INVALID_STATE
@@ -167,14 +159,13 @@ val sgCommandBuilder: BukkitCommandBuilder = BukkitCommandBuilder("survivalgames
     .subCommand(
         BukkitCommandBuilder("kits")
             .synchronous(false)
+            .permission("stickysurvival.kits")
             .onError { exit, sender, _, _ -> printError(exit, sender) }
             .onExecute { sender, args, _ ->
                 args.end()
                 when {
                     !args.valid()
                     -> ExitCode.EXIT_INVALID_SYNTAX
-                    !sender.hasKitsPermission()
-                    -> ExitCode.EXIT_PERMISSION_DENIED
 
                     else -> {
                         sender.sendMessage("kits: ${settings.kits.joinToString(", ") { it.name }}")
@@ -186,14 +177,13 @@ val sgCommandBuilder: BukkitCommandBuilder = BukkitCommandBuilder("survivalgames
     .subCommand(
         BukkitCommandBuilder("reload")
             .synchronous(false)
+            .permission("stickysurvival.reload")
             .onError { exit, sender, _, _ -> printError(exit, sender) }
             .onExecute { sender, args, _ ->
                 args.end()
                 when {
                     !args.valid()
                     -> ExitCode.EXIT_INVALID_SYNTAX
-                    !sender.hasReloadPermission()
-                    -> ExitCode.EXIT_PERMISSION_DENIED
 
                     else -> {
                         StickySurvival.instance.reloadConfig()
@@ -213,6 +203,7 @@ val sgCommandBuilder: BukkitCommandBuilder = BukkitCommandBuilder("survivalgames
         BukkitCommandBuilder("forcestart")
             .synchronous(false)
             .requiresPlayer()
+            .permission("stickysurvival.forcestart")
             .onError { exit, sender, _, _ -> printError(exit, sender) }
             .onExecute { sender, args, _ ->
                 sender as Player
@@ -220,8 +211,6 @@ val sgCommandBuilder: BukkitCommandBuilder = BukkitCommandBuilder("survivalgames
                 when {
                     !args.valid()
                     -> ExitCode.EXIT_INVALID_SYNTAX
-                    !sender.isOp
-                    -> ExitCode.EXIT_PERMISSION_DENIED
                     else -> when (val game = sender.world.game) {
                         null -> ExitCode.EXIT_INVALID_STATE
                         else -> {

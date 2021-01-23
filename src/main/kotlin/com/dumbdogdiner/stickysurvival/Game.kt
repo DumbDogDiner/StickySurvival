@@ -34,7 +34,6 @@ import com.dumbdogdiner.stickysurvival.task.TrackingCompassRunnable
 import com.dumbdogdiner.stickysurvival.util.broadcastMessage
 import com.dumbdogdiner.stickysurvival.util.broadcastSound
 import com.dumbdogdiner.stickysurvival.util.freeze
-import com.dumbdogdiner.stickysurvival.util.hasJoinPermission
 import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.reset
 import com.dumbdogdiner.stickysurvival.util.safeFormat
@@ -208,7 +207,7 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
     }
 
     fun addPlayer(player: Player): Boolean {
-        if (!player.hasJoinPermission()) {
+        if (!player.hasPermission("stickysurvival.join")) {
             return false // not allowed to join
         }
 
