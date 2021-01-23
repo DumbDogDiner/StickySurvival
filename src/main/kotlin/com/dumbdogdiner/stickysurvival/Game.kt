@@ -35,6 +35,7 @@ import com.dumbdogdiner.stickysurvival.util.broadcastMessage
 import com.dumbdogdiner.stickysurvival.util.broadcastSound
 import com.dumbdogdiner.stickysurvival.util.freeze
 import com.dumbdogdiner.stickysurvival.util.messages
+import com.dumbdogdiner.stickysurvival.util.radiusForBounds
 import com.dumbdogdiner.stickysurvival.util.reset
 import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.settings
@@ -129,10 +130,13 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
 
     init {
         AnimatedScoreboardManager.addWorld(world.name)
-        // prepare proper settings for the world
-        // note that game mode is not set here; game mode is per-server, not per-world
-        // game modes are set when a player joins/leaves
         world.isAutoSave = false
+        world.worldBorder.size = 2.0 * radiusForBounds(
+            centerX = config.center.x,
+            centerZ = config.center.z,
+            xBounds = config.xBounds,
+            zBounds = config.zBounds,
+        )
         world.worldBorder.setCenter(config.center.x, config.center.z)
         updateBossBar()
     }

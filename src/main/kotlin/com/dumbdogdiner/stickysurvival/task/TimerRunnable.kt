@@ -23,8 +23,6 @@ import com.dumbdogdiner.stickysurvival.util.broadcastMessage
 import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.warn
-import kotlin.math.absoluteValue
-import kotlin.math.max
 
 class TimerRunnable(game: Game) : GameRunnable(game) {
     override fun run() {
@@ -42,13 +40,6 @@ class TimerRunnable(game: Game) : GameRunnable(game) {
             Game.Phase.ACTIVE -> {
                 if (game.countdown == game.config.borderStart) {
                     val shrinkTime = game.config.borderStart - game.config.borderEnd
-                    val radius = radiusForBounds(
-                        centerX = game.config.center.x,
-                        centerZ = game.config.center.z,
-                        xBounds = game.config.xBounds,
-                        zBounds = game.config.zBounds,
-                    )
-                    game.world.worldBorder.size = radius * 2.0
                     game.world.worldBorder.setSize(game.config.borderFinalSize, shrinkTime.toLong())
                     game.world.broadcastMessage(messages.chat.border.safeFormat(shrinkTime))
                 }
@@ -70,23 +61,6 @@ class TimerRunnable(game: Game) : GameRunnable(game) {
                 )
                 safelyCancel()
             }
-        }
-    }
-
-    companion object {
-        private fun radiusForBounds(
-            centerX: Double,
-            xBounds: ClosedFloatingPointRange<Double>,
-            centerZ: Double,
-            zBounds: ClosedFloatingPointRange<Double>
-        ): Double {
-            val x1 = (centerX - xBounds.start).absoluteValue
-            val x2 = (centerX - xBounds.endInclusive).absoluteValue
-            val x = max(x1, x2)
-            val z1 = (centerZ - zBounds.start).absoluteValue
-            val z2 = (centerZ - zBounds.endInclusive).absoluteValue
-            val z = max(z1, z2)
-            return max(x, z)
         }
     }
 }

@@ -39,6 +39,8 @@ import org.bukkit.scheduler.BukkitTask
 import java.util.Collections
 import java.util.IllegalFormatException
 import java.util.WeakHashMap
+import kotlin.math.absoluteValue
+import kotlin.math.max
 import kotlin.random.Random
 
 inline fun <reified T : Keyed> getKeyed(name: String) = NamespacedKey.minecraft(name).let { key ->
@@ -157,4 +159,19 @@ fun String.substituteAmpersand() = this.replace("&", "§")
 
 fun ClosedFloatingPointRange<Double>.random(): Double {
     return Random.nextDouble(start, endInclusive)
+}
+
+fun radiusForBounds(
+    centerX: Double,
+    xBounds: ClosedFloatingPointRange<Double>,
+    centerZ: Double,
+    zBounds: ClosedFloatingPointRange<Double>
+): Double {
+    val x1 = (centerX - xBounds.start).absoluteValue
+    val x2 = (centerX - xBounds.endInclusive).absoluteValue
+    val x = max(x1, x2)
+    val z1 = (centerZ - zBounds.start).absoluteValue
+    val z2 = (centerZ - zBounds.endInclusive).absoluteValue
+    val z = max(z1, z2)
+    return max(x, z)
 }
