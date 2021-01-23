@@ -90,7 +90,7 @@ tasks {
 
             create("stickysurvival.forcestart") {
                 description = "Allows a player to force a game to start if there are not enough players."
-                defaults = "true"
+                defaults = "op"
             }
         }
     }
