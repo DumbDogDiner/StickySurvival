@@ -54,9 +54,9 @@ class WorldConfig(
         cfg["hologram"].let {
             Location(WorldManager.lobbyWorld, it["x"].asDouble(), it["y"].asDouble(), it["z"].asDouble())
         },
-        cfg["bounds"].let { it["min"]["x"].asDouble()..it["max"]["x"].asDouble() },
-        cfg["bounds"].let { it["min"]["y"].asDouble()..it["max"]["y"].asDouble() },
-        cfg["bounds"].let { it["min"]["z"].asDouble()..it["max"]["z"].asDouble() },
+        cfg["bounds"].let { fixRange(it["min"]["x"].asDouble()..it["max"]["x"].asDouble()) { a, b -> a..b } },
+        cfg["bounds"].let { fixRange(it["min"]["y"].asDouble()..it["max"]["y"].asDouble()) { a, b -> a..b } },
+        cfg["bounds"].let { fixRange(it["min"]["z"].asDouble()..it["max"]["z"].asDouble()) { a, b -> a..b } },
         cfg["center"].let {
             Location(
                 null,
@@ -81,9 +81,9 @@ class WorldConfig(
         cfg["chest percentage"].asDoubleOr(100.0) / 100.0,
         cfg["cornucopia"].maybe {
             WorldBound(
-                it["min"]["x"].asInt()..it["max"]["x"].asInt(),
-                it["min"]["y"].asInt()..it["max"]["y"].asInt(),
-                it["min"]["z"].asInt()..it["max"]["z"].asInt(),
+                fixRange(it["min"]["x"].asInt()..it["max"]["x"].asInt()) { a, b -> a..b },
+                fixRange(it["min"]["y"].asInt()..it["max"]["y"].asInt()) { a, b -> a..b },
+                fixRange(it["min"]["z"].asInt()..it["max"]["z"].asInt()) { a, b -> a..b },
             )
         }
     )
