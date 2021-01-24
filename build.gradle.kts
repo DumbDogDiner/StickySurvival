@@ -4,7 +4,7 @@ import kr.entree.spigradle.kotlin.paper
 import kr.entree.spigradle.kotlin.vaultAll
 
 plugins {
-    kotlin("jvm") version "1.4.10"
+    kotlin("jvm") version "1.4.21"
 
     id("kr.entree.spigradle") version "2.2.3"
     id("com.github.johnrengelman.shadow") version "5.2.0"
@@ -33,14 +33,14 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
 
     compileOnly(vaultAll())
-    compileOnly(paper("1.16.4"))
+    compileOnly(paper("1.16.5"))
 
-    compileOnly("me.clip:placeholderapi:2.10.0")
+    compileOnly("me.clip:placeholderapi:2.10.9")
 
-    implementation("de.tr7zw:item-nbt-api-plugin:2.6.0")
+    implementation("de.tr7zw:item-nbt-api-plugin:2.7.1")
     implementation("com.dumbdogdiner:stickyapi:2.1.0")
 }
 
