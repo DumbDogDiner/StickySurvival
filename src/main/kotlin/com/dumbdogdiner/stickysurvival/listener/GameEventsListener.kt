@@ -135,8 +135,7 @@ object GameEventsListener : Listener {
     fun onPlayerMove(event: PlayerMoveEvent) {
         val config = (event.player.world.game ?: return).config
         // keep players in bounds (intentionally ignore y bounds)
-        // there are legitimate ways to get past the world border, if the player gets past it then
-        // they can go as far as they want, which is why this code exists
+        // there are legitimate ways to get past the world border, which is why this code exists
         val newLocation = event.player.location.apply {
             x = x.coerceIn(config.xBounds)
             z = z.coerceIn(config.zBounds)
