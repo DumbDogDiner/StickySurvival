@@ -22,12 +22,14 @@ import com.dumbdogdiner.stickysurvival.StickySurvival
 import com.dumbdogdiner.stickysurvival.manager.WorldManager
 import com.dumbdogdiner.stickysurvival.util.getKeyed
 import com.dumbdogdiner.stickysurvival.util.substituteAmpersand
+import com.dumbdogdiner.stickysurvival.util.warn
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.CompassMeta
+import java.io.File
 
 class Config(
     val worldConfigs: Map<String, WorldConfig>,
@@ -63,11 +65,7 @@ class Config(
 
     @Suppress("unchecked_cast")
     constructor(cfg: ConfigHelper) : this(
-        cfg["worlds"].map {
-            val worldName = it.asString()
-            val worldConfig = verifyAndLoad(worldName) ?: throw IllegalArgumentException("World $worldName cannot be loaded")
-            worldName to worldConfig
-        }.toMap(),
+        loadWorlds(cfg),
         cfg["lobby spawn"].let {
             if (it.isA(String::class) && it.asString() == "world spawn") {
                 WorldManager.lobbyWorld.spawnLocation
@@ -137,16 +135,42 @@ class Config(
 
         private val worldNameRegex = Regex("^[A-Za-z0-9_]+$")
 
-        fun verifyAndLoad(worldName: String): WorldConfig? {
-            if (!worldName.matches(worldNameRegex)) return null
+        private fun loadWorlds(cfg: ConfigHelper): Map<String, WorldConfig> {
+            if (cfg.isDefault()) {
+                return mapOf()
+            } else {
+                val worldsFolder = StickySurvival.instance.dataFolder.resolve("worlds")
+                val files = worldsFolder.listFiles()
+                if (files == null) {
+                    worldsFolder.mkdir()
+                    return mapOf()
+                } else {
+                    return files.asSequence().filter { it.extension.toLowerCase() in arrayOf("yaml", "yml") }.mapNotNull {
+                        val name = it.nameWithoutExtension
+                        val config = try {
+                            verifyAndLoad(name, it)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            null
+                        }
+                        if (config == null) {
+                            warn("Cannot load world $name")
+                            null
+                        } else {
+                            name to config
+                        }
+                    }.toMap()
+                }
+            }
+        }
 
-            val worldFolder = Bukkit.getWorldContainer().resolve(worldName)
+        private fun verifyAndLoad(name: String, file: File): WorldConfig? {
+            if (!name.matches(worldNameRegex)) return null
+
+            val worldFolder = Bukkit.getWorldContainer().resolve(name)
             if (!worldFolder.isDirectory) return null
 
-            val configFile = worldFolder.resolve("survivalgames.yml")
-            if (!configFile.exists()) return null
-
-            return WorldConfig(worldName, ConfigHelper(null, YamlConfiguration.loadConfiguration(configFile)))
+            return WorldConfig(name, ConfigHelper(null, YamlConfiguration.loadConfiguration(file)))
         }
     }
 }

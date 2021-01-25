@@ -15,7 +15,8 @@ may be floating-point or integral. In some cases, pitch and yaw can be specified
 ## Adding arenas/worlds
 
 Worlds should each be in their own world folder, and the folder name should only contain the characters in the range
-`[A-Za-z0-9_]`. Each folder should have a file named `survivalgames.yml` in it. Its structure is as follows:
+`[A-Za-z0-9_]`. Each world should have a YAML file with a matching name in the `worlds` folder of the plugin folder.
+Its structure is as follows:
 
 - **friendly name**:
     The world name players will see. Can contain any characters. The /sg join command uses the folder name, NOT the
@@ -47,5 +48,3 @@ Worlds should each be in their own world folder, and the folder name should only
     An area in the map where all chests will appear, regardless of the value in chest percentage.
     - **min**: The lower coordinates.
     - **max**: The upper coordinates.
-
-**Additionally**, each world must be listed in `config.yml`.

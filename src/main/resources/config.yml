@@ -5,9 +5,6 @@
 # Where players will spawn in the lobby. If set to "world spawn", this will be the world's actual spawn point.
 lobby spawn: world spawn
 
-# See the README for instructions on how to add worlds.
-worlds: []
-
 # How long players will wait for the game to start after the minimum number of players is reached.
 countdown: 10
 

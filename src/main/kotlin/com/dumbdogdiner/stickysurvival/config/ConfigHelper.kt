@@ -29,6 +29,8 @@ class ConfigHelper private constructor(
 ) {
     constructor(default: ConfigHelper?, cfg: Configuration) : this(default, cfgToObject(cfg), emptyList())
 
+    fun isDefault(): Boolean = default == null
+
     private fun fail(reason: String?): Nothing = throw InvalidConfigException(path.joinToString("."), reason)
     private operator fun plus(p: Any) = path.toMutableList().also { it.add(p) }
 
