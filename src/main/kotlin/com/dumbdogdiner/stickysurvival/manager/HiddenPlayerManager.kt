@@ -42,6 +42,10 @@ object HiddenPlayerManager {
         }
     }
 
+    fun contains(player: Player): Boolean {
+        return hiddenPlayers.contains(player)
+    }
+
     fun sendHiddenPlayers(player: Player) {
         for (hiddenPlayer in hiddenPlayers) {
             player.hidePlayer(StickySurvival.instance, hiddenPlayer)

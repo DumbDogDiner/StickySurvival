@@ -27,6 +27,7 @@ import com.dumbdogdiner.stickysurvival.listener.GameEventsListener
 import com.dumbdogdiner.stickysurvival.listener.LobbyHologramListener
 import com.dumbdogdiner.stickysurvival.listener.PerWorldChatListener
 import com.dumbdogdiner.stickysurvival.listener.PlayerJoinAndLeaveListener
+import com.dumbdogdiner.stickysurvival.listener.PlayerInventoryListener
 import com.dumbdogdiner.stickysurvival.manager.AnimatedScoreboardManager
 import com.dumbdogdiner.stickysurvival.manager.WorldManager
 import com.dumbdogdiner.stickysurvival.util.info
@@ -82,7 +83,8 @@ class StickySurvival : JavaPlugin() {
                 LobbyHologramListener,
                 GameEventsListener,
                 PlayerJoinAndLeaveListener,
-                PerWorldChatListener
+                PerWorldChatListener,
+                PlayerInventoryListener
             )
         ) {
             info("Registering all events in ${listener::class.simpleName}.")
