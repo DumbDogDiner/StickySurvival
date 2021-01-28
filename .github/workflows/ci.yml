@@ -1,0 +1,32 @@
+name: build
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: 
+        version: ["14"]
+    container:
+      image: jcxldn/openjdk-alpine:${{matrix.version}}-jdk
+    steps:
+    - uses: actions/checkout@v2
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    - name: Setup gradle.properties
+      run: |
+        mkdir -p ~/.gradle/
+        echo "GRADLE_USER_HOME=$HOME/.gradle" >> $GITHUB_ENV
+        echo "ghUser=${GITHUB_ACTOR}" >> ~/.gradle/gradle.properties
+        echo "ghPass=${GITHUB_TOKEN}" >> ~/.gradle/gradle.properties
+      env:
+        GITHUB_ACTOR: ${{ secrets.PACKAGES_GH_EMAIL }}
+        GITHUB_TOKEN: ${{ secrets.PACKAGES_GH_TOKEN }}
+    - name: Build with Gradle
+      run: ./gradlew build
+    - name: Save build artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: java-${{matrix.version}}
+        path: build/libs/*
