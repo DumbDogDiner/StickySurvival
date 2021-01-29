@@ -82,7 +82,7 @@ class StickySurvival : JavaPlugin() {
                 LobbyHologramListener,
                 GameEventsListener,
                 PlayerJoinAndLeaveListener,
-                PerWorldChatListener
+                PerWorldChatListener,
             )
         ) {
             info("Registering all events in ${listener::class.simpleName}.")

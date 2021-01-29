@@ -111,6 +111,7 @@ fun Player.freeze() {
 }
 
 fun Player.spectate() {
+    HiddenPlayerManager.add(this)
     clearPotionEffects()
     inventory.clear()
     isCollidable = false
@@ -119,8 +120,6 @@ fun Player.spectate() {
     saturation = Float.POSITIVE_INFINITY
     gameMode = GameMode.ADVENTURE
     allowFlight = true
-    canPickupItems = false
-    HiddenPlayerManager.add(this)
 }
 
 fun Player.goToLobby(): Boolean {
