@@ -38,6 +38,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.entity.EntityDropItemEvent
 import org.bukkit.event.entity.EntityExplodeEvent
+import org.bukkit.event.entity.EntityPickupItemEvent
 import org.bukkit.event.entity.FoodLevelChangeEvent
 import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
@@ -123,6 +124,17 @@ object GameEventsListener : Listener {
 
         if (event.rightClicked is ItemFrame) {
             event.isCancelled = true // don't let players take items out of item frames
+        }
+    }
+
+    @EventHandler
+    fun onEntityPickupItem(event: EntityPickupItemEvent) {
+        val entity = event.entity
+        if (entity is Player) {
+            val game = entity.world.game ?: return
+            if (!game.playerIsTribute(entity)) {
+                event.isCancelled = true
+            }
         }
     }
 
