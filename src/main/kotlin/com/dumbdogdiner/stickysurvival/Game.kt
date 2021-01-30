@@ -288,7 +288,6 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
         }
 
         world.broadcastMessage(messages.chat.start.safeFormat(noDamageTime))
-        world.broadcastSound(Vector(0, 20, 0), Sound.ENTITY_DONKEY_DEATH, 4F, 0.5F)
 
         if (config.chestRefill > 0) {
             chestRefill.maybeRunTaskTimer(config.chestRefill, config.chestRefill)

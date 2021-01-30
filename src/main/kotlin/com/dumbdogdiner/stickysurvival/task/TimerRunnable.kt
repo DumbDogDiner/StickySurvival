@@ -20,9 +20,11 @@ package com.dumbdogdiner.stickysurvival.task
 
 import com.dumbdogdiner.stickysurvival.Game
 import com.dumbdogdiner.stickysurvival.util.broadcastMessage
+import com.dumbdogdiner.stickysurvival.util.broadcastSound
 import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.warn
+import org.bukkit.Sound
 
 class TimerRunnable(game: Game) : GameRunnable(game) {
     override fun run() {
@@ -30,10 +32,15 @@ class TimerRunnable(game: Game) : GameRunnable(game) {
 
         when (game.phase) {
             Game.Phase.WAITING -> {
-                if (game.countdown == 0) {
-                    game.startGame()
-                } else {
-                    game.playCountdownClick()
+                when (game.countdown) {
+                    3 -> game.world.broadcastSound(Sound.ENTITY_ARROW_HIT_PLAYER, 1F, 0.7F)
+                    2 -> game.world.broadcastSound(Sound.ENTITY_ARROW_HIT_PLAYER, 1F, 0.8F)
+                    1 -> game.world.broadcastSound(Sound.ENTITY_ARROW_HIT_PLAYER, 1F, 0.9F)
+                    0 -> {
+                        game.world.broadcastSound(Sound.ENTITY_PLAYER_LEVELUP, 1F, 1F)
+                        game.startGame()
+                    }
+                    else -> game.playCountdownClick()
                 }
             }
 
