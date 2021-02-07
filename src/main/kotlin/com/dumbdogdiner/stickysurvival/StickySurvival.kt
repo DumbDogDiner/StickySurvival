@@ -28,14 +28,17 @@ import com.dumbdogdiner.stickysurvival.listener.LobbyHologramListener
 import com.dumbdogdiner.stickysurvival.listener.PerWorldChatListener
 import com.dumbdogdiner.stickysurvival.listener.PlayerJoinAndLeaveListener
 import com.dumbdogdiner.stickysurvival.manager.AnimatedScoreboardManager
+import com.dumbdogdiner.stickysurvival.manager.StatsManager
 import com.dumbdogdiner.stickysurvival.manager.WorldManager
 import com.dumbdogdiner.stickysurvival.util.info
+import com.dumbdogdiner.stickysurvival.util.settings
 import com.dumbdogdiner.stickysurvival.util.severe
 import com.dumbdogdiner.stickysurvival.util.warn
 import net.milkbowl.vault.economy.Economy
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.plugin.java.JavaPlugin
+import org.jetbrains.exposed.sql.Database
 import java.io.InputStreamReader
 
 @kr.entree.spigradle.annotations.PluginMain
@@ -102,6 +105,20 @@ class StickySurvival : JavaPlugin() {
             if (economy == null) {
                 warn("Vault was found, but an economy provider was not. Rewards will not be given. Did you forget Wallet?")
             }
+        }
+
+        info("Connecting to database and initializing statistics.")
+        try {
+            StatsManager.db = Database.connect(
+                url = "jdbc:postgresql://${settings.db.host}:${settings.db.port}/${settings.db.database}",
+                user = settings.db.username,
+                password = settings.db.password,
+            )
+            StatsManager.init()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            StatsManager.db = null
+            warn("Database setup failed. Leaderboards will not display and statistics will not be recorded.")
         }
 
         info("Survival Games is enabled!! :doggers:")

@@ -2,6 +2,14 @@
 
 # Time units are in SECONDS, not ticks.
 
+# Database credentials
+db:
+  database: minecraft
+  host: localhost
+  port: 5432
+  username: AzureDiamond
+  password: hunter2
+
 # Where players will spawn in the lobby. If set to "world spawn", this will be the world's actual spawn point.
 lobby spawn: world spawn
 

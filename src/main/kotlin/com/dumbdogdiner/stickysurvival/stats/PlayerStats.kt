@@ -18,62 +18,23 @@
 
 package com.dumbdogdiner.stickysurvival.stats
 
-import com.dumbdogdiner.stickysurvival.StickySurvival
-import com.dumbdogdiner.stickysurvival.manager.PlayerNameManager
-import com.dumbdogdiner.stickysurvival.util.info
-import de.tr7zw.nbtapi.NBTContainer
-import de.tr7zw.nbtapi.NBTFile
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
+import com.dumbdogdiner.stickyapi.common.cache.Cacheable
+import org.jetbrains.exposed.sql.Column
 import java.util.UUID
 
-data class PlayerStats(val uuid: UUID, val kills: Long, val wins: Long, val losses: Long) {
-    // game count can be derived from wins and losses without needing to store it
-    val games get() = wins + losses
-    private val lock = Mutex()
+data class PlayerStats(val uuid: UUID, val wins: Int, val losses: Int, val kills: Int) : Cacheable {
+    override fun getKey() = uuid.toString()
 
-    private fun toNBT(): NBTContainer {
-        val nbt = NBTContainer()
+    constructor(getter: (Column<*>) -> Any?) : this(
+        getter(SurvivalGamesStats.id) as UUID,
+        getter(SurvivalGamesStats.wins) as Int,
+        getter(SurvivalGamesStats.losses) as Int,
+        getter(SurvivalGamesStats.kills) as Int,
+    )
 
-        nbt.setUUID("uuid", uuid)
-        nbt.setLong("kills", kills)
-        nbt.setLong("wins", wins)
-        nbt.setLong("losses", losses)
-
-        return nbt
-    }
-
-    suspend fun write() {
-        lock.lock(null)
-        try {
-            findFile(uuid).outputStream().use { toNBT().writeCompound(it) }
-        } finally {
-            lock.unlock(null)
-        }
-    }
-
-    companion object {
-        private fun findFile(uuid: UUID) =
-            StickySurvival.instance.dataFolder
-                .resolve("stats")
-                .resolve(uuid.toString().take(2))
-                .also { it.mkdirs() }
-                .resolve("$uuid.dat")
-
-        fun load(playerId: UUID): PlayerStats {
-            val file = findFile(playerId)
-            if (!file.exists()) {
-                info("Creating stats file for $playerId (${PlayerNameManager[playerId]}), as they have no records for Survival Games yet.")
-                file.createNewFile()
-                runBlocking { PlayerStats(playerId, 0L, 0L, 0L).write() }
-            }
-            val nbt = NBTFile(file)
-            return PlayerStats(
-                nbt.getUUID("uuid"),
-                nbt.getLong("kills"),
-                nbt.getLong("wins"),
-                nbt.getLong("losses"),
-            )
-        }
+    fun putIntoDB(setter: (Column<Int>, Int) -> Unit) {
+        setter(SurvivalGamesStats.wins, wins)
+        setter(SurvivalGamesStats.losses, losses)
+        setter(SurvivalGamesStats.kills, kills)
     }
 }

@@ -18,51 +18,133 @@
 
 package com.dumbdogdiner.stickysurvival.manager
 
+import com.dumbdogdiner.stickyapi.common.cache.Cache
 import com.dumbdogdiner.stickysurvival.stats.PlayerStats
-import com.dumbdogdiner.stickysurvival.stats.TopStats
-import kotlinx.coroutines.runBlocking
+import com.dumbdogdiner.stickysurvival.stats.SurvivalGamesStats
+import com.dumbdogdiner.stickysurvival.util.info
 import org.bukkit.entity.Player
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Expression
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.plus
+import org.jetbrains.exposed.sql.SqlLogger
+import org.jetbrains.exposed.sql.Transaction
+import org.jetbrains.exposed.sql.addLogger
+import org.jetbrains.exposed.sql.exists
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.statements.StatementContext
+import org.jetbrains.exposed.sql.statements.expandArgs
+import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import java.util.UUID
 
 object StatsManager {
-    private val players = mutableMapOf<UUID, PlayerStats>()
-    private val wins = TopStats.load("wins") { it.wins }
-    private val losses = TopStats.load("losses") { it.losses }
-    private val kills = TopStats.load("kills") { it.kills }
-    private val games = TopStats.load("games") { it.games }
+    // if no db is connected, stats are not saved and loading player stats returns null.
 
-    fun load(player: Player) {
-        val id = profileId(player)
-        players[id] = PlayerStats.load(id)
-    }
+    private val cache = Cache(PlayerStats::class.java)
 
-    fun unload(player: Player) {
-        players.remove(profileId(player))
-    }
-
-    operator fun get(player: Player): PlayerStats {
-        return players[profileId(player)]
-            ?: throw IllegalStateException("stats for ${player.name} were not loaded!")
-    }
-
-    operator fun set(player: Player, stats: PlayerStats) {
-        val id = profileId(player)
-        players[id] = stats
-
-        runBlocking {
-            wins.updateStat(id, stats.wins)
-            losses.updateStat(id, stats.losses)
-            kills.updateStat(id, stats.kills)
-            games.updateStat(id, stats.games)
-            stats.write()
+    private val logger = object : SqlLogger {
+        override fun log(context: StatementContext, transaction: Transaction) {
+            info("[SQL] ${context.expandArgs(transaction)}")
         }
     }
 
-    private fun profileId(player: Player) =
-        player.playerProfile.id ?: throw IllegalStateException("Player has no ID on their profile")
+    var db = null as Database?
 
-    fun topWins() = wins.get()
-    fun topLosses() = losses.get()
-    fun topKills() = kills.get()
-    fun topGames() = games.get()
+    val topWins = arrayOfNulls<Pair<UUID, Int>>(10)
+    val topLosses = arrayOfNulls<Pair<UUID, Int>>(10)
+    val topKills = arrayOfNulls<Pair<UUID, Int>>(10)
+    val topGames = arrayOfNulls<Pair<UUID, Int>>(10)
+
+    operator fun get(player: Player) = if (db == null) null else {
+        val uuid = player.uniqueId
+        cache[uuid.toString()] ?: run {
+            load(uuid)
+            cache[uuid.toString()]!!
+        }
+    }
+
+    // note that updateTopStats() is not automatically called for setter methods.
+    // this is to minimize queries
+
+    operator fun set(player: Player, stats: PlayerStats) {
+        // noop if no database!
+        if (db != null) {
+            val uuid = player.uniqueId
+            transaction(db) {
+                addLogger(logger)
+                if (SurvivalGamesStats.select { SurvivalGamesStats.id eq uuid }.empty()) {
+                    SurvivalGamesStats.insert {
+                        stats.putIntoDB { key, value -> it[key] = value }
+                    }
+                } else {
+                    SurvivalGamesStats.update({ SurvivalGamesStats.id eq uuid }) {
+                        stats.putIntoDB { key, value -> it[key] = value }
+                    }
+                }
+            }
+            cache.put(stats)
+        }
+    }
+
+    private fun load(uuid: UUID) {
+        cache.put(
+            transaction(db) {
+                addLogger(logger)
+                SurvivalGamesStats.select { SurvivalGamesStats.id eq uuid }.firstOrNull()?.let {
+                    PlayerStats { key -> it[key] }
+                } ?: run {
+                    SurvivalGamesStats.insert {
+                        it[id] = uuid
+                        it[wins] = 0
+                        it[losses] = 0
+                        it[kills] = 0
+                    }
+                    PlayerStats(uuid, 0, 0, 0)
+                }
+            }
+        )
+    }
+
+    fun updateTopStats() {
+        if (db != null) {
+            transaction(db) {
+                addLogger(logger)
+                fun loadTopStat(
+                    expr: Expression<Int>,
+                    array: Array<Pair<UUID, Int>?>,
+                    calculator: (ResultRow) -> Int = { it[expr] }
+                ) {
+                    SurvivalGamesStats.selectAll().orderBy(expr, SortOrder.DESC).take(10).withIndex().forEach { (i, v) ->
+                        array[i] = v[SurvivalGamesStats.id] to calculator(v)
+                    }
+                }
+
+                loadTopStat(SurvivalGamesStats.wins, topWins)
+                loadTopStat(SurvivalGamesStats.losses, topLosses)
+                loadTopStat(SurvivalGamesStats.kills, topKills)
+                loadTopStat(SurvivalGamesStats.wins + SurvivalGamesStats.losses, topGames) {
+                    it[SurvivalGamesStats.wins] + it[SurvivalGamesStats.losses]
+                }
+            }
+        }
+    }
+
+    fun init() {
+        if (db != null) {
+            transaction(db) {
+                addLogger(logger)
+
+                if (!SurvivalGamesStats.exists()) {
+                    SchemaUtils.create(SurvivalGamesStats)
+                }
+            }
+
+            updateTopStats()
+        }
+    }
 }

@@ -407,11 +407,14 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
         val winner0 = winner
 
         for (player in participants) {
-            var (uuid, kills, wins, losses) = StatsManager[player]
-            kills += killsFor(player)
-            if (player == winner0) wins += 1 else losses += 1
-            StatsManager[player] = PlayerStats(uuid, kills, wins, losses)
+            StatsManager[player]?.let {
+                var (uuid, wins, losses, kills) = it
+                kills += killsFor(player)
+                if (player == winner0) wins += 1 else losses += 1
+                StatsManager[player] = PlayerStats(uuid, wins, losses, kills)
+            }
         }
+        StatsManager.updateTopStats()
 
         if (winner0 != null) {
             StickySurvival.economy?.depositPlayer(winner0, settings.reward)

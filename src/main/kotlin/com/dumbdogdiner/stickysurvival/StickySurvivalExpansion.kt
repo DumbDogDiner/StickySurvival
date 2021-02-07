@@ -35,13 +35,13 @@ object StickySurvivalExpansion : PlaceholderExpansion() {
         return when {
             params.startsWith("lb_player_") -> {
                 val place = params.substringAfter("lb_player_").toInt()
-                val (statPlayer, _) = StatsManager.topWins().getOrNull(place - 1) ?: return "----"
-                PlayerNameManager[statPlayer.uniqueId]
+                val (statPlayer, _) = StatsManager.topWins.getOrNull(place - 1) ?: return "----"
+                PlayerNameManager[statPlayer]
             }
 
             params.startsWith("lb_score_") -> {
                 val place = params.substringAfter("lb_score_").toInt()
-                val (_, stat) = StatsManager.topWins().getOrNull(place - 1) ?: return "----"
+                val (_, stat) = StatsManager.topWins.getOrNull(place - 1) ?: return "----"
                 "$stat"
             }
 

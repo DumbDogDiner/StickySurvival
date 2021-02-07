@@ -35,6 +35,11 @@ dependencies {
     implementation(kotlin("reflect"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
 
+    implementation("org.jetbrains.exposed:exposed-core:0.29.1")
+    implementation("org.jetbrains.exposed:exposed-dao:0.29.1")
+    implementation("org.jetbrains.exposed:exposed-jdbc:0.29.1")
+    implementation("org.postgresql:postgresql:42.2.16")
+
     compileOnly(vaultAll())
     compileOnly(paper("1.16.5"))
 

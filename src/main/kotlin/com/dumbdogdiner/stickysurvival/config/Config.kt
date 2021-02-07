@@ -32,6 +32,7 @@ import org.bukkit.inventory.meta.CompassMeta
 import java.io.File
 
 class Config(
+    val db: DatabaseConfig,
     val worldConfigs: Map<String, WorldConfig>,
     val lobbySpawn: Location,
     val countdown: Int,
@@ -65,6 +66,7 @@ class Config(
 
     @Suppress("unchecked_cast")
     constructor(cfg: ConfigHelper) : this(
+        DatabaseConfig(cfg["db"]),
         loadWorlds(cfg),
         cfg["lobby spawn"].let {
             if (it.isA(String::class) && it.asString() == "world spawn") {

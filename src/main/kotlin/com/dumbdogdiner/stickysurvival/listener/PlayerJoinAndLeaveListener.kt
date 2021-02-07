@@ -20,7 +20,6 @@ package com.dumbdogdiner.stickysurvival.listener
 
 import com.dumbdogdiner.stickysurvival.manager.HiddenPlayerManager
 import com.dumbdogdiner.stickysurvival.manager.LobbyInventoryManager
-import com.dumbdogdiner.stickysurvival.manager.StatsManager
 import com.dumbdogdiner.stickysurvival.util.game
 import com.dumbdogdiner.stickysurvival.util.goToLobby
 import org.bukkit.event.EventHandler
@@ -32,7 +31,6 @@ object PlayerJoinAndLeaveListener : Listener {
     @EventHandler
     fun onPlayerJoin(event: PlayerJoinEvent) {
         event.player.goToLobby()
-        StatsManager.load(event.player)
         HiddenPlayerManager.sendHiddenPlayers(event.player)
     }
 
@@ -40,7 +38,6 @@ object PlayerJoinAndLeaveListener : Listener {
     fun onPlayerQuit(event: PlayerQuitEvent) {
         if (event.player.world.game != null) event.quitMessage = null
         event.player.goToLobby()
-        StatsManager.unload(event.player)
         HiddenPlayerManager.remove(event.player)
         LobbyInventoryManager.unloadInventory(event.player)
     }
