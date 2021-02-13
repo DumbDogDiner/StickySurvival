@@ -20,6 +20,7 @@ package com.dumbdogdiner.stickysurvival
 
 import com.dumbdogdiner.stickyapi.bukkit.util.StartupUtil
 import com.dumbdogdiner.stickysurvival.command.sgCommandBuilder
+import com.dumbdogdiner.stickysurvival.command.sgSetupCommandBuilder
 import com.dumbdogdiner.stickysurvival.config.Config
 import com.dumbdogdiner.stickysurvival.config.ConfigHelper
 import com.dumbdogdiner.stickysurvival.listener.FasterWorldLoadsListener
@@ -76,8 +77,9 @@ class StickySurvival : JavaPlugin() {
         info("Checking worlds from configuration.")
         WorldManager.loadFromConfig()
 
-        info("Registering /sg command.")
+        info("Registering commands.")
         sgCommandBuilder.register(this)
+        sgSetupCommandBuilder.register(this)
 
         for (
             listener in setOf(

@@ -32,7 +32,6 @@ import com.dumbdogdiner.stickysurvival.util.schedule
 import com.dumbdogdiner.stickysurvival.util.settings
 import com.dumbdogdiner.stickysurvival.util.waitFor
 import com.dumbdogdiner.stickysurvival.util.worlds
-import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import java.lang.reflect.Field
 
@@ -221,18 +220,6 @@ val sgCommandBuilder: BukkitCommandBuilder = BukkitCommandBuilder("survivalgames
                 }
             }
     )
-
-// lil function for forcing end of arguments
-private fun Arguments.end() {
-    if (unparsedArgs.size > argsPositionField.getInt(this)) {
-        invalidate("<too many arguments>")
-    }
-}
-
-private fun printError(exitCode: ExitCode, sender: CommandSender) {
-    @Suppress("deprecation")
-    sender.sendMessage(com.dumbdogdiner.stickyapi.bukkit.command.ExitCode.valueOf(exitCode.name).message)
-}
 
 val argsPositionField: Field = run {
     val a = Arguments::class.java.getDeclaredField("position")

@@ -21,6 +21,7 @@ repositories {
     jitpack()
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
     maven("https://repo.codemc.org/repository/maven-public/")
+    maven("https://maven.enginehub.org/repo/")
     maven {
         credentials {
             username = "${property("ghUser")}"
@@ -47,6 +48,7 @@ dependencies {
 
     implementation("de.tr7zw:item-nbt-api-plugin:2.7.1")
     implementation("com.dumbdogdiner:stickyapi:2.1.0")
+    compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.2")
 }
 
 tasks {
@@ -95,6 +97,11 @@ tasks {
 
             create("stickysurvival.forcestart") {
                 description = "Allows a player to force a game to start if there are not enough players."
+                defaults = "op"
+            }
+
+            create("stickysurvival.setup") {
+                description = "Allows a player to use world setup commands."
                 defaults = "op"
             }
         }
