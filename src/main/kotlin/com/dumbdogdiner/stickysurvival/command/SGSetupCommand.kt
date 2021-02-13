@@ -23,7 +23,6 @@ import com.dumbdogdiner.stickyapi.common.command.ExitCode
 import com.dumbdogdiner.stickysurvival.StickySurvival
 import com.dumbdogdiner.stickysurvival.manager.WorldManager
 import com.dumbdogdiner.stickysurvival.util.schedule
-import com.dumbdogdiner.stickysurvival.util.worlds
 import com.sk89q.worldedit.WorldEdit
 import com.sk89q.worldedit.bukkit.BukkitPlayer
 import com.sk89q.worldedit.bukkit.BukkitWorld
@@ -151,10 +150,11 @@ val sgSetupCommandBuilder: BukkitCommandBuilder = cmdStub("sgsetup")
 private fun withConfig(player: Player, mutates: Boolean = true, block: (YamlConfiguration) -> Unit) {
     val name = player.world.name
     // this is good enough
-    if (name !in worlds) {
-        throw IllegalArgumentException("No such world $name - make a config file for this world first and reload!")
-    }
+    // if (name !in worlds) {
+    //     throw IllegalArgumentException("No such world $name - make a config file for this world first and reload!")
+    // }
     val file = StickySurvival.instance.dataFolder.resolve("worlds").resolve("$name.yml")
+    if (!file.exists()) throw IllegalArgumentException("config file not exist")
     val config = YamlConfiguration.loadConfiguration(file)
 
     block(config)
