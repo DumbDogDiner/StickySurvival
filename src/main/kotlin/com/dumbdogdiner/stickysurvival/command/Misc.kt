@@ -22,6 +22,7 @@ import com.dumbdogdiner.stickyapi.bukkit.command.BukkitCommandBuilder
 import com.dumbdogdiner.stickyapi.common.arguments.Arguments
 import com.dumbdogdiner.stickyapi.common.command.ExitCode
 import org.bukkit.command.CommandSender
+import java.lang.reflect.Field
 
 // pattern matching objects
 internal val REST = Any()
@@ -59,6 +60,12 @@ internal fun Arguments.end() {
     if (unparsedArgs.size > argsPositionField.getInt(this)) {
         invalidate("<too many arguments>")
     }
+}
+
+internal val argsPositionField: Field = run {
+    val a = Arguments::class.java.getDeclaredField("position")
+    a.isAccessible = true
+    a
 }
 
 internal fun printError(exitCode: ExitCode, sender: CommandSender) {

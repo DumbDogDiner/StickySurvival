@@ -19,7 +19,6 @@
 package com.dumbdogdiner.stickysurvival.command
 
 import com.dumbdogdiner.stickyapi.bukkit.command.BukkitCommandBuilder
-import com.dumbdogdiner.stickyapi.common.arguments.Arguments
 import com.dumbdogdiner.stickyapi.common.command.ExitCode
 import com.dumbdogdiner.stickysurvival.Game
 import com.dumbdogdiner.stickysurvival.StickySurvival
@@ -33,7 +32,158 @@ import com.dumbdogdiner.stickysurvival.util.settings
 import com.dumbdogdiner.stickysurvival.util.waitFor
 import com.dumbdogdiner.stickysurvival.util.worlds
 import org.bukkit.entity.Player
-import java.lang.reflect.Field
+
+private val join =
+    BukkitCommandBuilder("join")
+        .synchronous(false)
+        .requiresPlayer()
+        .permission("stickysurvival.join")
+        .onError { exit, sender, _, _ -> printError(exit, sender) }
+        .onExecute { sender, args, _ ->
+            sender as Player
+            args.requiredString("worldName")
+            args.end()
+            when {
+                !args.valid()
+                -> ExitCode.EXIT_INVALID_SYNTAX
+                sender.world.game != null
+                -> ExitCode.EXIT_INVALID_STATE
+                WorldManager.isPlayerWaitingToJoin(sender)
+                -> ExitCode.EXIT_INVALID_STATE
+                args.getString("worldName") !in worlds
+                -> ExitCode.EXIT_INVALID_SYNTAX
+                WorldManager.playerJoinCooldownExists(sender)
+                -> ExitCode.EXIT_COOLDOWN
+
+                else -> {
+                    try {
+                        if (!WorldManager.putPlayerInWorldNamed(sender, args.getString("worldName"))) {
+                            ExitCode.EXIT_INVALID_STATE
+                        } else {
+                            ExitCode.EXIT_SUCCESS
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        ExitCode.EXIT_ERROR
+                    }
+                }
+            }
+        }
+
+private val leave =
+    BukkitCommandBuilder("leave")
+        .synchronous(false)
+        .requiresPlayer()
+        .permission("stickysurvival.leave")
+        .onError { exit, sender, _, _ -> printError(exit, sender) }
+        .onExecute { sender, args, _ ->
+            sender as Player
+            args.end()
+            when {
+                !args.valid()
+                -> ExitCode.EXIT_INVALID_SYNTAX
+                sender.world.game == null
+                -> ExitCode.EXIT_INVALID_STATE
+
+                else -> {
+                    var success: Boolean? = null
+                    schedule { success = sender.goToLobby() }
+                    if (waitFor { success }) ExitCode.EXIT_SUCCESS else ExitCode.EXIT_ERROR
+                }
+            }
+        }
+
+private val kit =
+    BukkitCommandBuilder("kit")
+        .synchronous(false)
+        .requiresPlayer()
+        .permission("stickysurvival.kit")
+        .onError { exit, sender, _, _ -> printError(exit, sender) }
+        .onExecute { sender, args, _ ->
+            sender as Player
+            args.requiredString("kitName")
+            args.end()
+            when {
+                !args.valid()
+                -> ExitCode.EXIT_INVALID_SYNTAX
+
+                else -> {
+                    val game = sender.world.game ?: return@onExecute ExitCode.EXIT_INVALID_STATE
+                    if (game.phase != Game.Phase.WAITING) return@onExecute ExitCode.EXIT_INVALID_STATE
+                    val kit = settings.kits.find {
+                        it.name == args.getString("kitName")
+                    } ?: return@onExecute ExitCode.EXIT_INVALID_SYNTAX
+                    game.setKit(sender, kit)
+                    sender.sendMessage(messages.chat.kitSelect.safeFormat(kit.name))
+                    ExitCode.EXIT_SUCCESS
+                }
+            }
+        }
+
+private val kits =
+    BukkitCommandBuilder("kits")
+        .synchronous(false)
+        .permission("stickysurvival.kits")
+        .onError { exit, sender, _, _ -> printError(exit, sender) }
+        .onExecute { sender, args, _ ->
+            args.end()
+            when {
+                !args.valid()
+                -> ExitCode.EXIT_INVALID_SYNTAX
+
+                else -> {
+                    sender.sendMessage("kits: ${settings.kits.joinToString(", ") { it.name }}")
+                    ExitCode.EXIT_SUCCESS
+                }
+            }
+        }
+
+private val reload =
+    BukkitCommandBuilder("reload")
+        .synchronous(false)
+        .permission("stickysurvival.reload")
+        .onError { exit, sender, _, _ -> printError(exit, sender) }
+        .onExecute { sender, args, _ ->
+            args.end()
+            when {
+                !args.valid()
+                -> ExitCode.EXIT_INVALID_SYNTAX
+
+                else -> {
+                    StickySurvival.instance.reloadConfig()
+                    schedule {
+                        if (WorldManager.loadFromConfig()) {
+                            sender.sendMessage("The configuration was reloaded successfully.")
+                        } else {
+                            sender.sendMessage("The configuration could not be reloaded. The default configuration is being used as a fallback. See the console for more information.")
+                        }
+                    }
+                    ExitCode.EXIT_SUCCESS
+                }
+            }
+        }
+
+private val forcestart =
+    BukkitCommandBuilder("forcestart")
+        .synchronous(false)
+        .requiresPlayer()
+        .permission("stickysurvival.forcestart")
+        .onError { exit, sender, _, _ -> printError(exit, sender) }
+        .onExecute { sender, args, _ ->
+            sender as Player
+            args.end()
+            when {
+                !args.valid()
+                -> ExitCode.EXIT_INVALID_SYNTAX
+                else -> when (val game = sender.world.game) {
+                    null -> ExitCode.EXIT_INVALID_STATE
+                    else -> {
+                        schedule { game.forceStartGame() }
+                        ExitCode.EXIT_SUCCESS
+                    }
+                }
+            }
+        }
 
 val sgCommandBuilder: BukkitCommandBuilder = BukkitCommandBuilder("survivalgames")
     .alias("sg")
@@ -68,161 +218,9 @@ val sgCommandBuilder: BukkitCommandBuilder = BukkitCommandBuilder("survivalgames
     }
     .onError { exit, sender, _, _ -> printError(exit, sender) }
     .onExecute { _, _, _ -> ExitCode.EXIT_INVALID_SYNTAX }
-    .subCommand(
-        BukkitCommandBuilder("join")
-            .synchronous(false)
-            .requiresPlayer()
-            .permission("stickysurvival.join")
-            .onError { exit, sender, _, _ -> printError(exit, sender) }
-            .onExecute { sender, args, _ ->
-                sender as Player
-                args.requiredString("worldName")
-                args.end()
-                when {
-                    !args.valid()
-                    -> ExitCode.EXIT_INVALID_SYNTAX
-                    sender.world.game != null
-                    -> ExitCode.EXIT_INVALID_STATE
-                    WorldManager.isPlayerWaitingToJoin(sender)
-                    -> ExitCode.EXIT_INVALID_STATE
-                    args.getString("worldName") !in worlds
-                    -> ExitCode.EXIT_INVALID_SYNTAX
-                    WorldManager.playerJoinCooldownExists(sender)
-                    -> ExitCode.EXIT_COOLDOWN
-
-                    else -> {
-                        try {
-                            if (!WorldManager.putPlayerInWorldNamed(sender, args.getString("worldName"))) {
-                                ExitCode.EXIT_INVALID_STATE
-                            } else {
-                                ExitCode.EXIT_SUCCESS
-                            }
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                            ExitCode.EXIT_ERROR
-                        }
-                    }
-                }
-            }
-    )
-    .subCommand(
-        BukkitCommandBuilder("leave")
-            .synchronous(false)
-            .requiresPlayer()
-            .permission("stickysurvival.leave")
-            .onError { exit, sender, _, _ -> printError(exit, sender) }
-            .onExecute { sender, args, _ ->
-                sender as Player
-                args.end()
-                when {
-                    !args.valid()
-                    -> ExitCode.EXIT_INVALID_SYNTAX
-                    sender.world.game == null
-                    -> ExitCode.EXIT_INVALID_STATE
-
-                    else -> {
-                        var success: Boolean? = null
-                        schedule { success = sender.goToLobby() }
-                        if (waitFor { success }) ExitCode.EXIT_SUCCESS else ExitCode.EXIT_ERROR
-                    }
-                }
-            }
-    )
-    .subCommand(
-        BukkitCommandBuilder("kit")
-            .synchronous(false)
-            .requiresPlayer()
-            .permission("stickysurvival.kit")
-            .onError { exit, sender, _, _ -> printError(exit, sender) }
-            .onExecute { sender, args, _ ->
-                sender as Player
-                args.requiredString("kitName")
-                args.end()
-                when {
-                    !args.valid()
-                    -> ExitCode.EXIT_INVALID_SYNTAX
-
-                    else -> {
-                        val game = sender.world.game ?: return@onExecute ExitCode.EXIT_INVALID_STATE
-                        if (game.phase != Game.Phase.WAITING) return@onExecute ExitCode.EXIT_INVALID_STATE
-                        val kit = settings.kits.find {
-                            it.name == args.getString("kitName")
-                        } ?: return@onExecute ExitCode.EXIT_INVALID_SYNTAX
-                        game.setKit(sender, kit)
-                        sender.sendMessage(messages.chat.kitSelect.safeFormat(kit.name))
-                        ExitCode.EXIT_SUCCESS
-                    }
-                }
-            }
-    )
-    .subCommand(
-        BukkitCommandBuilder("kits")
-            .synchronous(false)
-            .permission("stickysurvival.kits")
-            .onError { exit, sender, _, _ -> printError(exit, sender) }
-            .onExecute { sender, args, _ ->
-                args.end()
-                when {
-                    !args.valid()
-                    -> ExitCode.EXIT_INVALID_SYNTAX
-
-                    else -> {
-                        sender.sendMessage("kits: ${settings.kits.joinToString(", ") { it.name }}")
-                        ExitCode.EXIT_SUCCESS
-                    }
-                }
-            }
-    )
-    .subCommand(
-        BukkitCommandBuilder("reload")
-            .synchronous(false)
-            .permission("stickysurvival.reload")
-            .onError { exit, sender, _, _ -> printError(exit, sender) }
-            .onExecute { sender, args, _ ->
-                args.end()
-                when {
-                    !args.valid()
-                    -> ExitCode.EXIT_INVALID_SYNTAX
-
-                    else -> {
-                        StickySurvival.instance.reloadConfig()
-                        schedule {
-                            if (WorldManager.loadFromConfig()) {
-                                sender.sendMessage("The configuration was reloaded successfully.")
-                            } else {
-                                sender.sendMessage("The configuration could not be reloaded. The default configuration is being used as a fallback. See the console for more information.")
-                            }
-                        }
-                        ExitCode.EXIT_SUCCESS
-                    }
-                }
-            }
-    )
-    .subCommand(
-        BukkitCommandBuilder("forcestart")
-            .synchronous(false)
-            .requiresPlayer()
-            .permission("stickysurvival.forcestart")
-            .onError { exit, sender, _, _ -> printError(exit, sender) }
-            .onExecute { sender, args, _ ->
-                sender as Player
-                args.end()
-                when {
-                    !args.valid()
-                    -> ExitCode.EXIT_INVALID_SYNTAX
-                    else -> when (val game = sender.world.game) {
-                        null -> ExitCode.EXIT_INVALID_STATE
-                        else -> {
-                            schedule { game.forceStartGame() }
-                            ExitCode.EXIT_SUCCESS
-                        }
-                    }
-                }
-            }
-    )
-
-val argsPositionField: Field = run {
-    val a = Arguments::class.java.getDeclaredField("position")
-    a.isAccessible = true
-    a
-}
+    .subCommand(join)
+    .subCommand(leave)
+    .subCommand(kit)
+    .subCommand(kits)
+    .subCommand(reload)
+    .subCommand(forcestart)
