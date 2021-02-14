@@ -55,7 +55,7 @@ class Config(
     bonusLoot: LootConfig,
     val kits: List<KitConfig>,
 ) {
-    val randomChestLoot = LootConfig(randomChestLootMin, randomChestLootMax, basicLoot.entries)
+    val randomChestLoot = LootConfig(randomChestLootMin, randomChestLootMax, bonusLoot.entries)
 
     private val trackingCompass = ItemStack(Material.COMPASS).also { item ->
         item.lore = trackingCompassLore.map { it.substituteAmpersand() }
