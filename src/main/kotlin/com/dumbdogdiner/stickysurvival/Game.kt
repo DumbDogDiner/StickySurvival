@@ -67,7 +67,7 @@ import java.util.WeakHashMap
 import kotlin.math.roundToLong
 import kotlin.random.Random
 
-class Game(val world: World, val config: WorldConfig, private val hologram: LobbyHologram) {
+class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologram) {
     enum class Phase { WAITING, ACTIVE, COMPLETE }
 
     private val noDamageTime = config.noDamageTime ?: settings.noDamageTime
@@ -143,8 +143,8 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
     }
 
     private fun updateDisplays() {
+        hologram.update(this)
         updateBossBar()
-        hologram.update()
     }
 
     private fun updateBossBar() {
@@ -327,9 +327,8 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
             close()
         } else {
             checkForWinner()
+            updateDisplays()
         }
-
-        updateDisplays()
     }
 
     private fun close() {

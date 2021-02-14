@@ -54,7 +54,7 @@ class StickySurvival : JavaPlugin() {
         WorldManager.lobbyWorld.entities.asSequence().filter {
             it.persistentDataContainer.has(LobbyHologram.hologramKey, PersistentDataType.BYTE)
         }.forEach {
-            it.remove()
+            it.remove() // this doesn't seem to work properly
         }
 
         info("Setting up configuration.")

@@ -128,6 +128,7 @@ object WorldManager {
     }
 
     fun unloadGame(game: Game) {
+        game.hologram.update(null)
         val world = game.world
         val name = world.name
 

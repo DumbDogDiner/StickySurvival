@@ -81,7 +81,7 @@ class LobbyHologram(val worldName: String) {
         // floatingSword.teleport(config.hologram)
 
         armorStand1.customName = config.friendlyName
-        update()
+        update(null)
     }
 
     fun cleanup() {
@@ -94,8 +94,7 @@ class LobbyHologram(val worldName: String) {
         keepItemTask.cancel()
     }
 
-    fun update() {
-        val game = WorldManager.getLoadedGame(worldName)
+    fun update(game: Game?) {
         val areChunksForceLoaded = BooleanArray(armorStands.size)
         for ((i, armorStand) in armorStands.withIndex()) {
             areChunksForceLoaded[i] = armorStand.chunk.isForceLoaded
