@@ -11,6 +11,8 @@ plugins {
 
     id("org.jlleitschuh.gradle.ktlint") version "9.4.1"
     id("eclipse")
+
+    id("net.nemerosa.versioning") version "2.14.0"
 }
 
 group = "com.dumbdogdiner"
@@ -68,6 +70,10 @@ tasks {
         authors = listOf("spazzylemons")
         softDepends = listOf("AnimatedScoreboard", "PlaceholderAPI", "Vault")
         depends = listOf()
+
+        // Construct a new version string including git info
+        version = "${project.version}_${versioning.info.display}"
+
         apiVersion = "1.16"
         permissions {
             create("stickysurvival.join") {
@@ -97,6 +103,11 @@ tasks {
 
             create("stickysurvival.forcestart") {
                 description = "Allows a player to force a game to start if there are not enough players."
+                defaults = "op"
+            }
+
+            create("stickysurvival.version") {
+                description = "Allows a player to check the plugin version."
                 defaults = "op"
             }
 

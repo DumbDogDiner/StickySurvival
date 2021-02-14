@@ -47,6 +47,8 @@ class StickySurvival : JavaPlugin() {
     override fun onEnable() {
         instance = this // THIS MUST RUN FIRST!
 
+        version = description.version
+
         info("Attempting to load the AnimatedScoreboard plugin.")
         AnimatedScoreboardManager.plugin = server.pluginManager.getPlugin("AnimatedScoreboard") as JavaPlugin?
 
@@ -152,6 +154,9 @@ class StickySurvival : JavaPlugin() {
 
         // the instance of the plugin
         lateinit var instance: StickySurvival
+
+        // the version of the plugin
+        lateinit var version: String
 
         // ConfigHelper built from the defaults
         lateinit var defaultConfig: ConfigHelper

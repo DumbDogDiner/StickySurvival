@@ -108,6 +108,11 @@ private val forceStart = cmd("forcestart") { sender, _, _ ->
     } ?: ExitCode.EXIT_INVALID_STATE
 }.permission("stickysurvival.forcestart").requiresPlayer()
 
+private val version = cmd("version") { sender, _, _ ->
+    sender.sendMessage("You are running version ${StickySurvival.version}")
+    ExitCode.EXIT_SUCCESS
+}.permission("stickysurvival.version")
+
 val sgCommandBuilder: BukkitCommandBuilder = cmdStub("survivalgames").alias("sg")
     .onTabComplete { sender, _, args ->
         val argArray = args.rawArgs.toTypedArray()
@@ -121,7 +126,7 @@ val sgCommandBuilder: BukkitCommandBuilder = cmdStub("survivalgames").alias("sg"
         }
 
         if (argArray.matches(ANY)) {
-            return@onTabComplete setOf("join", "leave", "reload", "kit", "kits", "forcestart").filter {
+            return@onTabComplete setOf("join", "leave", "reload", "kit", "kits", "forcestart", "version").filter {
                 sender.hasPermission("stickysurvival.$it") && it.startsWith(argArray[0])
             }.toMutableList()
         }
@@ -134,3 +139,4 @@ val sgCommandBuilder: BukkitCommandBuilder = cmdStub("survivalgames").alias("sg"
     .subCommand(kits)
     .subCommand(reload)
     .subCommand(forceStart)
+    .subCommand(version)
