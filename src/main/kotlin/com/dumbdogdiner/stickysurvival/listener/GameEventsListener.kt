@@ -40,6 +40,7 @@ import org.bukkit.event.entity.EntityExplodeEvent
 import org.bukkit.event.entity.EntityPickupItemEvent
 import org.bukkit.event.entity.FoodLevelChangeEvent
 import org.bukkit.event.entity.PlayerDeathEvent
+import org.bukkit.event.entity.PotionSplashEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.event.player.AsyncPlayerChatEvent
@@ -87,6 +88,16 @@ object GameEventsListener : Listener {
         when (event.entityType) {
             EntityType.ITEM_FRAME, EntityType.PAINTING -> event.isCancelled = true
             else -> Unit
+        }
+    }
+
+    @EventHandler
+    fun onPotionSplash(event: PotionSplashEvent) {
+        val game = event.potion.world.game ?: return
+        for (entity in event.affectedEntities) {
+            if (entity is Player && !game.playerIsTribute(entity)) {
+                event.setIntensity(entity, 0.0) // spectators may not receive splash potion effects
+            }
         }
     }
 
