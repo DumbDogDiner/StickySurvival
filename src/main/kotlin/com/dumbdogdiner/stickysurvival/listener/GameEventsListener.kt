@@ -28,7 +28,6 @@ import org.bukkit.Material
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.Player
-import org.bukkit.entity.TNTPrimed
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockBreakEvent
@@ -72,21 +71,14 @@ object GameEventsListener : Listener {
     @EventHandler
     fun onEntityExplode(event: EntityExplodeEvent) {
         // might not want explosions in the lobby, but that's the lobby plugin's responsibility, not ours
-        if (event.entity.world.game != null) {
-            event.isCancelled = true // tnt may explode, but may not damage the world
-        }
+        if (event.entity.world.game != null) event.blockList().clear() // explosions may not damage the world
     }
 
     @EventHandler
     fun onBlockPlace(event: BlockPlaceEvent) {
         if (event.isCancelled || event.player.world.game == null) return
-        // don't let players place blocks, unless it's TNT, in which case, immediately prime it
-        if (event.block.type == Material.TNT) {
-            event.block.type = Material.AIR
-            event.block.world.spawn(event.block.location, TNTPrimed::class.java)
-        } else {
-            event.isCancelled = true
-        }
+        // don't let players place blocks
+        event.isCancelled = true
     }
 
     @EventHandler
