@@ -22,6 +22,7 @@ import com.destroystokyo.paper.Title
 import com.dumbdogdiner.stickysurvival.config.KitConfig
 import com.dumbdogdiner.stickysurvival.config.WorldConfig
 import com.dumbdogdiner.stickysurvival.manager.AnimatedScoreboardManager
+import com.dumbdogdiner.stickysurvival.manager.HiddenPlayerManager
 import com.dumbdogdiner.stickysurvival.manager.LobbyInventoryManager
 import com.dumbdogdiner.stickysurvival.manager.StatsManager
 import com.dumbdogdiner.stickysurvival.manager.WorldManager
@@ -216,11 +217,15 @@ class Game(val world: World, val config: WorldConfig, private val hologram: Lobb
         }
 
         if (phase != Phase.WAITING) {
-            return player.teleport(tributes.random().location).also {
-                if (it) {
-                    LobbyInventoryManager.saveInventory(player)
-                    player.spectate()
-                }
+            LobbyInventoryManager.saveInventory(player)
+            player.spectate()
+            return if (!player.teleport(tributes.random().location)) {
+                player.reset()
+                HiddenPlayerManager.remove(player)
+                LobbyInventoryManager.restoreInventory(player)
+                false
+            } else {
+                true
             }
         }
 
