@@ -19,13 +19,9 @@
 package com.dumbdogdiner.stickysurvival.task
 
 import com.dumbdogdiner.stickysurvival.Game
-import com.dumbdogdiner.stickysurvival.util.broadcastMessage
-import com.dumbdogdiner.stickysurvival.util.messages
 
 class ChestRefillRunnable(game: Game) : GameRunnable(game) {
     override fun run() {
-        game.refillCount += 1
-        game.fillOpenChests()
-        game.world.broadcastMessage(messages.chat.refill)
+        game.chestComponent.onChestRefill()
     }
 }

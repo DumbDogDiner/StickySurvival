@@ -21,6 +21,7 @@ package com.dumbdogdiner.stickysurvival
 import com.destroystokyo.paper.Title
 import com.dumbdogdiner.stickysurvival.config.KitConfig
 import com.dumbdogdiner.stickysurvival.config.WorldConfig
+import com.dumbdogdiner.stickysurvival.game.GameChestComponent
 import com.dumbdogdiner.stickysurvival.manager.AnimatedScoreboardManager
 import com.dumbdogdiner.stickysurvival.manager.HiddenPlayerManager
 import com.dumbdogdiner.stickysurvival.manager.LobbyInventoryManager
@@ -28,7 +29,6 @@ import com.dumbdogdiner.stickysurvival.manager.StatsManager
 import com.dumbdogdiner.stickysurvival.manager.WorldManager
 import com.dumbdogdiner.stickysurvival.stats.PlayerStats
 import com.dumbdogdiner.stickysurvival.task.AutoQuitRunnable
-import com.dumbdogdiner.stickysurvival.task.ChestRefillRunnable
 import com.dumbdogdiner.stickysurvival.task.RandomDropRunnable
 import com.dumbdogdiner.stickysurvival.task.TimerRunnable
 import com.dumbdogdiner.stickysurvival.task.TrackingCompassRunnable
@@ -54,7 +54,6 @@ import org.bukkit.Sound
 import org.bukkit.World
 import org.bukkit.block.BlockState
 import org.bukkit.block.Chest
-import org.bukkit.block.Container
 import org.bukkit.boss.BarColor
 import org.bukkit.boss.BarStyle
 import org.bukkit.enchantments.Enchantment
@@ -75,7 +74,6 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
     // Runnables
     private val timer = TimerRunnable(this)
     private val randomDrop = RandomDropRunnable(this)
-    private val chestRefill = ChestRefillRunnable(this)
     private val autoQuit = AutoQuitRunnable(this)
     private val trackingCompass = TrackingCompassRunnable(this)
 
@@ -93,9 +91,7 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
     val bossBar = Bukkit.createBossBar(null, BarColor.WHITE, BarStyle.SOLID)
 
-    var refillCount = 1
-    private val filledChests = mutableMapOf<Location, Int>()
-    private val currentlyOpenChests = mutableSetOf<Location>()
+    val chestComponent = GameChestComponent(this)
 
     private val randomChests = HashBiMap.create<Location, Inventory>()
     private val visitedChunks = mutableSetOf<Long>()
@@ -294,9 +290,7 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
         world.broadcastMessage(messages.chat.start.safeFormat(noDamageTime))
 
-        if (config.chestRefill > 0) {
-            chestRefill.maybeRunTaskTimer(config.chestRefill, config.chestRefill)
-        }
+        chestComponent.startRefillTimer()
 
         trackingCompass.maybeRunTaskEveryTick()
 
@@ -335,8 +329,8 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
         timer.safelyCancel()
         randomDrop.safelyCancel()
         autoQuit.safelyCancel()
-        chestRefill.safelyCancel()
         trackingCompass.safelyCancel()
+        chestComponent.close()
         WorldManager.unloadGame(this)
     }
 
@@ -426,49 +420,6 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
         }
 
         phase = Phase.COMPLETE
-    }
-
-    private fun maybeFill(location: Location) {
-        if (filledChests[location]?.let { it >= refillCount } == true) return // chest needs no refills
-
-        val chest = world.getBlockAt(location).state as Container
-
-        val loot = when (chest.type) {
-            in settings.bonusContainers -> settings.bonusLoot
-            else -> settings.basicLoot
-        }
-
-        val inventories = if (chest.inventory is DoubleChestInventory) {
-            val inv = chest.inventory as DoubleChestInventory
-            listOf(inv.leftSide, inv.rightSide)
-        } else {
-            listOf(chest.inventory)
-        }
-
-        for (inventory in inventories) {
-            val loc = inventory.location ?: location
-            var i = filledChests[loc] ?: 0
-            while (i < refillCount) {
-                loot.insertItems(inventory)
-                i += 1
-            }
-            filledChests[loc] = refillCount
-        }
-    }
-
-    fun openChest(location: Location) {
-        currentlyOpenChests += location
-        maybeFill(location)
-    }
-
-    fun closeChest(location: Location) {
-        currentlyOpenChests -= location
-    }
-
-    fun fillOpenChests() {
-        for (loc in currentlyOpenChests) {
-            maybeFill(loc)
-        }
     }
 
     fun removeSomeChests(chunk: Chunk) {

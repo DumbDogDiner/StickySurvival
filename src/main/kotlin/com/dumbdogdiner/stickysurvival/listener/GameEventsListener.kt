@@ -185,7 +185,7 @@ object GameEventsListener : Listener {
                     event.player.openInventory(game.getOrCreateRandomChestInventoryAt(location))
                 }
                 Material.CHEST, in settings.bonusContainers -> {
-                    game.openChest(location)
+                    game.chestComponent.onChestOpen(location)
                 }
                 else -> Unit
             }
@@ -201,7 +201,7 @@ object GameEventsListener : Listener {
             game.destroyRandomChestInventory(event.inventory)
         }
 
-        event.inventory.location?.let { game.closeChest(it) }
+        event.inventory.location?.let { game.chestComponent.onChestClose(it) }
     }
 
     @EventHandler
