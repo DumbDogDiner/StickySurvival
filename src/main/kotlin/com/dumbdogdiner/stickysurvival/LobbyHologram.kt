@@ -102,7 +102,7 @@ class LobbyHologram(val worldName: String) {
         }
         if (game != null) {
             val tributesLeft = game.getTributesLeft()
-            val spaceLeft = game.getSpaceLeft()
+            val spaceLeft = game.spawnPointComponent.getSpaceLeft()
             val minPlayers = game.config.minPlayers
             armorStand2.customName = when (game.phase) {
                 Game.Phase.WAITING ->

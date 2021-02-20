@@ -22,6 +22,7 @@ import com.destroystokyo.paper.Title
 import com.dumbdogdiner.stickysurvival.config.KitConfig
 import com.dumbdogdiner.stickysurvival.config.WorldConfig
 import com.dumbdogdiner.stickysurvival.game.GameChestComponent
+import com.dumbdogdiner.stickysurvival.game.GameSpawnPointComponent
 import com.dumbdogdiner.stickysurvival.manager.AnimatedScoreboardManager
 import com.dumbdogdiner.stickysurvival.manager.HiddenPlayerManager
 import com.dumbdogdiner.stickysurvival.manager.LobbyInventoryManager
@@ -41,7 +42,6 @@ import com.dumbdogdiner.stickysurvival.util.reset
 import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.settings
 import com.dumbdogdiner.stickysurvival.util.spectate
-import com.dumbdogdiner.stickysurvival.util.warn
 import com.google.common.collect.HashBiMap
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
@@ -81,17 +81,13 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
     private val kills = WeakHashMap<Player, Int>()
     private val kits = WeakHashMap<Player, KitConfig>()
 
-    private val freeSpawnPoints = config.spawnPoints.map { spawnPoint ->
-        spawnPoint.clone().also { it.world = world }
-    }.toMutableSet()
-    private val usedSpawnPoints = WeakHashMap<Player, Location>()
-
     private val tributes = mutableSetOf<Player>()
     private val participants = mutableSetOf<Player>()
 
     val bossBar = Bukkit.createBossBar(null, BarColor.WHITE, BarStyle.SOLID)
 
     val chestComponent = GameChestComponent(this)
+    val spawnPointComponent = GameSpawnPointComponent(this)
 
     private val randomChests = HashBiMap.create<Location, Inventory>()
     private val visitedChunks = mutableSetOf<Long>()
@@ -225,12 +221,12 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
             }
         }
 
-        if (usedSpawnPoints.size >= config.maxPlayers) {
-            return false // game is full
-        }
-
         LobbyInventoryManager.saveInventory(player)
-        givePlayerSpawnPoint(player)
+        player.inventory.clear()
+        if (!spawnPointComponent.givePlayerSpawnPoint(player)) {
+            LobbyInventoryManager.restoreInventory(player)
+            return false
+        }
         tributes += player
         player.freeze()
 
@@ -246,21 +242,6 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
         updateDisplays()
         return true
-    }
-
-    private fun givePlayerSpawnPoint(player: Player) {
-        player.teleport(
-            freeSpawnPoints.random().also {
-                freeSpawnPoints -= it
-                usedSpawnPoints += player to it
-            }
-        )
-    }
-
-    private fun takePlayerSpawnPoint(player: Player) {
-        usedSpawnPoints.remove(player)?.let {
-            freeSpawnPoints += it
-        }
     }
 
     private fun beginStartCountdown() {
@@ -303,7 +284,7 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
         tributes -= player
 
         if (phase == Phase.WAITING) {
-            takePlayerSpawnPoint(player)
+            spawnPointComponent.takePlayerSpawnPoint(player)
         } else {
             logTributes()
         }
@@ -481,15 +462,6 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
     fun inventoryIsRandomChest(inv: Inventory) = randomChests.containsValue(inv)
 
     fun playerIsTribute(player: Player) = player in tributes
-
-    fun getSpaceLeft() = (config.maxPlayers - usedSpawnPoints.size).let {
-        if (it < 0) {
-            warn("More players in a game in ${config.friendlyName} than allowed! Maximum: ${config.maxPlayers} Present: ${usedSpawnPoints.size}")
-            0
-        } else {
-            it
-        }
-    }
 
     fun getTributesLeft() = tributes.size
 
