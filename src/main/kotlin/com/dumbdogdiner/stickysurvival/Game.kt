@@ -21,6 +21,7 @@ package com.dumbdogdiner.stickysurvival
 import com.destroystokyo.paper.Title
 import com.dumbdogdiner.stickysurvival.config.KitConfig
 import com.dumbdogdiner.stickysurvival.config.WorldConfig
+import com.dumbdogdiner.stickysurvival.game.GameBossBarComponent
 import com.dumbdogdiner.stickysurvival.game.GameChestComponent
 import com.dumbdogdiner.stickysurvival.game.GameSpawnPointComponent
 import com.dumbdogdiner.stickysurvival.manager.AnimatedScoreboardManager
@@ -54,8 +55,6 @@ import org.bukkit.Sound
 import org.bukkit.World
 import org.bukkit.block.BlockState
 import org.bukkit.block.Chest
-import org.bukkit.boss.BarColor
-import org.bukkit.boss.BarStyle
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryType
@@ -69,7 +68,7 @@ import kotlin.random.Random
 class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologram) {
     enum class Phase { WAITING, ACTIVE, COMPLETE }
 
-    private val noDamageTime = config.noDamageTime ?: settings.noDamageTime
+    val noDamageTime = config.noDamageTime ?: settings.noDamageTime
 
     // Runnables
     private val timer = TimerRunnable(this)
@@ -84,8 +83,7 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
     private val tributes = mutableSetOf<Player>()
     private val participants = mutableSetOf<Player>()
 
-    val bossBar = Bukkit.createBossBar(null, BarColor.WHITE, BarStyle.SOLID)
-
+    val bossBarComponent = GameBossBarComponent(this)
     val chestComponent = GameChestComponent(this)
     val spawnPointComponent = GameSpawnPointComponent(this)
 
@@ -100,7 +98,7 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
     var countdown = -1
         set(value) {
             field = value
-            updateBossBar()
+            bossBarComponent.update()
         }
 
     var winner = null as Player?
@@ -118,7 +116,7 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
     var noDamage = true
         private set(value) {
             field = value
-            updateBossBar()
+            bossBarComponent.update()
         }
 
     init {
@@ -131,63 +129,12 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
             zBounds = config.zBounds,
         )
         world.worldBorder.setCenter(config.center.x, config.center.z)
-        updateBossBar()
+        bossBarComponent.update()
     }
 
     private fun updateDisplays() {
         hologram.update(this)
-        updateBossBar()
-    }
-
-    private fun updateBossBar() {
-        fun <T : Number, U : Number> set(title: String, numerator: T, denominator: U, color: BarColor) {
-            bossBar.setTitle(title)
-            bossBar.progress = (numerator.toDouble() / denominator.toDouble()).coerceIn(0.0..1.0)
-            bossBar.color = color
-        }
-
-        when (phase) {
-            Phase.WAITING -> {
-                if (tributes.size >= config.minPlayers) set(
-                    messages.bossBar.countdown.safeFormat(countdown),
-                    countdown,
-                    settings.countdown,
-                    BarColor.YELLOW
-                ) else set(
-                    messages.bossBar.waiting.safeFormat(config.minPlayers - tributes.size),
-                    tributes.size,
-                    config.minPlayers,
-                    BarColor.RED
-                )
-            }
-            Phase.ACTIVE -> {
-                if (noDamage) set(
-                    messages.bossBar.noDamage.safeFormat(countdown),
-                    countdown,
-                    noDamageTime,
-                    BarColor.PURPLE
-                ) else set(
-                    messages.bossBar.active.safeFormat(countdown / 60, countdown % 60),
-                    countdown,
-                    config.time,
-                    BarColor.GREEN
-                )
-            }
-            Phase.COMPLETE -> {
-                val winnerName = winner?.name
-                if (winnerName == null) set(
-                    messages.bossBar.draw,
-                    1,
-                    1,
-                    BarColor.WHITE
-                ) else set(
-                    messages.bossBar.winner.safeFormat(winnerName),
-                    1,
-                    1,
-                    BarColor.BLUE
-                )
-            }
-        }
+        bossBarComponent.update()
     }
 
     fun enableDamage() {
@@ -230,7 +177,7 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
         tributes += player
         player.freeze()
 
-        bossBar.addPlayer(player)
+        bossBarComponent += player
         world.broadcastMessage(messages.chat.join.safeFormat(player.name))
         player.sendMessage(messages.chat.kitPrompt)
 
@@ -289,7 +236,7 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
             logTributes()
         }
 
-        bossBar.removePlayer(player)
+        bossBarComponent -= player
         world.broadcastMessage(messages.chat.leave.safeFormat(player.name))
 
         if (phase == Phase.WAITING && tributes.size < config.minPlayers) {

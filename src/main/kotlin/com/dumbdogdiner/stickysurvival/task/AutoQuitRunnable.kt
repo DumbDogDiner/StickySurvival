@@ -23,7 +23,6 @@ import com.dumbdogdiner.stickysurvival.manager.WorldManager
 
 class AutoQuitRunnable(game: Game) : GameRunnable(game) {
     override fun run() {
-        game.bossBar.removeAll()
         WorldManager.unloadGame(game)
     }
 }
