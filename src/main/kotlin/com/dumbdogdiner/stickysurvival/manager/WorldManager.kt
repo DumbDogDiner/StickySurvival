@@ -190,11 +190,20 @@ object WorldManager {
         val worldsFolder = Bukkit.getWorldContainer()
         val baseWorldFolder = worldsFolder.resolve(from)
         baseWorldFolder.copyRecursively(worldsFolder.resolve(to), overwrite = true)
+
+        // copy WorldGuard regions too
+        val worldGuardWorldsFolder = Bukkit.getWorldContainer().resolve("plugins").resolve("WorldGuard").resolve("worlds")
+        val baseWorldGuardWorldFolder = worldGuardWorldsFolder.resolve(from)
+        baseWorldGuardWorldFolder.takeIf { it.exists() }?.copyRecursively(worldGuardWorldsFolder.resolve(to), overwrite = true)
     }
 
     private fun deleteWorldFolder(name: String) {
         val worldsFolder = Bukkit.getWorldContainer()
         worldsFolder.resolve(name).deleteRecursively()
+
+        // delete WorldGuard regions too
+        val worldGuardWorldsFolder = Bukkit.getWorldContainer().resolve("plugins").resolve("WorldGuard").resolve("worlds")
+        worldGuardWorldsFolder.resolve(name).takeIf { it.exists() }?.deleteRecursively()
     }
 
     fun getGameForWorld(world: World): Game? {
