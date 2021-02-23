@@ -31,6 +31,20 @@ repositories {
         }
         url = uri("https://maven.pkg.github.com/DumbDogDiner/StickyAPI/")
     }
+
+    val ghIvy = ivy {
+        // https://github.com/ervinnnc/VoxelSniper/releases/download/v6.1.2/VoxelSniper-6.1.2.jar
+        url = uri("https://github.com/")
+        patternLayout { artifact("/[organisation]/[module]/releases/download/[revision]/[classifier].[ext]") }
+        // ervinnnc:VoxelSniper:v6.1.2:VoxelSniper-6.1.2@jar
+        metadataSources { artifact() }
+    }
+
+    // Only use the Ivy repo for VoxelSniper - speeds up dependency resolution
+    exclusiveContent {
+        forRepositories(ghIvy)
+        filter { includeGroup("ervinnnc") }
+    }
 }
 
 dependencies {
@@ -47,6 +61,9 @@ dependencies {
     compileOnly(paper("1.16.5"))
 
     compileOnly("me.clip:placeholderapi:2.10.9")
+
+    // VoxelSniper Jar
+    compileOnly("ervinnnc:VoxelSniper:v6.1.2:VoxelSniper-6.1.2@jar")
 
     implementation("de.tr7zw:item-nbt-api-plugin:2.7.1")
     implementation("com.dumbdogdiner:stickyapi:2.1.0")
@@ -68,7 +85,7 @@ tasks {
 
     spigot {
         authors = listOf("spazzylemons")
-        softDepends = listOf("AnimatedScoreboard", "PlaceholderAPI", "Vault")
+        softDepends = listOf("AnimatedScoreboard", "PlaceholderAPI", "Vault", "VoxelSniper")
         depends = listOf()
 
         // Construct a new version string including git info
