@@ -177,10 +177,8 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
         }
         tributes += player
 
-        // jcx: call tributeaddevent
         val event = TributeAddEvent(player)
-        Bukkit.getServer().pluginManager.callEvent(event)
-        // jcx: end
+        Bukkit.getPluginManager().callEvent(event)
 
         player.freeze()
 
