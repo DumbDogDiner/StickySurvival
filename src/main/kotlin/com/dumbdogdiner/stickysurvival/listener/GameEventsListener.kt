@@ -21,6 +21,8 @@ package com.dumbdogdiner.stickysurvival.listener
 import com.destroystokyo.paper.event.player.PlayerAdvancementCriterionGrantEvent
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent
 import com.dumbdogdiner.stickysurvival.Game
+import com.dumbdogdiner.stickysurvival.events.TributeAddEvent
+import com.dumbdogdiner.stickysurvival.util.broadcastMessage
 import com.dumbdogdiner.stickysurvival.util.game
 import com.dumbdogdiner.stickysurvival.util.goToLobby
 import com.dumbdogdiner.stickysurvival.util.settings
@@ -53,6 +55,13 @@ import org.bukkit.event.world.ChunkLoadEvent
 object GameEventsListener : Listener {
     // Code in this listener should be kept pretty minimal. The Game class should do most of the work.
     // ...and yes, i am aware that some of this code is not too minimal. i'm working on it.
+
+    // jcx temp: start
+    @EventHandler
+    fun onTributeAdd(event: TributeAddEvent) {
+        event.player.world.broadcastMessage("jcx onTributeAdd: " + event.player.name)
+    }
+    // jcx temp: end
 
     @EventHandler
     fun onBlockBreak(event: BlockBreakEvent) {

@@ -21,6 +21,7 @@ package com.dumbdogdiner.stickysurvival
 import com.destroystokyo.paper.Title
 import com.dumbdogdiner.stickysurvival.config.KitConfig
 import com.dumbdogdiner.stickysurvival.config.WorldConfig
+import com.dumbdogdiner.stickysurvival.events.TributeAddEvent
 import com.dumbdogdiner.stickysurvival.game.GameBossBarComponent
 import com.dumbdogdiner.stickysurvival.game.GameChestComponent
 import com.dumbdogdiner.stickysurvival.game.GameSpawnPointComponent
@@ -175,6 +176,12 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
             return false
         }
         tributes += player
+
+        // jcx: call tributeaddevent
+        val event = TributeAddEvent(player)
+        Bukkit.getServer().pluginManager.callEvent(event)
+        // jcx: end
+
         player.freeze()
 
         bossBarComponent += player
