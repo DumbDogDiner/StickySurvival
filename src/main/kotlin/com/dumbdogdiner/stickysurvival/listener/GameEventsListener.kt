@@ -57,17 +57,6 @@ object GameEventsListener : Listener {
     // Code in this listener should be kept pretty minimal. The Game class should do most of the work.
     // ...and yes, i am aware that some of this code is not too minimal. i'm working on it.
 
-    // jcx temp: start
-    @EventHandler
-    fun onTributeAdd(event: TributeAddEvent) {
-        event.player.world.broadcastMessage("jcx onTributeAdd: " + event.player.name)
-    }
-    @EventHandler
-    fun onTributeRemove(event: TributeRemoveEvent) {
-        event.player.world.broadcastMessage("jcx onTributeRemove: " + event.player.name)
-    }
-    // jcx temp: end
-
     @EventHandler
     fun onBlockBreak(event: BlockBreakEvent) {
         val game = event.block.world.game ?: return
