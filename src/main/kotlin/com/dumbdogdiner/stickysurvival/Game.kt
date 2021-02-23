@@ -22,6 +22,7 @@ import com.destroystokyo.paper.Title
 import com.dumbdogdiner.stickysurvival.config.KitConfig
 import com.dumbdogdiner.stickysurvival.config.WorldConfig
 import com.dumbdogdiner.stickysurvival.events.TributeAddEvent
+import com.dumbdogdiner.stickysurvival.events.TributeRemoveEvent
 import com.dumbdogdiner.stickysurvival.game.GameBossBarComponent
 import com.dumbdogdiner.stickysurvival.game.GameChestComponent
 import com.dumbdogdiner.stickysurvival.game.GameSpawnPointComponent
@@ -235,6 +236,9 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
     fun onPlayerQuit(player: Player) {
         tributes -= player
 
+        val event = TributeRemoveEvent(player)
+        Bukkit.getPluginManager().callEvent(event)
+
         if (phase == Phase.WAITING) {
             spawnPointComponent.takePlayerSpawnPoint(player)
         } else {
@@ -274,6 +278,10 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
         }
 
         tributes -= player
+
+        val event = TributeRemoveEvent(player)
+        Bukkit.getPluginManager().callEvent(event)
+
         logTributes()
 
         for (item in player.inventory) {
