@@ -57,13 +57,15 @@ private val joinCommand = CommandAPICommand("join")
     )
     .executesPlayer(
         PlayerCommandExecutor { player, args ->
-            try {
-                if (!WorldManager.putPlayerInWorldNamed(player, args[0] as String)) {
-                    printError(ExitCode.EXIT_INVALID_STATE, player)
+            spawn {
+                try {
+                    if (!WorldManager.putPlayerInWorldNamed(player, args[0] as String)) {
+                        printError(ExitCode.EXIT_INVALID_STATE, player)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    printError(ExitCode.EXIT_ERROR, player)
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                printError(ExitCode.EXIT_ERROR, player)
             }
         }
     )
@@ -123,6 +125,7 @@ private val reloadCommand = CommandAPICommand("reload")
 private val forceStartCommand = CommandAPICommand("forcestart")
     .withPermission("stickysurvival.forcestart")
     .withRequirement { inGame(it) }
+    .withRequirement { (it as Player).world.game!!.phase == Game.Phase.WAITING }
     .executesPlayer(
         PlayerCommandExecutor { player, _ ->
             schedule { player.world.game!!.forceStartGame() }
@@ -143,5 +146,6 @@ val sgCommand = CommandAPICommand("survivalgames")
     .withSubcommand(leaveCommand)
     .withSubcommand(kitCommand)
     .withSubcommand(kitsCommand)
+    .withSubcommand(reloadCommand)
     .withSubcommand(forceStartCommand)
     .withSubcommand(versionCommand)
