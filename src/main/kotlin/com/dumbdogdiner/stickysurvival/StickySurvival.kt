@@ -20,7 +20,7 @@ package com.dumbdogdiner.stickysurvival
 
 import com.dumbdogdiner.stickyapi.bukkit.util.StartupUtil
 import com.dumbdogdiner.stickysurvival.command.sgCommand
-import com.dumbdogdiner.stickysurvival.command.sgSetupCommandBuilder
+import com.dumbdogdiner.stickysurvival.command.sgSetupCommand
 import com.dumbdogdiner.stickysurvival.config.Config
 import com.dumbdogdiner.stickysurvival.config.ConfigHelper
 import com.dumbdogdiner.stickysurvival.listener.FasterWorldLoadsListener
@@ -91,7 +91,7 @@ class StickySurvival : JavaPlugin() {
         CommandAPI.onEnable(this)
 
         sgCommand.register()
-        sgSetupCommandBuilder.register(this)
+        sgSetupCommand.register()
 
         for (
             listener in setOf(
