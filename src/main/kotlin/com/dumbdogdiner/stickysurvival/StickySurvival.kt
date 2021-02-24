@@ -46,14 +46,13 @@ import java.io.InputStreamReader
 @kr.entree.spigradle.annotations.PluginMain
 class StickySurvival : JavaPlugin() {
     override fun onLoad() {
+        instance = this // THIS MUST RUN FIRST!
+
+        // commandapi-shade init, part 1
         CommandAPI.onLoad(true) // Load with verbose output for testing
     }
 
     override fun onEnable() {
-        instance = this // THIS MUST RUN FIRST!
-
-        CommandAPI.onEnable(this)
-
         version = description.version
 
         info("Attempting to load the AnimatedScoreboard plugin.")
@@ -87,6 +86,10 @@ class StickySurvival : JavaPlugin() {
         WorldManager.loadFromConfig()
 
         info("Registering commands.")
+
+        // commandapi-shade init, part 2
+        CommandAPI.onEnable(this)
+
         sgCommand.register()
         sgSetupCommandBuilder.register(this)
 
