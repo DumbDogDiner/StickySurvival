@@ -31,6 +31,7 @@ repositories {
         }
         url = uri("https://maven.pkg.github.com/DumbDogDiner/StickyAPI/")
     }
+    maven("https://raw.githubusercontent.com/JorelAli/CommandAPI/mvn-repo/")
 }
 
 dependencies {
@@ -51,6 +52,8 @@ dependencies {
     implementation("de.tr7zw:item-nbt-api-plugin:2.7.1")
     implementation("com.dumbdogdiner:stickyapi:2.1.0")
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.2")
+
+    implementation("dev.jorel", "commandapi-shade", "5.8")
 }
 
 tasks {

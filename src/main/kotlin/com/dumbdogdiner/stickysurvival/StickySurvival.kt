@@ -19,7 +19,7 @@
 package com.dumbdogdiner.stickysurvival
 
 import com.dumbdogdiner.stickyapi.bukkit.util.StartupUtil
-import com.dumbdogdiner.stickysurvival.command.sgCommandBuilder
+import com.dumbdogdiner.stickysurvival.command.sgCommand
 import com.dumbdogdiner.stickysurvival.command.sgSetupCommandBuilder
 import com.dumbdogdiner.stickysurvival.config.Config
 import com.dumbdogdiner.stickysurvival.config.ConfigHelper
@@ -80,7 +80,7 @@ class StickySurvival : JavaPlugin() {
         WorldManager.loadFromConfig()
 
         info("Registering commands.")
-        sgCommandBuilder.register(this)
+        sgCommand.register()
         sgSetupCommandBuilder.register(this)
 
         for (

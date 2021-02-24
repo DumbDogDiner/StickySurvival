@@ -18,10 +18,10 @@
 
 package com.dumbdogdiner.stickysurvival.command
 
-import com.dumbdogdiner.stickyapi.bukkit.command.BukkitCommandBuilder
 import com.dumbdogdiner.stickyapi.common.command.ExitCode
 import com.dumbdogdiner.stickysurvival.Game
 import com.dumbdogdiner.stickysurvival.StickySurvival
+import com.dumbdogdiner.stickysurvival.config.KitConfig
 import com.dumbdogdiner.stickysurvival.manager.WorldManager
 import com.dumbdogdiner.stickysurvival.util.game
 import com.dumbdogdiner.stickysurvival.util.goToLobby
@@ -29,114 +29,119 @@ import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.schedule
 import com.dumbdogdiner.stickysurvival.util.settings
-import com.dumbdogdiner.stickysurvival.util.waitFor
+import com.dumbdogdiner.stickysurvival.util.spawn
 import com.dumbdogdiner.stickysurvival.util.worlds
+import dev.jorel.commandapi.CommandAPICommand
+import dev.jorel.commandapi.arguments.CustomArgument
+import dev.jorel.commandapi.arguments.CustomArgument.CustomArgumentException
+import dev.jorel.commandapi.arguments.CustomArgument.MessageBuilder
+import dev.jorel.commandapi.executors.CommandExecutor
+import dev.jorel.commandapi.executors.PlayerCommandExecutor
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
-private val join = cmd("join", str("worldName")) { sender, args, _ ->
-    sender as Player
-    val worldName = args.getString("worldName")
-    when {
-        sender.world.game != null
-        -> ExitCode.EXIT_INVALID_STATE
-        WorldManager.isPlayerWaitingToJoin(sender)
-        -> ExitCode.EXIT_INVALID_STATE
-        worldName !in worlds
-        -> ExitCode.EXIT_INVALID_SYNTAX
-        WorldManager.playerJoinCooldownExists(sender)
-        -> ExitCode.EXIT_COOLDOWN
+private fun inGame(sender: CommandSender) = (sender as? Player)?.world?.game != null
 
-        else -> {
+private val joinCommand = CommandAPICommand("join")
+    .withPermission("stickysurvival.join")
+    .withRequirement { it is Player }
+    .withRequirement { !inGame(it) }
+    .withRequirement { !WorldManager.isPlayerWaitingToJoin(it as Player) }
+    .withArguments(
+        CustomArgument("world") {
+            if (it !in worlds) {
+                throw CustomArgumentException(MessageBuilder("Unknown world: ").appendArgInput())
+            }
+            it
+        }.overrideSuggestions { _ -> worlds.keys.toTypedArray() }
+    )
+    .executesPlayer(
+        PlayerCommandExecutor { player, args ->
             try {
-                if (!WorldManager.putPlayerInWorldNamed(sender, worldName)) {
-                    ExitCode.EXIT_INVALID_STATE
-                } else {
-                    ExitCode.EXIT_SUCCESS
+                if (!WorldManager.putPlayerInWorldNamed(player, args[0] as String)) {
+                    printError(ExitCode.EXIT_INVALID_STATE, player)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                ExitCode.EXIT_ERROR
+                printError(ExitCode.EXIT_ERROR, player)
             }
         }
-    }
-}.permission("stickysurvival.join").requiresPlayer()
+    )
 
-private val leave = cmd("leave") { sender, _, _ ->
-    sender as Player
-    if (sender.world.game == null) {
-        ExitCode.EXIT_INVALID_STATE
-    } else {
-        var success: Boolean? = null
-        schedule { success = sender.goToLobby() }
-        if (waitFor { success }) ExitCode.EXIT_SUCCESS else ExitCode.EXIT_ERROR
-    }
-}.permission("stickysurvival.leave").requiresPlayer()
-
-private val kit = cmd("kit", str("kitName")) { sender, args, _ ->
-    sender as Player
-    val game = sender.world.game ?: return@cmd ExitCode.EXIT_INVALID_STATE
-    if (game.phase != Game.Phase.WAITING) return@cmd ExitCode.EXIT_INVALID_STATE
-    val kitName = args.getString("kitName")
-    val kit = settings.kits.find { it.name == kitName } ?: return@cmd ExitCode.EXIT_INVALID_SYNTAX
-    game.setKit(sender, kit)
-    sender.sendMessage(messages.chat.kitSelect.safeFormat(kit.name))
-    ExitCode.EXIT_SUCCESS
-}.permission("stickysurvival.kit").requiresPlayer()
-
-private val kits = cmd("kits") { sender, _, _ ->
-    sender.sendMessage("kits: ${settings.kits.joinToString(", ") { it.name }}")
-    ExitCode.EXIT_SUCCESS
-}.permission("stickysurvival.kits")
-
-private val reload = cmd("reload") { sender, _, _ ->
-    StickySurvival.instance.reloadConfig()
-    schedule {
-        if (WorldManager.loadFromConfig()) {
-            sender.sendMessage("The configuration was reloaded successfully.")
-        } else {
-            sender.sendMessage("The configuration could not be reloaded. The default configuration is being used as a fallback. See the console for more information.")
+private val leaveCommand = CommandAPICommand("leave")
+    .withPermission("stickysurvival.leave")
+    .withRequirement { inGame(it) }
+    .executesPlayer(
+        PlayerCommandExecutor { player, _ ->
+            schedule { player.goToLobby() }
         }
-    }
-    ExitCode.EXIT_SUCCESS
-}.permission("stickysurvival.reload")
+    )
 
-private val forceStart = cmd("forcestart") { sender, _, _ ->
-    sender as Player
-    sender.world.game?.let {
-        schedule { it.forceStartGame() }
-        ExitCode.EXIT_SUCCESS
-    } ?: ExitCode.EXIT_INVALID_STATE
-}.permission("stickysurvival.forcestart").requiresPlayer()
-
-private val version = cmd("version") { sender, _, _ ->
-    sender.sendMessage("You are running version ${StickySurvival.version}")
-    ExitCode.EXIT_SUCCESS
-}.permission("stickysurvival.version")
-
-val sgCommandBuilder: BukkitCommandBuilder = cmdStub("survivalgames").alias("sg")
-    .onTabComplete { sender, _, args ->
-        val argArray = args.rawArgs.toTypedArray()
-
-        if (argArray.matches("kit", ANY) && sender.hasPermission("stickysurvival.kit")) {
-            return@onTabComplete settings.kits.map { it.name }.filter { it.startsWith(argArray[1]) }.toMutableList()
+private val kitCommand = CommandAPICommand("kit")
+    .withPermission("stickysurvival.kit")
+    .withRequirement { inGame(it) }
+    .withRequirement { (it as Player).world.game!!.phase == Game.Phase.WAITING }
+    .withArguments(
+        CustomArgument("kit") { arg ->
+            settings.kits.find { arg == it.name }
+                ?: throw CustomArgumentException(MessageBuilder("Unknown kit: ").appendArgInput())
+        }.overrideSuggestions { _ -> settings.kits.map { it.name }.toTypedArray() }
+    )
+    .executesPlayer(
+        PlayerCommandExecutor { player, args ->
+            val kit = args[0] as KitConfig
+            player.world.game!!.setKit(player, kit)
+            player.sendMessage(messages.chat.kitSelect.safeFormat(kit.name))
         }
+    )
 
-        if (argArray.matches("join", ANY) && sender.hasPermission("stickysurvival.join")) {
-            return@onTabComplete worlds.keys.filter { it.startsWith(argArray[1]) }.toMutableList()
+private val kitsCommand = CommandAPICommand("kits")
+    .withPermission("stickysurvival.kits")
+    .executes(
+        CommandExecutor { sender, _ ->
+            sender.sendMessage("kits: ${settings.kits.joinToString(", ") { it.name }}")
         }
+    )
 
-        if (argArray.matches(ANY)) {
-            return@onTabComplete setOf("join", "leave", "reload", "kit", "kits", "forcestart", "version").filter {
-                sender.hasPermission("stickysurvival.$it") && it.startsWith(argArray[0])
-            }.toMutableList()
+private val reloadCommand = CommandAPICommand("reload")
+    .withPermission("stickysurvival.reload")
+    .executes(
+        CommandExecutor { sender, _ ->
+            spawn {
+                StickySurvival.instance.reloadConfig()
+                schedule {
+                    if (WorldManager.loadFromConfig()) {
+                        sender.sendMessage("The configuration was reloaded successfully.")
+                    } else {
+                        sender.sendMessage("The configuration could not be reloaded. The default configuration is being used as a fallback. See the console for more information.")
+                    }
+                }
+            }
         }
+    )
 
-        mutableListOf()
-    }
-    .subCommand(join)
-    .subCommand(leave)
-    .subCommand(kit)
-    .subCommand(kits)
-    .subCommand(reload)
-    .subCommand(forceStart)
-    .subCommand(version)
+private val forceStartCommand = CommandAPICommand("forcestart")
+    .withPermission("stickysurvival.forcestart")
+    .withRequirement { inGame(it) }
+    .executesPlayer(
+        PlayerCommandExecutor { player, _ ->
+            schedule { player.world.game!!.forceStartGame() }
+        }
+    )
+
+private val versionCommand = CommandAPICommand("version")
+    .withPermission("stickysurvival.version")
+    .executes(
+        CommandExecutor { sender, _ ->
+            sender.sendMessage("You are running version ${StickySurvival.version}")
+        }
+    )
+
+val sgCommand = CommandAPICommand("survivalgames")
+    .withAliases("sg")
+    .withSubcommand(joinCommand)
+    .withSubcommand(leaveCommand)
+    .withSubcommand(kitCommand)
+    .withSubcommand(kitsCommand)
+    .withSubcommand(forceStartCommand)
+    .withSubcommand(versionCommand)
