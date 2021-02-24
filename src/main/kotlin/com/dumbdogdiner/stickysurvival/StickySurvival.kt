@@ -35,6 +35,7 @@ import com.dumbdogdiner.stickysurvival.util.info
 import com.dumbdogdiner.stickysurvival.util.settings
 import com.dumbdogdiner.stickysurvival.util.severe
 import com.dumbdogdiner.stickysurvival.util.warn
+import dev.jorel.commandapi.CommandAPI
 import net.milkbowl.vault.economy.Economy
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.persistence.PersistentDataType
@@ -44,8 +45,14 @@ import java.io.InputStreamReader
 
 @kr.entree.spigradle.annotations.PluginMain
 class StickySurvival : JavaPlugin() {
+    override fun onLoad() {
+        CommandAPI.onLoad(true) // Load with verbose output for testing
+    }
+
     override fun onEnable() {
         instance = this // THIS MUST RUN FIRST!
+
+        CommandAPI.onEnable(this)
 
         version = description.version
 
