@@ -19,8 +19,8 @@
 package com.dumbdogdiner.stickysurvival
 
 import com.dumbdogdiner.stickyapi.bukkit.util.StartupUtil
-import com.dumbdogdiner.stickysurvival.command.sgCommandBuilder
-import com.dumbdogdiner.stickysurvival.command.sgSetupCommandBuilder
+import com.dumbdogdiner.stickysurvival.command.sgCommand
+import com.dumbdogdiner.stickysurvival.command.sgSetupCommand
 import com.dumbdogdiner.stickysurvival.config.Config
 import com.dumbdogdiner.stickysurvival.config.ConfigHelper
 import com.dumbdogdiner.stickysurvival.listener.FasterWorldLoadsListener
@@ -35,6 +35,7 @@ import com.dumbdogdiner.stickysurvival.util.info
 import com.dumbdogdiner.stickysurvival.util.settings
 import com.dumbdogdiner.stickysurvival.util.severe
 import com.dumbdogdiner.stickysurvival.util.warn
+import dev.jorel.commandapi.CommandAPI
 import net.milkbowl.vault.economy.Economy
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.persistence.PersistentDataType
@@ -44,9 +45,14 @@ import java.io.InputStreamReader
 
 @kr.entree.spigradle.annotations.PluginMain
 class StickySurvival : JavaPlugin() {
-    override fun onEnable() {
+    override fun onLoad() {
         instance = this // THIS MUST RUN FIRST!
 
+        // commandapi-shade init, part 1
+        CommandAPI.onLoad(true) // Load with verbose output for testing
+    }
+
+    override fun onEnable() {
         version = description.version
 
         info("Attempting to load the AnimatedScoreboard plugin.")
@@ -80,8 +86,12 @@ class StickySurvival : JavaPlugin() {
         WorldManager.loadFromConfig()
 
         info("Registering commands.")
-        sgCommandBuilder.register(this)
-        sgSetupCommandBuilder.register(this)
+
+        // commandapi-shade init, part 2
+        CommandAPI.onEnable(this)
+
+        sgCommand.register()
+        sgSetupCommand.register()
 
         for (
             listener in setOf(
