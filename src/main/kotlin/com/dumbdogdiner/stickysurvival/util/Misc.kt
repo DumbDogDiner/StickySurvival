@@ -87,7 +87,7 @@ private val effectTypes = PotionEffectType.values().map {
 
 fun itemFromConfig(cfg: ConfigHelper): ItemStack {
     val material = getMaterial(cfg["item"].asString())
-    var stack = ItemStack(material, cfg["amount"].asIntOr(1))
+    val stack = ItemStack(material, cfg["amount"].asIntOr(1))
     val itemMeta = stack.itemMeta
     cfg["color"].maybe {
         val color = if (it.isA(Number::class)) {

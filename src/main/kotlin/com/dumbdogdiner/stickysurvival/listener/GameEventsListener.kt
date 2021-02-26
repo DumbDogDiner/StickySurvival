@@ -276,7 +276,7 @@ object GameEventsListener : Listener {
             return
         }
     }
-  
+
     @EventHandler
     fun onPlayerGameModeChange(event: PlayerGameModeChangeEvent) {
         val game = event.player.world.game ?: return
