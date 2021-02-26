@@ -35,6 +35,7 @@ import dev.jorel.commandapi.CommandAPICommand
 import dev.jorel.commandapi.arguments.CustomArgument
 import dev.jorel.commandapi.arguments.CustomArgument.CustomArgumentException
 import dev.jorel.commandapi.arguments.CustomArgument.MessageBuilder
+import dev.jorel.commandapi.arguments.GreedyStringArgument
 import dev.jorel.commandapi.executors.CommandExecutor
 import dev.jorel.commandapi.executors.PlayerCommandExecutor
 import org.bukkit.command.CommandSender
@@ -48,23 +49,25 @@ private val joinCommand = CommandAPICommand("join")
     .withRequirement { !inGame(it) }
     .withRequirement { !WorldManager.isPlayerWaitingToJoin(it as Player) }
     .withArguments(
-        CustomArgument("world") {
-            if (it !in worlds) {
-                throw CustomArgumentException(MessageBuilder("Unknown world: ").appendArgInput())
-            }
-            it
-        }.overrideSuggestions { _ -> worlds.keys.toTypedArray() }
+        GreedyStringArgument("world")
+            .overrideSuggestions { _ -> worlds.values.map { it.friendlyName }.toTypedArray() }
     )
     .executesPlayer(
         PlayerCommandExecutor { player, args ->
-            spawn {
+            val worldName = worlds
+                .asSequence()
+                .filter { (_, world) -> world.friendlyName == args[0] as String }
+                .firstOrNull()?.key
+            if (worldName == null) {
+                player.sendMessage("That world does not exist!")
+            } else spawn {
                 try {
-                    if (!WorldManager.putPlayerInWorldNamed(player, args[0] as String)) {
+                    if (!WorldManager.putPlayerInWorldNamed(player, worldName)) {
                         printError(ExitCode.EXIT_INVALID_STATE, player)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    printError(ExitCode.EXIT_ERROR, player)
+                    e.message?.let { player.sendMessage(it) } ?: printError(ExitCode.EXIT_ERROR, player)
                 }
             }
         }
