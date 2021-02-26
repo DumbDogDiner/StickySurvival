@@ -49,6 +49,7 @@ import org.bukkit.event.player.PlayerGameModeChangeEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerMoveEvent
+import org.bukkit.event.player.PlayerToggleFlightEvent
 import org.bukkit.event.world.ChunkLoadEvent
 
 object GameEventsListener : Listener {
@@ -265,6 +266,17 @@ object GameEventsListener : Listener {
         event.world.game?.removeSomeChests(event.chunk)
     }
 
+    @EventHandler
+    fun onPlayerToggleFlight(event: PlayerToggleFlightEvent) {
+        val game = event.player.world.game ?: return
+        if (game.playerIsTribute(event.player)) {
+            event.isCancelled = true // players are not allowed to fly
+            event.player.allowFlight = false // disable double-space to fly
+            event.player.isFlying = false // stop the player flying
+            return
+        }
+    }
+  
     @EventHandler
     fun onPlayerGameModeChange(event: PlayerGameModeChangeEvent) {
         val game = event.player.world.game ?: return
