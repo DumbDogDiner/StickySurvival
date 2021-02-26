@@ -49,7 +49,6 @@ dependencies {
 
     compileOnly("me.clip:placeholderapi:2.10.9")
 
-    implementation("de.tr7zw:item-nbt-api-plugin:2.7.1")
     implementation("com.dumbdogdiner:stickyapi:2.1.0")
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.2")
 
