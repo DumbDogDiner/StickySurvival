@@ -176,6 +176,9 @@ object GameEventsListener : Listener {
         val world = event.player.world
         val game = world.game ?: return
 
+        // probably a gui, don't mess with it
+        if (event.inventory.holder == null) return
+
         if (game.phase == Game.Phase.WAITING || !game.playerIsTribute(event.player as Player)) {
             // don't let players open chests before the game starts and don't let spectators open chests
             event.isCancelled = true

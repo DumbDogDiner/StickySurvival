@@ -21,20 +21,15 @@ package com.dumbdogdiner.stickysurvival.command
 import com.dumbdogdiner.stickyapi.common.command.ExitCode
 import com.dumbdogdiner.stickysurvival.Game
 import com.dumbdogdiner.stickysurvival.StickySurvival
-import com.dumbdogdiner.stickysurvival.config.KitConfig
+import com.dumbdogdiner.stickysurvival.gui.KitGUI
 import com.dumbdogdiner.stickysurvival.manager.WorldManager
 import com.dumbdogdiner.stickysurvival.util.game
 import com.dumbdogdiner.stickysurvival.util.goToLobby
-import com.dumbdogdiner.stickysurvival.util.messages
-import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.schedule
 import com.dumbdogdiner.stickysurvival.util.settings
 import com.dumbdogdiner.stickysurvival.util.spawn
 import com.dumbdogdiner.stickysurvival.util.worlds
 import dev.jorel.commandapi.CommandAPICommand
-import dev.jorel.commandapi.arguments.CustomArgument
-import dev.jorel.commandapi.arguments.CustomArgument.CustomArgumentException
-import dev.jorel.commandapi.arguments.CustomArgument.MessageBuilder
 import dev.jorel.commandapi.arguments.GreedyStringArgument
 import dev.jorel.commandapi.executors.CommandExecutor
 import dev.jorel.commandapi.executors.PlayerCommandExecutor
@@ -86,17 +81,9 @@ private val kitCommand = CommandAPICommand("kit")
     .withPermission("stickysurvival.kit")
     .withRequirement { inGame(it) }
     .withRequirement { (it as Player).world.game!!.phase == Game.Phase.WAITING }
-    .withArguments(
-        CustomArgument("kit") { arg ->
-            settings.kits.find { arg == it.name }
-                ?: throw CustomArgumentException(MessageBuilder("Unknown kit: ").appendArgInput())
-        }.overrideSuggestions { _ -> settings.kits.map { it.name }.toTypedArray() }
-    )
     .executesPlayer(
-        PlayerCommandExecutor { player, args ->
-            val kit = args[0] as KitConfig
-            player.world.game!!.setKit(player, kit)
-            player.sendMessage(messages.chat.kitSelect.safeFormat(kit.name))
+        PlayerCommandExecutor { player, _ ->
+            KitGUI().open(player)
         }
     )
 

@@ -61,6 +61,8 @@ bonus containers:
 # Kits: can specify armor, items, and potion effects
 kits:
   example:
+    icon:
+      item: NETHER_STAR
     helmet:
       item: LEATHER_HELMET
     chestplate:
