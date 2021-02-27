@@ -23,6 +23,8 @@ import com.dumbdogdiner.stickysurvival.config.KitConfig
 import com.dumbdogdiner.stickysurvival.config.WorldConfig
 import com.dumbdogdiner.stickysurvival.events.TributeAddEvent
 import com.dumbdogdiner.stickysurvival.events.TributeRemoveEvent
+import com.dumbdogdiner.stickysurvival.events.TributeWinEvent
+import com.dumbdogdiner.stickysurvival.events.TributeWinRewardEvent
 import com.dumbdogdiner.stickysurvival.game.GameBossBarComponent
 import com.dumbdogdiner.stickysurvival.game.GameChestComponent
 import com.dumbdogdiner.stickysurvival.game.GameSpawnPointComponent
@@ -39,6 +41,7 @@ import com.dumbdogdiner.stickysurvival.task.TrackingCompassRunnable
 import com.dumbdogdiner.stickysurvival.util.broadcastMessage
 import com.dumbdogdiner.stickysurvival.util.broadcastSound
 import com.dumbdogdiner.stickysurvival.util.freeze
+import com.dumbdogdiner.stickysurvival.util.info
 import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.radiusForBounds
 import com.dumbdogdiner.stickysurvival.util.reset
@@ -345,6 +348,17 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
         val winner0 = winner
 
+        info("(debug.jcx): finalizeGame() - Found potential winner: ${winner0?.name}")
+        val event = TributeWinEvent(winner0)
+        Bukkit.getPluginManager().callEvent(event)
+
+        if (event.isCancelled) {
+            info("(debug.jcx): event was cancelled! not updating stats or economy.")
+            return
+        }
+
+        info("(debug.jcx): event still running! updating stats and economy...")
+
         for (player in participants) {
             StatsManager[player]?.let {
                 var (uuid, wins, losses, kills) = it
@@ -356,11 +370,18 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
         StatsManager.updateTopStats()
 
         if (winner0 != null) {
-            StickySurvival.economy?.depositPlayer(winner0, settings.reward)
-            winner0.sendMessage(messages.chat.reward.safeFormat(if (settings.reward == settings.reward.roundToLong().toDouble()) settings.reward.toLong() else settings.reward))
+            info("(debug.jcx): winner found! let's run an event to reward them...")
+            val event = TributeWinRewardEvent(winner0, this)
+            Bukkit.getPluginManager().callEvent(event)
         }
 
         phase = Phase.COMPLETE
+    }
+
+    fun giveDefaultWinReward(winner: Player) {
+        info("(debug.jcx): triggered default reward event!")
+        StickySurvival.economy?.depositPlayer(winner, settings.reward)
+        winner.sendMessage(messages.chat.reward.safeFormat(if (settings.reward == settings.reward.roundToLong().toDouble()) settings.reward.toLong() else settings.reward))
     }
 
     fun removeSomeChests(chunk: Chunk) {

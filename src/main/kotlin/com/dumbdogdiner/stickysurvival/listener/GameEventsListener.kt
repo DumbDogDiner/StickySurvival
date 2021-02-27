@@ -21,6 +21,7 @@ package com.dumbdogdiner.stickysurvival.listener
 import com.destroystokyo.paper.event.player.PlayerAdvancementCriterionGrantEvent
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent
 import com.dumbdogdiner.stickysurvival.Game
+import com.dumbdogdiner.stickysurvival.events.TributeWinRewardEvent
 import com.dumbdogdiner.stickysurvival.util.game
 import com.dumbdogdiner.stickysurvival.util.goToLobby
 import com.dumbdogdiner.stickysurvival.util.settings
@@ -29,6 +30,7 @@ import org.bukkit.entity.EntityType
 import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
+import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.block.BlockPlaceEvent
@@ -53,6 +55,14 @@ import org.bukkit.event.world.ChunkLoadEvent
 object GameEventsListener : Listener {
     // Code in this listener should be kept pretty minimal. The Game class should do most of the work.
     // ...and yes, i am aware that some of this code is not too minimal. i'm working on it.
+
+    // Run later (2nd last), just before MONITOR
+    // This way other plugins can listen for this event
+    // and cancel it so the default logic doesn't run
+    @EventHandler(priority = EventPriority.HIGHEST)
+    fun onTributeWinReward(event: TributeWinRewardEvent) {
+        event.game.giveDefaultWinReward(event.player)
+    }
 
     @EventHandler
     fun onBlockBreak(event: BlockBreakEvent) {
