@@ -39,9 +39,7 @@ object GameTriggersListener : Listener {
 
     @EventHandler
     fun onTributeAdd(event: TributeAddEvent) {
-        val voxelProfileManager = getVoxelProfileManager()
-
-        if (voxelProfileManager != null) {
+        (getVoxelProfileManager())?.let { voxelProfileManager ->
             // Get the sniper for the player that joined a game
             val sniper = voxelProfileManager.getSniperForPlayer(event.player)
 
@@ -55,9 +53,7 @@ object GameTriggersListener : Listener {
 
     @EventHandler
     fun onTributeRemove(event: TributeRemoveEvent) {
-        val voxelProfileManager = getVoxelProfileManager()
-
-        if (voxelProfileManager != null) {
+        (getVoxelProfileManager())?.let { voxelProfileManager ->
             // Get the sniper for the player that joined a game
             val sniper = voxelProfileManager.getSniperForPlayer(event.player)
 
