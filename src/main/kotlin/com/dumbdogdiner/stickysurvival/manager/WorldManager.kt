@@ -149,7 +149,7 @@ object WorldManager {
     }
 
     fun unloadAll() {
-        for (game in loadedGames) {
+        for (game in loadedGames.toMutableSet()) {
             unloadGame(game)
         }
 

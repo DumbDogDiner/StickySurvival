@@ -21,12 +21,10 @@ package com.dumbdogdiner.stickysurvival.command
 import com.dumbdogdiner.stickyapi.common.command.ExitCode
 import com.dumbdogdiner.stickysurvival.Game
 import com.dumbdogdiner.stickysurvival.StickySurvival
-import com.dumbdogdiner.stickysurvival.gui.KitGUI
 import com.dumbdogdiner.stickysurvival.manager.WorldManager
 import com.dumbdogdiner.stickysurvival.util.game
 import com.dumbdogdiner.stickysurvival.util.goToLobby
 import com.dumbdogdiner.stickysurvival.util.schedule
-import com.dumbdogdiner.stickysurvival.util.settings
 import com.dumbdogdiner.stickysurvival.util.spawn
 import com.dumbdogdiner.stickysurvival.util.worlds
 import dev.jorel.commandapi.CommandAPICommand
@@ -77,24 +75,6 @@ private val leaveCommand = CommandAPICommand("leave")
         }
     )
 
-private val kitCommand = CommandAPICommand("kit")
-    .withPermission("stickysurvival.kit")
-    .withRequirement { inGame(it) }
-    .withRequirement { (it as Player).world.game!!.phase == Game.Phase.WAITING }
-    .executesPlayer(
-        PlayerCommandExecutor { player, _ ->
-            KitGUI().open(player)
-        }
-    )
-
-private val kitsCommand = CommandAPICommand("kits")
-    .withPermission("stickysurvival.kits")
-    .executes(
-        CommandExecutor { sender, _ ->
-            sender.sendMessage("kits: ${settings.kits.joinToString(", ") { it.name }}")
-        }
-    )
-
 private val reloadCommand = CommandAPICommand("reload")
     .withPermission("stickysurvival.reload")
     .executes(
@@ -134,8 +114,6 @@ val sgCommand = CommandAPICommand("survivalgames")
     .withAliases("sg")
     .withSubcommand(joinCommand)
     .withSubcommand(leaveCommand)
-    .withSubcommand(kitCommand)
-    .withSubcommand(kitsCommand)
     .withSubcommand(reloadCommand)
     .withSubcommand(forceStartCommand)
     .withSubcommand(versionCommand)

@@ -18,7 +18,6 @@ chat:
   winner: "&f%s&a is the winner!"
   draw: "&cThe game ended in a draw."
   reward: "&cYou won &a%s&c coins for winning!"
-  kit prompt: "&bSelect a kit using &f/sg kit <kit name>"
   kit select: "&6You selected the &f%s&6 kit."
 
 boss bar:
@@ -47,3 +46,8 @@ lobby:
 title:
   death: "&c&lYOU DIED!"
   killer: "&cKilled by &f%s"
+
+misc:
+  kit gui title: "Select a kit"
+  quit game item: "&cQuit game"
+  select kit item: "&dSelect kit"

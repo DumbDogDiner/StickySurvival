@@ -36,7 +36,6 @@ class ChatMessages(
     val reward: String,
     val border: String,
     val randomChestDrop: String,
-    val kitPrompt: String,
     val kitSelect: String,
 ) {
     constructor(cfg: ConfigHelper) : this (
@@ -55,7 +54,6 @@ class ChatMessages(
         cfg.loadMessage("reward"),
         cfg.loadMessage("border"),
         cfg.loadMessage("random chest drop"),
-        cfg.loadMessage("kit prompt"),
         cfg.loadMessage("kit select"),
     )
 }
