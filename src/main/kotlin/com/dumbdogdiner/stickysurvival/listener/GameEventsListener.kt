@@ -187,10 +187,10 @@ object GameEventsListener : Listener {
         val world = event.player.world
         val game = world.game ?: return
 
-        // probably a gui, don't mess with it
-        if (event.inventory.holder == null) return
-
         if (game.phase == Game.Phase.WAITING || !game.playerIsTribute(event.player as Player)) {
+            // probably a gui, don't mess with it
+            if (event.inventory.holder == null) return
+
             // don't let players open chests before the game starts and don't let spectators open chests
             event.isCancelled = true
         } else {
@@ -198,7 +198,7 @@ object GameEventsListener : Listener {
             when (world.getBlockAt(location).type) {
                 Material.ENDER_CHEST -> {
                     event.isCancelled = true
-                    event.player.openInventory(game.getOrCreateRandomChestInventoryAt(location))
+                    event.player.openInventory(game.carePackageComponent[location])
                 }
                 Material.CHEST, in settings.bonusContainers -> {
                     game.chestComponent.onChestOpen(location)
@@ -213,8 +213,8 @@ object GameEventsListener : Listener {
         val world = event.player.world
         val game = world.game ?: return
 
-        if (game.inventoryIsRandomChest(event.inventory) && event.inventory.viewers.none { it != event.player }) {
-            game.destroyRandomChestInventory(event.inventory)
+        if (event.inventory in game.carePackageComponent && event.inventory.viewers.none { it != event.player }) {
+            game.carePackageComponent -= event.inventory
         }
 
         event.inventory.location?.let { game.chestComponent.onChestClose(it) }

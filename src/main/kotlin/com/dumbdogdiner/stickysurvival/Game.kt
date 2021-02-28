@@ -22,6 +22,7 @@ import com.destroystokyo.paper.Title
 import com.dumbdogdiner.stickysurvival.config.KitConfig
 import com.dumbdogdiner.stickysurvival.config.WorldConfig
 import com.dumbdogdiner.stickysurvival.game.GameBossBarComponent
+import com.dumbdogdiner.stickysurvival.game.GameCarePackageComponent
 import com.dumbdogdiner.stickysurvival.game.GameChestComponent
 import com.dumbdogdiner.stickysurvival.game.GameChestRemovalComponent
 import com.dumbdogdiner.stickysurvival.game.GameSpawnPointComponent
@@ -45,19 +46,13 @@ import com.dumbdogdiner.stickysurvival.util.reset
 import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.settings
 import com.dumbdogdiner.stickysurvival.util.spectate
-import com.google.common.collect.HashBiMap
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.GameMode
-import org.bukkit.Location
-import org.bukkit.Material
-import org.bukkit.Particle
 import org.bukkit.Sound
 import org.bukkit.World
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
-import org.bukkit.event.inventory.InventoryType
-import org.bukkit.inventory.Inventory
 import org.bukkit.util.Vector
 import java.util.WeakHashMap
 import kotlin.math.roundToLong
@@ -81,11 +76,10 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
     private val participants = mutableSetOf<Player>()
 
     val bossBarComponent = GameBossBarComponent(this)
+    val carePackageComponent = GameCarePackageComponent(this)
     val chestComponent = GameChestComponent(this)
-    val spawnPointComponent = GameSpawnPointComponent(this)
     val chestRemovalComponent = GameChestRemovalComponent(this)
-
-    private val randomChests = HashBiMap.create<Location, Inventory>()
+    val spawnPointComponent = GameSpawnPointComponent(this)
 
     // for debugging, trying to figure out why sometimes games end with zero players
     private val tributeLog = mutableListOf<String>()
@@ -346,31 +340,6 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
         phase = Phase.COMPLETE
     }
-
-    fun getOrCreateRandomChestInventoryAt(location: Location) = randomChests[location] ?: run {
-        val inv = Bukkit.createInventory(null, InventoryType.CHEST)
-        settings.randomChestLoot.insertItems(inv)
-        randomChests[location] = inv
-        // ensure the chunk is loaded so the block can drop, unset force load when it does
-        world.getChunkAt(location).isForceLoaded = true
-        inv
-    }
-
-    fun destroyRandomChestInventory(inv: Inventory) {
-        val location = randomChests.inverse()[inv] ?: return
-
-        world.getBlockAt(location).type = Material.AIR
-        for (slot in inv) {
-            if (slot != null) {
-                world.dropItemNaturally(location, slot)
-            }
-        }
-        world.playSound(location, Sound.ENTITY_GENERIC_EXPLODE, 0.5f, 1.0f)
-        world.spawnParticle(Particle.EXPLOSION_NORMAL, location, 10)
-        randomChests -= location
-    }
-
-    fun inventoryIsRandomChest(inv: Inventory) = randomChests.containsValue(inv)
 
     fun playerIsTribute(player: Player) = player in tributes
 
