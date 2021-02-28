@@ -1,4 +1,4 @@
-package com.dumbdogdiner.stickysurvival.events
+package com.dumbdogdiner.stickysurvival.event
 
 import org.bukkit.entity.Player
 import org.bukkit.event.Cancellable

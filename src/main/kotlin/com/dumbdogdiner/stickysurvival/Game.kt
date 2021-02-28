@@ -21,10 +21,10 @@ package com.dumbdogdiner.stickysurvival
 import com.destroystokyo.paper.Title
 import com.dumbdogdiner.stickysurvival.config.KitConfig
 import com.dumbdogdiner.stickysurvival.config.WorldConfig
-import com.dumbdogdiner.stickysurvival.events.TributeAddEvent
-import com.dumbdogdiner.stickysurvival.events.TributeRemoveEvent
-import com.dumbdogdiner.stickysurvival.events.TributeWinEvent
-import com.dumbdogdiner.stickysurvival.events.TributeWinRewardEvent
+import com.dumbdogdiner.stickysurvival.event.TributeAddEvent
+import com.dumbdogdiner.stickysurvival.event.TributeRemoveEvent
+import com.dumbdogdiner.stickysurvival.event.TributeWinEvent
+import com.dumbdogdiner.stickysurvival.event.TributeWinRewardEvent
 import com.dumbdogdiner.stickysurvival.game.GameBossBarComponent
 import com.dumbdogdiner.stickysurvival.game.GameChestComponent
 import com.dumbdogdiner.stickysurvival.game.GameSpawnPointComponent

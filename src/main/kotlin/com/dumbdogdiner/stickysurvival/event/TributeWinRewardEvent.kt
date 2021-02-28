@@ -1,4 +1,4 @@
-package com.dumbdogdiner.stickysurvival.events
+package com.dumbdogdiner.stickysurvival.event
 
 import com.dumbdogdiner.stickysurvival.Game
 import org.bukkit.entity.Player

@@ -21,7 +21,7 @@ package com.dumbdogdiner.stickysurvival.listener
 import com.destroystokyo.paper.event.player.PlayerAdvancementCriterionGrantEvent
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent
 import com.dumbdogdiner.stickysurvival.Game
-import com.dumbdogdiner.stickysurvival.events.TributeWinRewardEvent
+import com.dumbdogdiner.stickysurvival.event.TributeWinRewardEvent
 import com.dumbdogdiner.stickysurvival.util.game
 import com.dumbdogdiner.stickysurvival.util.goToLobby
 import com.dumbdogdiner.stickysurvival.util.settings
