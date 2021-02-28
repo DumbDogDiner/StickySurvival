@@ -21,15 +21,14 @@ package com.dumbdogdiner.stickysurvival.util
 import com.dumbdogdiner.stickysurvival.StickySurvival
 import com.dumbdogdiner.stickysurvival.config.Config
 import com.dumbdogdiner.stickysurvival.config.ConfigHelper
-import de.tr7zw.nbtapi.NBTContainer
-import de.tr7zw.nbtapi.NBTItem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.bukkit.Bukkit
 import org.bukkit.Color
 import org.bukkit.DyeColor
-import org.bukkit.Keyed
+import org.bukkit.Material
 import org.bukkit.NamespacedKey
+import org.bukkit.enchantments.Enchantment
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.inventory.meta.PotionMeta
@@ -43,14 +42,52 @@ import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.random.Random
 
-inline fun <reified T : Keyed> getKeyed(name: String) = NamespacedKey.minecraft(name).let { key ->
-    (T::class.java.getDeclaredMethod("values").invoke(null) as Array<*>).first {
-        (it as T).key == key
-    } as T
+private fun maybeKey(name: String): NamespacedKey? = try {
+    NamespacedKey.minecraft(name)
+} catch (_: IllegalArgumentException) {
+    null
+}
+
+fun getMaterial(name: String): Material {
+    return Material.getMaterial(name)
+        ?: maybeKey(name)?.let { key -> Material.values().firstOrNull { it.key == key } }
+        ?: throw IllegalArgumentException("No such material: $name")
+}
+
+fun getEnchantment(name: String): Enchantment {
+    return Enchantment.getByName(name)
+        ?: maybeKey(name)?.let { Enchantment.getByKey(it) }
+        ?: throw IllegalArgumentException("No such enchantment: $name")
+}
+
+fun getPotionEffectType(name: String): PotionEffectType {
+    return PotionEffectType.getByName(name)
+        ?: effectTypes[name]
+        ?: throw IllegalArgumentException("No such potion effect: $name")
+}
+
+// some effect names are different between object and minecraft name
+private val effectTypes = PotionEffectType.values().map {
+    it.name.toLowerCase() to it
+}.toMap().toMutableMap().also {
+    fun fixType(name: String, type: PotionEffectType) {
+        it -= type.name.toLowerCase()
+        it += name to type
+    }
+    fixType("slowness", PotionEffectType.SLOW)
+    fixType("haste", PotionEffectType.FAST_DIGGING)
+    fixType("mining_fatigue", PotionEffectType.SLOW_DIGGING)
+    fixType("strength", PotionEffectType.INCREASE_DAMAGE)
+    fixType("instant_health", PotionEffectType.HEAL)
+    fixType("instant_damage", PotionEffectType.HARM)
+    fixType("jump_boost", PotionEffectType.JUMP)
+    fixType("nausea", PotionEffectType.CONFUSION)
+    fixType("resistance", PotionEffectType.DAMAGE_RESISTANCE)
 }
 
 fun itemFromConfig(cfg: ConfigHelper): ItemStack {
-    var stack = ItemStack(getKeyed(cfg["item"].asString()), cfg["amount"].asIntOr(1))
+    val material = getMaterial(cfg["item"].asString())
+    val stack = ItemStack(material, cfg["amount"].asIntOr(1))
     val itemMeta = stack.itemMeta
     cfg["color"].maybe {
         val color = if (it.isA(Number::class)) {
@@ -75,42 +112,16 @@ fun itemFromConfig(cfg: ConfigHelper): ItemStack {
     }
     stack.itemMeta = itemMeta
     cfg["enchantments"].maybeGet()?.mapEntries { name, level ->
-        stack.addUnsafeEnchantment(getKeyed(name), level.asInt())
+        stack.addUnsafeEnchantment(getEnchantment(name), level.asInt())
     }
     cfg["lore"].maybe {
         stack.lore = it.map { line -> line.asString().substituteAmpersand() }
     }
-    cfg["data"].maybe { data ->
-        val nbt = NBTItem.convertItemtoNBT(stack)
-        nbt.mergeCompound(NBTContainer(data.asString()))
-        stack = NBTItem.convertNBTtoItem(nbt)
-    }
     return stack
 }
 
-// some effect names are different between object and minecraft name
-
-val effects = PotionEffectType.values().map {
-    it.name.toLowerCase() to it
-}.toMap().toMutableMap().also {
-    fun fixType(name: String, type: PotionEffectType) {
-        it -= type.name.toLowerCase()
-        it += name to type
-    }
-    fixType("slowness", PotionEffectType.SLOW)
-    fixType("haste", PotionEffectType.FAST_DIGGING)
-    fixType("mining_fatigue", PotionEffectType.SLOW_DIGGING)
-    fixType("strength", PotionEffectType.INCREASE_DAMAGE)
-    fixType("instant_health", PotionEffectType.HEAL)
-    fixType("instant_damage", PotionEffectType.HARM)
-    fixType("jump_boost", PotionEffectType.JUMP)
-    fixType("nausea", PotionEffectType.CONFUSION)
-    fixType("resistance", PotionEffectType.DAMAGE_RESISTANCE)
-}
-
 fun effectFromConfig(cfg: ConfigHelper): PotionEffect {
-    val name = cfg["type"].asString()
-    val type = effects[name] ?: throw IllegalArgumentException("Effect $name does not exist")
+    val type = getPotionEffectType(cfg["type"].asString())
     val duration = cfg["duration"].let {
         when {
             it.isA(String::class) && it.asString() == "forever" -> Int.MAX_VALUE

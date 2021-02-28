@@ -19,7 +19,7 @@
 package com.dumbdogdiner.stickysurvival.config
 
 import com.dumbdogdiner.stickysurvival.manager.WorldManager
-import com.dumbdogdiner.stickysurvival.util.getKeyed
+import com.dumbdogdiner.stickysurvival.util.getMaterial
 import org.bukkit.Location
 import org.bukkit.Material
 
@@ -45,7 +45,7 @@ class WorldConfig(
 ) {
     constructor(worldName: String, cfg: ConfigHelper) : this(
         cfg["friendly name"].asStringOr(worldName),
-        getKeyed(cfg["icon"].asString()),
+        getMaterial(cfg["icon"].asString()),
         cfg["min players"].asInt(),
         cfg["max players"].maybe { it.asInt() } ?: cfg["spawn points"].map { it }.size,
         cfg["no damage time"].maybe { it.asInt() },
