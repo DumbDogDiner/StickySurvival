@@ -21,6 +21,8 @@ package com.dumbdogdiner.stickysurvival
 import com.destroystokyo.paper.Title
 import com.dumbdogdiner.stickysurvival.config.KitConfig
 import com.dumbdogdiner.stickysurvival.config.WorldConfig
+import com.dumbdogdiner.stickysurvival.event.GameCloseEvent
+import com.dumbdogdiner.stickysurvival.event.GameEnableDamageEvent
 import com.dumbdogdiner.stickysurvival.game.GameBossBarComponent
 import com.dumbdogdiner.stickysurvival.game.GameCarePackageComponent
 import com.dumbdogdiner.stickysurvival.game.GameChestComponent
@@ -136,7 +138,7 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
         world.broadcastMessage(messages.chat.damageEnabled)
 
-        carePackageComponent.startTask()
+        Bukkit.getPluginManager().callEvent(GameEnableDamageEvent(this))
     }
 
     fun addPlayer(player: Player): Boolean {
@@ -207,8 +209,6 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
         world.broadcastMessage(messages.chat.start.safeFormat(noDamageTime))
 
-        chestComponent.startRefillTimer()
-
         trackingCompass.maybeRunTaskEveryTick()
 
         logTributes()
@@ -243,11 +243,10 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
     }
 
     private fun close() {
+        Bukkit.getPluginManager().callEvent(GameCloseEvent(this))
         timer.safelyCancel()
-        carePackageComponent.stopTask()
         autoQuit.safelyCancel()
         trackingCompass.safelyCancel()
-        chestComponent.close()
         WorldManager.unloadGame(this)
     }
 
@@ -316,7 +315,6 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
     private fun finalizeGame() {
         autoQuit.maybeRunTaskLater(settings.resultsTime)
-        carePackageComponent.stopTask()
         timer.safelyCancel()
 
         val winner0 = winner
