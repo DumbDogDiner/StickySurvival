@@ -22,9 +22,11 @@ import com.destroystokyo.paper.event.player.PlayerAdvancementCriterionGrantEvent
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent
 import com.dumbdogdiner.stickysurvival.Game
 import com.dumbdogdiner.stickysurvival.event.TributeWinRewardEvent
+import com.dumbdogdiner.stickysurvival.gui.KitGUI
 import com.dumbdogdiner.stickysurvival.util.game
 import com.dumbdogdiner.stickysurvival.util.goToLobby
 import com.dumbdogdiner.stickysurvival.util.settings
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.ItemFrame
@@ -43,20 +45,29 @@ import org.bukkit.event.entity.EntityPickupItemEvent
 import org.bukkit.event.entity.FoodLevelChangeEvent
 import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.entity.PotionSplashEvent
+import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
+import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.player.AsyncPlayerChatEvent
 import org.bukkit.event.player.PlayerChangedWorldEvent
+import org.bukkit.event.player.PlayerDropItemEvent
 import org.bukkit.event.player.PlayerGameModeChangeEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.event.player.PlayerToggleFlightEvent
 import org.bukkit.event.world.ChunkLoadEvent
+import java.util.WeakHashMap
 
 object GameEventsListener : Listener {
     // Code in this listener should be kept pretty minimal. The Game class should do most of the work.
     // ...and yes, i am aware that some of this code is not too minimal. i'm working on it.
+
+
+    // PlayerInteractEvent can fire lots of times when it should fire just once, so keep track of when players click to
+    // ignore multiple events on the same tick
+    private val clickTimes = WeakHashMap<Player, Int>()
 
     // Run later (2nd last), just before MONITOR
     // This way other plugins can listen for this event
@@ -187,6 +198,9 @@ object GameEventsListener : Listener {
         val game = world.game ?: return
 
         if (game.phase == Game.Phase.WAITING || !game.playerIsTribute(event.player as Player)) {
+            // probably a gui, don't mess with it
+            if (event.inventory.holder == null) return
+
             // don't let players open chests before the game starts and don't let spectators open chests
             event.isCancelled = true
         } else {
@@ -194,7 +208,7 @@ object GameEventsListener : Listener {
             when (world.getBlockAt(location).type) {
                 Material.ENDER_CHEST -> {
                     event.isCancelled = true
-                    event.player.openInventory(game.getOrCreateRandomChestInventoryAt(location))
+                    event.player.openInventory(game.carePackageComponent[location])
                 }
                 Material.CHEST, in settings.bonusContainers -> {
                     game.chestComponent.onChestOpen(location)
@@ -209,11 +223,43 @@ object GameEventsListener : Listener {
         val world = event.player.world
         val game = world.game ?: return
 
-        if (game.inventoryIsRandomChest(event.inventory) && event.inventory.viewers.none { it != event.player }) {
-            game.destroyRandomChestInventory(event.inventory)
+        if (event.inventory in game.carePackageComponent && event.inventory.viewers.none { it != event.player }) {
+            game.carePackageComponent -= event.inventory
         }
 
         event.inventory.location?.let { game.chestComponent.onChestClose(it) }
+    }
+
+    @EventHandler
+    fun onInventoryClick(event: InventoryClickEvent) {
+        // don't let players move items around in their inventory unless the game is active
+        // this is to make clickable hotbar items work
+
+        val player = event.whoClicked
+        val game = player.world.game ?: return
+
+        if (game.phase != Game.Phase.ACTIVE) {
+            // game is not active
+            if (event.clickedInventory == player.inventory) {
+                // inventory is the player's inventory
+                event.isCancelled = true
+            }
+        }
+    }
+
+    // run this before onPlayerInteract, because this will trigger a PlayerInteractEvent and we want to tell it to
+    // ignore the event
+    @EventHandler(priority = EventPriority.LOW)
+    fun onPlayerDropItem(event: PlayerDropItemEvent) {
+        // same use as above event handler
+
+        val player = event.player
+        val game = player.world.game ?: return
+
+        if (game.phase != Game.Phase.ACTIVE) {
+            event.isCancelled = true
+            clickTimes[player] = Bukkit.getCurrentTick()
+        }
     }
 
     @EventHandler
@@ -248,6 +294,25 @@ object GameEventsListener : Listener {
         if (!game.playerIsTribute(event.player)) {
             event.isCancelled = true // spectators may not interact
         }
+        // if a GUI is already open, do not handle GUI stuff here
+        if (player.openInventory.type == InventoryType.CHEST) return
+        val hasClickableHotbarItems =
+            !game.playerIsTribute(player) || // is a spectator, has spectator hotbar
+                game.phase == Game.Phase.WAITING // game has not yet started, has pre-game hotbar
+        if (hasClickableHotbarItems) {
+            // multiple events might fire at the same time, remember when the last event fired in order to catch the
+            // first and ignore the rest
+            val currentTick = Bukkit.getCurrentTick()
+            if (clickTimes[player] != currentTick) {
+                clickTimes[player] = currentTick
+
+                when (event.item?.type) {
+                    Material.RED_BED -> if (player.hasPermission("stickysurvival.leave")) player.goToLobby()
+                    Material.BOW -> KitGUI().open(player)
+                    else -> Unit
+                }
+            }
+        }
     }
 
     @EventHandler
@@ -273,7 +338,7 @@ object GameEventsListener : Listener {
 
     @EventHandler
     fun onChunkLoad(event: ChunkLoadEvent) {
-        event.world.game?.removeSomeChests(event.chunk)
+        event.world.game?.chestRemovalComponent?.process(event.chunk)
     }
 
     @EventHandler

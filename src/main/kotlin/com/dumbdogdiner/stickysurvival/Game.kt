@@ -25,8 +25,12 @@ import com.dumbdogdiner.stickysurvival.event.TributeAddEvent
 import com.dumbdogdiner.stickysurvival.event.TributeRemoveEvent
 import com.dumbdogdiner.stickysurvival.event.TributeWinEvent
 import com.dumbdogdiner.stickysurvival.event.TributeWinRewardEvent
+import com.dumbdogdiner.stickysurvival.event.GameCloseEvent
+import com.dumbdogdiner.stickysurvival.event.GameEnableDamageEvent
 import com.dumbdogdiner.stickysurvival.game.GameBossBarComponent
+import com.dumbdogdiner.stickysurvival.game.GameCarePackageComponent
 import com.dumbdogdiner.stickysurvival.game.GameChestComponent
+import com.dumbdogdiner.stickysurvival.game.GameChestRemovalComponent
 import com.dumbdogdiner.stickysurvival.game.GameSpawnPointComponent
 import com.dumbdogdiner.stickysurvival.manager.AnimatedScoreboardManager
 import com.dumbdogdiner.stickysurvival.manager.HiddenPlayerManager
@@ -35,40 +39,32 @@ import com.dumbdogdiner.stickysurvival.manager.StatsManager
 import com.dumbdogdiner.stickysurvival.manager.WorldManager
 import com.dumbdogdiner.stickysurvival.stats.PlayerStats
 import com.dumbdogdiner.stickysurvival.task.AutoQuitRunnable
-import com.dumbdogdiner.stickysurvival.task.RandomDropRunnable
 import com.dumbdogdiner.stickysurvival.task.TimerRunnable
 import com.dumbdogdiner.stickysurvival.task.TrackingCompassRunnable
 import com.dumbdogdiner.stickysurvival.util.broadcastMessage
 import com.dumbdogdiner.stickysurvival.util.broadcastSound
 import com.dumbdogdiner.stickysurvival.util.freeze
+<<<<<<< HEAD
 import com.dumbdogdiner.stickysurvival.util.info
+=======
+import com.dumbdogdiner.stickysurvival.util.loadPreGameHotbar
+>>>>>>> master
 import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.radiusForBounds
 import com.dumbdogdiner.stickysurvival.util.reset
 import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.settings
 import com.dumbdogdiner.stickysurvival.util.spectate
-import com.google.common.collect.HashBiMap
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
-import org.bukkit.Chunk
 import org.bukkit.GameMode
-import org.bukkit.Location
-import org.bukkit.Material
-import org.bukkit.Particle
 import org.bukkit.Sound
 import org.bukkit.World
-import org.bukkit.block.BlockState
-import org.bukkit.block.Chest
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
-import org.bukkit.event.inventory.InventoryType
-import org.bukkit.inventory.DoubleChestInventory
-import org.bukkit.inventory.Inventory
 import org.bukkit.util.Vector
 import java.util.WeakHashMap
 import kotlin.math.roundToLong
-import kotlin.random.Random
 
 class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologram) {
     enum class Phase { WAITING, ACTIVE, COMPLETE }
@@ -77,7 +73,6 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
     // Runnables
     private val timer = TimerRunnable(this)
-    private val randomDrop = RandomDropRunnable(this)
     private val autoQuit = AutoQuitRunnable(this)
     private val trackingCompass = TrackingCompassRunnable(this)
 
@@ -89,11 +84,10 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
     private val participants = mutableSetOf<Player>()
 
     val bossBarComponent = GameBossBarComponent(this)
+    val carePackageComponent = GameCarePackageComponent(this)
     val chestComponent = GameChestComponent(this)
+    val chestRemovalComponent = GameChestRemovalComponent(this)
     val spawnPointComponent = GameSpawnPointComponent(this)
-
-    private val randomChests = HashBiMap.create<Location, Inventory>()
-    private val visitedChunks = mutableSetOf<Long>()
 
     // for debugging, trying to figure out why sometimes games end with zero players
     private val tributeLog = mutableListOf<String>()
@@ -152,7 +146,7 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
         world.broadcastMessage(messages.chat.damageEnabled)
 
-        randomDrop.maybeRunTaskTimer(settings.randomChestInterval, settings.randomChestInterval)
+        Bukkit.getPluginManager().callEvent(GameEnableDamageEvent(this))
     }
 
     fun addPlayer(player: Player): Boolean {
@@ -188,9 +182,9 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
         bossBarComponent += player
         world.broadcastMessage(messages.chat.join.safeFormat(player.name))
-        player.sendMessage(messages.chat.kitPrompt)
 
         setKit(player, settings.kits.random())
+        player.loadPreGameHotbar()
 
         if (tributes.size >= config.minPlayers && countdown == -1) {
             beginStartCountdown()
@@ -226,8 +220,6 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
         }
 
         world.broadcastMessage(messages.chat.start.safeFormat(noDamageTime))
-
-        chestComponent.startRefillTimer()
 
         trackingCompass.maybeRunTaskEveryTick()
 
@@ -266,11 +258,10 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
     }
 
     private fun close() {
+        Bukkit.getPluginManager().callEvent(GameCloseEvent(this))
         timer.safelyCancel()
-        randomDrop.safelyCancel()
         autoQuit.safelyCancel()
         trackingCompass.safelyCancel()
-        chestComponent.close()
         WorldManager.unloadGame(this)
     }
 
@@ -343,7 +334,6 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
     private fun finalizeGame() {
         autoQuit.maybeRunTaskLater(settings.resultsTime)
-        randomDrop.safelyCancel()
         timer.safelyCancel()
 
         val winner0 = winner

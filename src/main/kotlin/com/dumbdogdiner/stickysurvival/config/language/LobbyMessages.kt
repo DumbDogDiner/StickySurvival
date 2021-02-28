@@ -18,8 +18,6 @@
 
 package com.dumbdogdiner.stickysurvival.config.language
 
-import com.dumbdogdiner.stickysurvival.config.ConfigHelper
-
 class LobbyMessages(
     val empty: String,
     val waiting: String,
@@ -32,18 +30,4 @@ class LobbyMessages(
     val winner: String,
     val click: String,
     val spectate: String,
-) {
-    constructor(cfg: ConfigHelper) : this(
-        cfg.loadMessage("empty"),
-        cfg.loadMessage("waiting"),
-        cfg.loadMessage("starting"),
-        cfg.loadMessage("active"),
-        cfg.loadMessage("complete"),
-        cfg.loadMessage("more needed"),
-        cfg.loadMessage("space left"),
-        cfg.loadMessage("alive"),
-        cfg.loadMessage("winner"),
-        cfg.loadMessage("click"),
-        cfg.loadMessage("spectate"),
-    )
-}
+)

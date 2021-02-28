@@ -19,19 +19,29 @@
 package com.dumbdogdiner.stickysurvival.game
 
 import com.dumbdogdiner.stickysurvival.Game
+import com.dumbdogdiner.stickysurvival.StickySurvival
+import com.dumbdogdiner.stickysurvival.event.GameCloseEvent
+import com.dumbdogdiner.stickysurvival.event.GameEnableDamageEvent
 import com.dumbdogdiner.stickysurvival.task.ChestRefillRunnable
 import com.dumbdogdiner.stickysurvival.util.broadcastMessage
 import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.settings
+import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.block.Container
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
 import org.bukkit.inventory.DoubleChestInventory
 
-class GameChestComponent(val game: Game) {
+class GameChestComponent(val game: Game) : Listener {
     var refillCount = 1
     private val filledChests = mutableMapOf<Location, Int>()
     private val currentlyOpenChests = mutableSetOf<Location>()
     private val chestRefill = ChestRefillRunnable(game)
+
+    init {
+        Bukkit.getPluginManager().registerEvents(this, StickySurvival.instance)
+    }
 
     fun onChestOpen(location: Location) {
         currentlyOpenChests += location
@@ -76,13 +86,23 @@ class GameChestComponent(val game: Game) {
         game.world.broadcastMessage(messages.chat.refill)
     }
 
-    fun startRefillTimer() {
+    @EventHandler
+    fun startTask(event: GameEnableDamageEvent) {
         if (game.config.chestRefill > 0) {
             chestRefill.maybeRunTaskTimer(game.config.chestRefill, game.config.chestRefill)
         }
     }
 
-    fun close() {
-        chestRefill.safelyCancel()
+    @EventHandler
+    fun stopTask(event: GameCloseEvent) {
+        if (event.game == game) {
+            chestRefill.safelyCancel()
+            unregister()
+        }
+    }
+
+    private fun unregister() {
+        GameEnableDamageEvent.handlers.unregister(this)
+        GameCloseEvent.handlers.unregister(this)
     }
 }
