@@ -37,6 +37,7 @@ import com.dumbdogdiner.stickysurvival.task.TrackingCompassRunnable
 import com.dumbdogdiner.stickysurvival.util.broadcastMessage
 import com.dumbdogdiner.stickysurvival.util.broadcastSound
 import com.dumbdogdiner.stickysurvival.util.freeze
+import com.dumbdogdiner.stickysurvival.util.loadPreGameHotbar
 import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.radiusForBounds
 import com.dumbdogdiner.stickysurvival.util.reset
@@ -179,9 +180,9 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
         bossBarComponent += player
         world.broadcastMessage(messages.chat.join.safeFormat(player.name))
-        player.sendMessage(messages.chat.kitPrompt)
 
         setKit(player, settings.kits.random())
+        player.loadPreGameHotbar()
 
         if (tributes.size >= config.minPlayers && countdown == -1) {
             beginStartCountdown()

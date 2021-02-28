@@ -21,6 +21,7 @@ package com.dumbdogdiner.stickysurvival.config
 import com.dumbdogdiner.stickysurvival.config.language.BossBarMessages
 import com.dumbdogdiner.stickysurvival.config.language.ChatMessages
 import com.dumbdogdiner.stickysurvival.config.language.LobbyMessages
+import com.dumbdogdiner.stickysurvival.config.language.MiscMessages
 import com.dumbdogdiner.stickysurvival.config.language.TitleMessages
 
 class MessageConfig(
@@ -28,11 +29,13 @@ class MessageConfig(
     val bossBar: BossBarMessages,
     val lobby: LobbyMessages,
     val title: TitleMessages,
+    val misc: MiscMessages,
 ) {
     constructor(cfg: ConfigHelper) : this(
         ChatMessages(cfg["chat"]),
         BossBarMessages(cfg["boss bar"]),
         LobbyMessages(cfg["lobby"]),
         TitleMessages(cfg["title"]),
+        MiscMessages(cfg["misc"]),
     )
 }

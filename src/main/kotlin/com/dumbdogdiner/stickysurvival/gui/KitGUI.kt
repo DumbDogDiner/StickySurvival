@@ -32,7 +32,7 @@ class KitGUI : GUI(
     // rows
     ceil(settings.kits.size.toFloat() / 9).toInt(),
     // name
-    "Select a kit",
+    messages.misc.kitGuiTitle,
     // plugin
     StickySurvival.instance,
 ) {

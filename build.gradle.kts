@@ -93,16 +93,6 @@ tasks {
                 defaults = "op"
             }
 
-            create("stickysurvival.kit") {
-                description = "Allows a user to choose a kit."
-                defaults = "true"
-            }
-
-            create("stickysurvival.kits") {
-                description = "Allows a user to list all kits."
-                defaults = "true"
-            }
-
             create("stickysurvival.forcestart") {
                 description = "Allows a player to force a game to start if there are not enough players."
                 defaults = "op"
