@@ -19,6 +19,7 @@
 package com.dumbdogdiner.stickysurvival.gui
 
 import com.dumbdogdiner.stickyapi.bukkit.gui.GUI
+import com.dumbdogdiner.stickyapi.bukkit.util.SoundUtil
 import com.dumbdogdiner.stickysurvival.StickySurvival
 import com.dumbdogdiner.stickysurvival.util.game
 import com.dumbdogdiner.stickysurvival.util.messages
@@ -26,6 +27,7 @@ import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.settings
 import com.dumbdogdiner.stickysurvival.util.substituteAmpersand
 import org.bukkit.entity.Player
+import org.bukkit.event.inventory.InventoryOpenEvent
 import kotlin.math.ceil
 
 class KitGUI : GUI(
@@ -59,7 +61,14 @@ class KitGUI : GUI(
                 player.sendMessage(messages.chat.kitSelect.safeFormat(kit.name))
                 // close this GUI
                 player.closeInventory()
+                // ooh gui make sound
+                SoundUtil.sendSuccess(player)
             }
         }
+    }
+
+    override fun onInventoryOpen(event: InventoryOpenEvent) {
+        // sounds are fun!
+        SoundUtil.sendQuiet(event.player as Player)
     }
 }
