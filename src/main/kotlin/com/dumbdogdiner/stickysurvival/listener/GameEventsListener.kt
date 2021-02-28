@@ -47,6 +47,7 @@ import org.bukkit.event.entity.PotionSplashEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
+import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.player.AsyncPlayerChatEvent
 import org.bukkit.event.player.PlayerChangedWorldEvent
 import org.bukkit.event.player.PlayerDropItemEvent
@@ -64,7 +65,7 @@ object GameEventsListener : Listener {
 
     // PlayerInteractEvent can fire lots of times when it should fire just once, so keep track of when players click to
     // ignore multiple events on the same tick
-    val clickTimes = WeakHashMap<Player, Int>()
+    private val clickTimes = WeakHashMap<Player, Int>()
 
     @EventHandler
     fun onBlockBreak(event: BlockBreakEvent) {
@@ -283,6 +284,8 @@ object GameEventsListener : Listener {
         if (!game.playerIsTribute(event.player)) {
             event.isCancelled = true // spectators may not interact
         }
+        // if a GUI is already open, do not handle GUI stuff here
+        if (player.openInventory.type == InventoryType.CHEST) return
         val hasClickableHotbarItems =
             !game.playerIsTribute(player) || // is a spectator, has spectator hotbar
                 game.phase == Game.Phase.WAITING // game has not yet started, has pre-game hotbar
