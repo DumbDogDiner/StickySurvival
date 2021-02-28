@@ -23,6 +23,7 @@ import com.dumbdogdiner.stickysurvival.config.KitConfig
 import com.dumbdogdiner.stickysurvival.config.WorldConfig
 import com.dumbdogdiner.stickysurvival.game.GameBossBarComponent
 import com.dumbdogdiner.stickysurvival.game.GameChestComponent
+import com.dumbdogdiner.stickysurvival.game.GameChestRemovalComponent
 import com.dumbdogdiner.stickysurvival.game.GameSpawnPointComponent
 import com.dumbdogdiner.stickysurvival.manager.AnimatedScoreboardManager
 import com.dumbdogdiner.stickysurvival.manager.HiddenPlayerManager
@@ -47,24 +48,19 @@ import com.dumbdogdiner.stickysurvival.util.spectate
 import com.google.common.collect.HashBiMap
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
-import org.bukkit.Chunk
 import org.bukkit.GameMode
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.Particle
 import org.bukkit.Sound
 import org.bukkit.World
-import org.bukkit.block.BlockState
-import org.bukkit.block.Chest
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryType
-import org.bukkit.inventory.DoubleChestInventory
 import org.bukkit.inventory.Inventory
 import org.bukkit.util.Vector
 import java.util.WeakHashMap
 import kotlin.math.roundToLong
-import kotlin.random.Random
 
 class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologram) {
     enum class Phase { WAITING, ACTIVE, COMPLETE }
@@ -87,9 +83,9 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
     val bossBarComponent = GameBossBarComponent(this)
     val chestComponent = GameChestComponent(this)
     val spawnPointComponent = GameSpawnPointComponent(this)
+    val chestRemovalComponent = GameChestRemovalComponent(this)
 
     private val randomChests = HashBiMap.create<Location, Inventory>()
-    private val visitedChunks = mutableSetOf<Long>()
 
     // for debugging, trying to figure out why sometimes games end with zero players
     private val tributeLog = mutableListOf<String>()
@@ -349,39 +345,6 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
         }
 
         phase = Phase.COMPLETE
-    }
-
-    fun removeSomeChests(chunk: Chunk) {
-        val ratio = config.chestRatio
-        if (ratio >= 1.0) return // don't run this method if we aren't going to remove chests
-        val chests = chunk.tileEntities.filter { it.type == Material.CHEST || it.type in settings.bonusContainers }
-        if (chests.isEmpty()) return // ignore chunks with no chests
-        val chunkKey = chunk.chunkKey
-        if (visitedChunks.add(chunkKey)) {
-            val cornucopia = config.cornucopia
-            for (chest in chests) {
-                if (cornucopia == null || chest.location !in cornucopia) {
-                    if (Random.nextDouble() >= ratio) {
-                        // sometimes a double chest will be split in half, but i can't figure out why...
-                        // maybe chunk load order?
-                        if (chest is Chest && chest.inventory is DoubleChestInventory) {
-                            val leftSide = (chest.inventory as DoubleChestInventory).leftSide.location
-                            val rightSide = (chest.inventory as DoubleChestInventory).rightSide.location
-                            if (leftSide != null && rightSide != null) {
-                                // the side here is arbitrary, but if we didn't check for a specific side, double chests
-                                // would have twice the chances of being removed
-                                if (rightSide == (chest as BlockState).location) {
-                                    chunk.world.getBlockAt(leftSide).type = Material.AIR
-                                    chunk.world.getBlockAt(rightSide).type = Material.AIR
-                                }
-                            }
-                        } else {
-                            chunk.world.getBlockAt(chest.location).type = Material.AIR
-                        }
-                    }
-                }
-            }
-        }
     }
 
     fun getOrCreateRandomChestInventoryAt(location: Location) = randomChests[location] ?: run {

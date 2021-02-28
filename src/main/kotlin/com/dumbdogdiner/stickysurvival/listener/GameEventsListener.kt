@@ -325,7 +325,7 @@ object GameEventsListener : Listener {
 
     @EventHandler
     fun onChunkLoad(event: ChunkLoadEvent) {
-        event.world.game?.removeSomeChests(event.chunk)
+        event.world.game?.chestRemovalComponent?.process(event.chunk)
     }
 
     @EventHandler
