@@ -24,6 +24,7 @@ import com.dumbdogdiner.stickysurvival.event.GameCloseEvent
 import com.dumbdogdiner.stickysurvival.event.GameEnableDamageEvent
 import com.dumbdogdiner.stickysurvival.task.RandomDropRunnable
 import com.dumbdogdiner.stickysurvival.util.settings
+import com.dumbdogdiner.stickysurvival.util.unregisterListener
 import com.google.common.collect.HashBiMap
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -54,7 +55,7 @@ class GameCarePackageComponent(val game: Game) : Listener {
     fun stopTask(event: GameCloseEvent) {
         if (event.game == game) {
             task.safelyCancel()
-            unregister()
+            unregisterListener(this)
         }
     }
 
@@ -98,9 +99,4 @@ class GameCarePackageComponent(val game: Game) : Listener {
      * @return True if this component contains the given inventory
      */
     operator fun contains(inv: Inventory) = chests.containsValue(inv)
-
-    private fun unregister() {
-        GameEnableDamageEvent.handlers.unregister(this)
-        GameCloseEvent.handlers.unregister(this)
-    }
 }

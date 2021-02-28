@@ -26,6 +26,7 @@ import com.dumbdogdiner.stickysurvival.task.ChestRefillRunnable
 import com.dumbdogdiner.stickysurvival.util.broadcastMessage
 import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.settings
+import com.dumbdogdiner.stickysurvival.util.unregisterListener
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.block.Container
@@ -97,12 +98,7 @@ class GameChestComponent(val game: Game) : Listener {
     fun stopTask(event: GameCloseEvent) {
         if (event.game == game) {
             chestRefill.safelyCancel()
-            unregister()
+            unregisterListener(this)
         }
-    }
-
-    private fun unregister() {
-        GameEnableDamageEvent.handlers.unregister(this)
-        GameCloseEvent.handlers.unregister(this)
     }
 }
