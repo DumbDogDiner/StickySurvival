@@ -24,6 +24,7 @@ import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.attribute.Attribute
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 import org.bukkit.util.Vector
@@ -120,6 +121,7 @@ fun Player.spectate() {
     saturation = Float.POSITIVE_INFINITY
     gameMode = GameMode.ADVENTURE
     allowFlight = true
+    loadSpectatorHotbar()
 }
 
 fun Player.goToLobby(): Boolean {
@@ -131,4 +133,25 @@ fun Player.goToLobby(): Boolean {
     } else {
         false
     }
+}
+
+private val selectKitItem = ItemStack(Material.BOW).apply {
+    itemMeta = itemMeta.apply {
+        setDisplayName(messages.misc.selectKitItem)
+    }
+}
+
+private val quitGameItem = ItemStack(Material.RED_BED).apply {
+    itemMeta = itemMeta.apply {
+        setDisplayName(messages.misc.quitGameItem)
+    }
+}
+
+fun Player.loadPreGameHotbar() {
+    inventory.setItem(0, selectKitItem)
+    inventory.setItem(8, quitGameItem)
+}
+
+fun Player.loadSpectatorHotbar() {
+    inventory.setItem(8, quitGameItem)
 }
