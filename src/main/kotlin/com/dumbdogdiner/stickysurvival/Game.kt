@@ -33,7 +33,6 @@ import com.dumbdogdiner.stickysurvival.manager.StatsManager
 import com.dumbdogdiner.stickysurvival.manager.WorldManager
 import com.dumbdogdiner.stickysurvival.stats.PlayerStats
 import com.dumbdogdiner.stickysurvival.task.AutoQuitRunnable
-import com.dumbdogdiner.stickysurvival.task.RandomDropRunnable
 import com.dumbdogdiner.stickysurvival.task.TimerRunnable
 import com.dumbdogdiner.stickysurvival.task.TrackingCompassRunnable
 import com.dumbdogdiner.stickysurvival.util.broadcastMessage
@@ -64,7 +63,6 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
     // Runnables
     private val timer = TimerRunnable(this)
-    private val randomDrop = RandomDropRunnable(this)
     private val autoQuit = AutoQuitRunnable(this)
     private val trackingCompass = TrackingCompassRunnable(this)
 
@@ -138,7 +136,7 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
         world.broadcastMessage(messages.chat.damageEnabled)
 
-        randomDrop.maybeRunTaskTimer(settings.randomChestInterval, settings.randomChestInterval)
+        carePackageComponent.startTask()
     }
 
     fun addPlayer(player: Player): Boolean {
@@ -246,7 +244,7 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
     private fun close() {
         timer.safelyCancel()
-        randomDrop.safelyCancel()
+        carePackageComponent.stopTask()
         autoQuit.safelyCancel()
         trackingCompass.safelyCancel()
         chestComponent.close()
@@ -318,7 +316,7 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
     private fun finalizeGame() {
         autoQuit.maybeRunTaskLater(settings.resultsTime)
-        randomDrop.safelyCancel()
+        carePackageComponent.stopTask()
         timer.safelyCancel()
 
         val winner0 = winner

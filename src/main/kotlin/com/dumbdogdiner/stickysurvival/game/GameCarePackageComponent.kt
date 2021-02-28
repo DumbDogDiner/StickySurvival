@@ -19,6 +19,7 @@
 package com.dumbdogdiner.stickysurvival.game
 
 import com.dumbdogdiner.stickysurvival.Game
+import com.dumbdogdiner.stickysurvival.task.RandomDropRunnable
 import com.dumbdogdiner.stickysurvival.util.settings
 import com.google.common.collect.HashBiMap
 import org.bukkit.Bukkit
@@ -31,6 +32,15 @@ import org.bukkit.inventory.Inventory
 
 class GameCarePackageComponent(val game: Game) {
     private val chests = HashBiMap.create<Location, Inventory>()
+    private val task = RandomDropRunnable(game)
+
+    fun startTask() {
+        task.maybeRunTaskTimer(settings.randomChestInterval, settings.randomChestInterval)
+    }
+
+    fun stopTask() {
+        task.safelyCancel()
+    }
 
     /**
      * Get or create a random chest inventory at the given location.
