@@ -18,8 +18,6 @@
 
 package com.dumbdogdiner.stickysurvival.config.language
 
-import com.dumbdogdiner.stickysurvival.config.ConfigHelper
-
 class BossBarMessages(
     val waiting: String,
     val countdown: String,
@@ -27,13 +25,4 @@ class BossBarMessages(
     val active: String,
     val winner: String,
     val draw: String,
-) {
-    constructor(cfg: ConfigHelper) : this(
-        cfg.loadMessage("waiting"),
-        cfg.loadMessage("countdown"),
-        cfg.loadMessage("no damage"),
-        cfg.loadMessage("active"),
-        cfg.loadMessage("winner"),
-        cfg.loadMessage("draw"),
-    )
-}
+)

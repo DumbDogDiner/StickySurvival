@@ -18,16 +18,8 @@
 
 package com.dumbdogdiner.stickysurvival.config.language
 
-import com.dumbdogdiner.stickysurvival.config.ConfigHelper
-
 class MiscMessages(
     val kitGuiTitle: String,
     val quitGameItem: String,
     val selectKitItem: String,
-) {
-    constructor(cfg: ConfigHelper) : this (
-        cfg.loadMessage("kit gui title"),
-        cfg.loadMessage("quit game item"),
-        cfg.loadMessage("select kit item"),
-    )
-}
+)

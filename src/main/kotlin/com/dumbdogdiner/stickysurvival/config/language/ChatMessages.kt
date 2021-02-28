@@ -18,8 +18,6 @@
 
 package com.dumbdogdiner.stickysurvival.config.language
 
-import com.dumbdogdiner.stickysurvival.config.ConfigHelper
-
 class ChatMessages(
     val cooldown: String,
     val joining: String,
@@ -37,23 +35,4 @@ class ChatMessages(
     val border: String,
     val randomChestDrop: String,
     val kitSelect: String,
-) {
-    constructor(cfg: ConfigHelper) : this (
-        cfg.loadMessage("cooldown"),
-        cfg.loadMessage("joining"),
-        cfg.loadMessage("join"),
-        cfg.loadMessage("leave"),
-        cfg.loadMessage("death"),
-        cfg.loadMessage("countdown"),
-        cfg.loadMessage("countdown cancelled"),
-        cfg.loadMessage("refill"),
-        cfg.loadMessage("start"),
-        cfg.loadMessage("damage enabled"),
-        cfg.loadMessage("winner"),
-        cfg.loadMessage("draw"),
-        cfg.loadMessage("reward"),
-        cfg.loadMessage("border"),
-        cfg.loadMessage("random chest drop"),
-        cfg.loadMessage("kit select"),
-    )
-}
+)
