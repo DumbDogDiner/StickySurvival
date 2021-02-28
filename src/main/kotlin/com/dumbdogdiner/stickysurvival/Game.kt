@@ -21,12 +21,12 @@ package com.dumbdogdiner.stickysurvival
 import com.destroystokyo.paper.Title
 import com.dumbdogdiner.stickysurvival.config.KitConfig
 import com.dumbdogdiner.stickysurvival.config.WorldConfig
+import com.dumbdogdiner.stickysurvival.event.GameCloseEvent
+import com.dumbdogdiner.stickysurvival.event.GameEnableDamageEvent
 import com.dumbdogdiner.stickysurvival.event.TributeAddEvent
 import com.dumbdogdiner.stickysurvival.event.TributeRemoveEvent
 import com.dumbdogdiner.stickysurvival.event.TributeWinEvent
 import com.dumbdogdiner.stickysurvival.event.TributeWinRewardEvent
-import com.dumbdogdiner.stickysurvival.event.GameCloseEvent
-import com.dumbdogdiner.stickysurvival.event.GameEnableDamageEvent
 import com.dumbdogdiner.stickysurvival.game.GameBossBarComponent
 import com.dumbdogdiner.stickysurvival.game.GameCarePackageComponent
 import com.dumbdogdiner.stickysurvival.game.GameChestComponent
@@ -44,11 +44,8 @@ import com.dumbdogdiner.stickysurvival.task.TrackingCompassRunnable
 import com.dumbdogdiner.stickysurvival.util.broadcastMessage
 import com.dumbdogdiner.stickysurvival.util.broadcastSound
 import com.dumbdogdiner.stickysurvival.util.freeze
-<<<<<<< HEAD
 import com.dumbdogdiner.stickysurvival.util.info
-=======
 import com.dumbdogdiner.stickysurvival.util.loadPreGameHotbar
->>>>>>> master
 import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.radiusForBounds
 import com.dumbdogdiner.stickysurvival.util.reset
@@ -373,64 +370,6 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
         StickySurvival.economy?.depositPlayer(winner, settings.reward)
         winner.sendMessage(messages.chat.reward.safeFormat(if (settings.reward == settings.reward.roundToLong().toDouble()) settings.reward.toLong() else settings.reward))
     }
-
-    fun removeSomeChests(chunk: Chunk) {
-        val ratio = config.chestRatio
-        if (ratio >= 1.0) return // don't run this method if we aren't going to remove chests
-        val chests = chunk.tileEntities.filter { it.type == Material.CHEST || it.type in settings.bonusContainers }
-        if (chests.isEmpty()) return // ignore chunks with no chests
-        val chunkKey = chunk.chunkKey
-        if (visitedChunks.add(chunkKey)) {
-            val cornucopia = config.cornucopia
-            for (chest in chests) {
-                if (cornucopia == null || chest.location !in cornucopia) {
-                    if (Random.nextDouble() >= ratio) {
-                        // sometimes a double chest will be split in half, but i can't figure out why...
-                        // maybe chunk load order?
-                        if (chest is Chest && chest.inventory is DoubleChestInventory) {
-                            val leftSide = (chest.inventory as DoubleChestInventory).leftSide.location
-                            val rightSide = (chest.inventory as DoubleChestInventory).rightSide.location
-                            if (leftSide != null && rightSide != null) {
-                                // the side here is arbitrary, but if we didn't check for a specific side, double chests
-                                // would have twice the chances of being removed
-                                if (rightSide == (chest as BlockState).location) {
-                                    chunk.world.getBlockAt(leftSide).type = Material.AIR
-                                    chunk.world.getBlockAt(rightSide).type = Material.AIR
-                                }
-                            }
-                        } else {
-                            chunk.world.getBlockAt(chest.location).type = Material.AIR
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    fun getOrCreateRandomChestInventoryAt(location: Location) = randomChests[location] ?: run {
-        val inv = Bukkit.createInventory(null, InventoryType.CHEST)
-        settings.randomChestLoot.insertItems(inv)
-        randomChests[location] = inv
-        // ensure the chunk is loaded so the block can drop, unset force load when it does
-        world.getChunkAt(location).isForceLoaded = true
-        inv
-    }
-
-    fun destroyRandomChestInventory(inv: Inventory) {
-        val location = randomChests.inverse()[inv] ?: return
-
-        world.getBlockAt(location).type = Material.AIR
-        for (slot in inv) {
-            if (slot != null) {
-                world.dropItemNaturally(location, slot)
-            }
-        }
-        world.playSound(location, Sound.ENTITY_GENERIC_EXPLODE, 0.5f, 1.0f)
-        world.spawnParticle(Particle.EXPLOSION_NORMAL, location, 10)
-        randomChests -= location
-    }
-
-    fun inventoryIsRandomChest(inv: Inventory) = randomChests.containsValue(inv)
 
     fun playerIsTribute(player: Player) = player in tributes
 

@@ -64,7 +64,6 @@ object GameEventsListener : Listener {
     // Code in this listener should be kept pretty minimal. The Game class should do most of the work.
     // ...and yes, i am aware that some of this code is not too minimal. i'm working on it.
 
-
     // PlayerInteractEvent can fire lots of times when it should fire just once, so keep track of when players click to
     // ignore multiple events on the same tick
     private val clickTimes = WeakHashMap<Player, Int>()
