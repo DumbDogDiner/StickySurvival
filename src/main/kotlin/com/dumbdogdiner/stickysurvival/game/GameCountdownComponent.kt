@@ -25,6 +25,7 @@ import com.dumbdogdiner.stickysurvival.event.StopCountdownEvent
 import com.dumbdogdiner.stickysurvival.event.TributeWinEvent
 import com.dumbdogdiner.stickysurvival.task.TimerRunnable
 import com.dumbdogdiner.stickysurvival.util.broadcastMessage
+import com.dumbdogdiner.stickysurvival.util.game
 import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.settings
@@ -35,31 +36,39 @@ class GameCountdownComponent(game: Game) : GameComponent(game) {
 
     @EventHandler
     fun onStartCountdown(event: StartCountdownEvent) {
-        // start the timer
-        task.maybeRunTaskTimer(1, 1)
+        if (event.game == game) {
+            // start the timer
+            task.maybeRunTaskTimer(1, 1)
 
-        // broadcast the message
-        game.world.broadcastMessage(messages.chat.countdown.safeFormat(settings.countdown))
+            // broadcast the message
+            game.world.broadcastMessage(messages.chat.countdown.safeFormat(settings.countdown))
+        }
     }
 
     @EventHandler
     fun onStopCountdown(event: StopCountdownEvent) {
-        // cancel the timer
-        task.safelyCancel()
+        if (event.game == game) {
+            // cancel the timer
+            task.safelyCancel()
 
-        // broadcast a message
-        game.world.broadcastMessage(messages.chat.countdownCancelled)
+            // broadcast a message
+            game.world.broadcastMessage(messages.chat.countdownCancelled)
+        }
     }
 
     @EventHandler
     fun onTributeWin(event: TributeWinEvent) {
-        // cancel the timer
-        task.safelyCancel()
+        if (event.player?.world?.game == game) {
+            // cancel the timer
+            task.safelyCancel()
+        }
     }
 
     @EventHandler
     fun onGameClose(event: GameCloseEvent) {
-        // cancel the timer
-        task.safelyCancel()
+        if (event.game == game) {
+            // cancel the timer
+            task.safelyCancel()
+        }
     }
 }

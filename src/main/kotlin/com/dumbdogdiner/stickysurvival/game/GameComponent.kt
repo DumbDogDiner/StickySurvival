@@ -35,6 +35,8 @@ abstract class GameComponent(val game: Game) : Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     fun unregister(event: GameCloseEvent) {
-        unregisterListener(this)
+        if (event.game == game) {
+            unregisterListener(this)
+        }
     }
 }
