@@ -83,18 +83,13 @@ class Game(val world: World, val config: WorldConfig) {
     private val tributes = mutableSetOf<Player>()
     private val participants = mutableSetOf<Player>()
 
+    val countdownComponent = GameCountdownComponent(this)
     val spawnPointComponent = GameSpawnPointComponent(this)
 
     // for debugging, trying to figure out why sometimes games end with zero players
     private val tributeLog = mutableListOf<String>()
 
     // specific values that require updating one or both displays
-
-    var countdown = -1
-        set(value) {
-            field = value
-            BossBarNeedsUpdatingEvent(this).callSafe()
-        }
 
     var winner = null as Player?
         private set(value) {
@@ -132,7 +127,6 @@ class Game(val world: World, val config: WorldConfig) {
         // game ends.
         GameBossBarComponent(this)
         GameCarePackageComponent(this)
-        GameCountdownComponent(this)
         GameChestComponent(this)
         GameChestRemovalComponent(this)
         GameTrackingCompassComponent(this)
@@ -140,7 +134,6 @@ class Game(val world: World, val config: WorldConfig) {
 
     fun enableDamage() {
         noDamage = false
-        countdown = config.time
 
         for (tribute in tributes) {
             tribute.isInvulnerable = false
@@ -186,8 +179,8 @@ class Game(val world: World, val config: WorldConfig) {
         setKit(player, settings.kits.random())
         player.loadPreGameHotbar()
 
-        if (tributes.size >= config.minPlayers && countdown == -1) {
-            beginStartCountdown()
+        if (tributes.size >= config.minPlayers && countdownComponent.countdown == -1) {
+            StartCountdownEvent(this).callSafe()
         }
 
         BossBarNeedsUpdatingEvent(this).callSafe()
@@ -195,23 +188,15 @@ class Game(val world: World, val config: WorldConfig) {
         return true
     }
 
-    private fun beginStartCountdown() {
-        countdown = settings.countdown
-        playCountdownClick()
-        StartCountdownEvent(this).callSafe()
-    }
-
     fun playCountdownClick() {
         world.broadcastSound(Sound.BLOCK_NOTE_BLOCK_HAT, 1F, 1F)
     }
 
     fun forceStartGame() {
-        beginStartCountdown()
+        StartCountdownEvent(this).callSafe()
     }
 
     fun startGame() {
-        countdown = noDamageTime
-
         for (tribute in tributes) {
             participants += tribute
             tribute.reset(GameMode.SURVIVAL)
@@ -242,7 +227,6 @@ class Game(val world: World, val config: WorldConfig) {
         world.broadcastMessage(messages.chat.leave.safeFormat(player.name))
 
         if (phase == Phase.WAITING && tributes.size < config.minPlayers) {
-            countdown = -1
             StopCountdownEvent(this).callSafe()
         }
 

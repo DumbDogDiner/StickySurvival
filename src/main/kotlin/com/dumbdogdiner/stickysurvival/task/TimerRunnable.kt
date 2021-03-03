@@ -28,11 +28,12 @@ import org.bukkit.Sound
 
 class TimerRunnable(val game: Game) : SafeRunnable() {
     override fun run() {
-        game.countdown -= 1
+        game.countdownComponent.countdown -= 1
+        val countdown = game.countdownComponent.countdown
 
         when (game.phase) {
             Game.Phase.WAITING -> {
-                when (game.countdown) {
+                when (countdown) {
                     3 -> game.world.broadcastSound(Sound.ENTITY_ARROW_HIT_PLAYER, 1F, 0.7F)
                     2 -> game.world.broadcastSound(Sound.ENTITY_ARROW_HIT_PLAYER, 1F, 0.8F)
                     1 -> game.world.broadcastSound(Sound.ENTITY_ARROW_HIT_PLAYER, 1F, 0.9F)
@@ -45,12 +46,12 @@ class TimerRunnable(val game: Game) : SafeRunnable() {
             }
 
             Game.Phase.ACTIVE -> {
-                if (game.countdown == game.config.borderStart) {
+                if (countdown == game.config.borderStart) {
                     val shrinkTime = game.config.borderStart - game.config.borderEnd
                     game.world.worldBorder.setSize(game.config.borderFinalSize, shrinkTime.toLong())
                     game.world.broadcastMessage(messages.chat.border.safeFormat(shrinkTime))
                 }
-                if (game.countdown == 0) {
+                if (countdown == 0) {
                     if (game.noDamage) {
                         game.enableDamage()
                     } else {

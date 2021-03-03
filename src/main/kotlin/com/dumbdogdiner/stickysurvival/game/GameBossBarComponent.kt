@@ -67,13 +67,14 @@ class GameBossBarComponent(game: Game) : GameComponent(game) {
 
     @EventHandler
     fun update(event: BossBarNeedsUpdatingEvent) {
+        val countdown = game.countdownComponent.countdown
         if (event.game == game) {
             when (game.phase) {
                 Game.Phase.WAITING -> {
                     val tributesLeft = game.getTributesLeft()
                     if (tributesLeft >= game.config.minPlayers) {
-                        title = messages.bossBar.countdown.safeFormat(game.countdown)
-                        progress = divideClamp(game.countdown, settings.countdown)
+                        title = messages.bossBar.countdown.safeFormat(countdown)
+                        progress = divideClamp(countdown, settings.countdown)
                         color = BarColor.YELLOW
                     } else {
                         title = messages.bossBar.waiting.safeFormat(game.config.minPlayers - tributesLeft)
@@ -83,12 +84,12 @@ class GameBossBarComponent(game: Game) : GameComponent(game) {
                 }
                 Game.Phase.ACTIVE -> {
                     if (game.noDamage) {
-                        title = messages.bossBar.noDamage.safeFormat(game.countdown)
-                        progress = divideClamp(game.countdown, game.noDamageTime)
+                        title = messages.bossBar.noDamage.safeFormat(countdown)
+                        progress = divideClamp(countdown, game.noDamageTime)
                         color = BarColor.PURPLE
                     } else {
-                        title = messages.bossBar.active.safeFormat(game.countdown / 60, game.countdown % 60)
-                        progress = divideClamp(game.countdown, game.config.time)
+                        title = messages.bossBar.active.safeFormat(countdown / 60, countdown % 60)
+                        progress = divideClamp(countdown, game.config.time)
                         color = BarColor.GREEN
                     }
                 }
