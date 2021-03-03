@@ -24,7 +24,7 @@ import org.bukkit.Location
 import org.bukkit.entity.Player
 import java.util.WeakHashMap
 
-class GameSpawnPointComponent(val game: Game) {
+class GameSpawnPointComponent(game: Game) : GameComponent(game) {
     private val free = game.config.spawnPoints.map {
         it.apply {
             world = game.world

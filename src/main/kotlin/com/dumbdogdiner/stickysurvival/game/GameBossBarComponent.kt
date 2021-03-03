@@ -19,21 +19,18 @@
 package com.dumbdogdiner.stickysurvival.game
 
 import com.dumbdogdiner.stickysurvival.Game
-import com.dumbdogdiner.stickysurvival.StickySurvival
 import com.dumbdogdiner.stickysurvival.event.BossBarNeedsUpdatingEvent
 import com.dumbdogdiner.stickysurvival.event.GameCloseEvent
 import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.settings
-import com.dumbdogdiner.stickysurvival.util.unregisterListener
 import org.bukkit.Bukkit
 import org.bukkit.boss.BarColor
 import org.bukkit.boss.BarStyle
 import org.bukkit.event.EventHandler
-import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerChangedWorldEvent
 
-class GameBossBarComponent(val game: Game) : Listener {
+class GameBossBarComponent(game: Game) : GameComponent(game) {
     private val bossBar = Bukkit.createBossBar(null, BarColor.WHITE, BarStyle.SOLID)
 
     private var title
@@ -47,10 +44,6 @@ class GameBossBarComponent(val game: Game) : Listener {
     private var color
         get() = bossBar.color
         set(value) { bossBar.color = value }
-
-    init {
-        Bukkit.getPluginManager().registerEvents(this, StickySurvival.instance)
-    }
 
     private fun <T : Number, U : Number> divideClamp(t: T, u: U): Double {
         return (t.toDouble() / u.toDouble()).coerceIn(0.0..1.0)
@@ -69,7 +62,6 @@ class GameBossBarComponent(val game: Game) : Listener {
     fun cleanup(event: GameCloseEvent) {
         if (event.game == game) {
             bossBar.removeAll()
-            unregisterListener(this)
         }
     }
 

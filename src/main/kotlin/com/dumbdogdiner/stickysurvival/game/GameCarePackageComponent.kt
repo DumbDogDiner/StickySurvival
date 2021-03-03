@@ -19,13 +19,11 @@
 package com.dumbdogdiner.stickysurvival.game
 
 import com.dumbdogdiner.stickysurvival.Game
-import com.dumbdogdiner.stickysurvival.StickySurvival
 import com.dumbdogdiner.stickysurvival.event.GameCloseEvent
 import com.dumbdogdiner.stickysurvival.event.GameEnableDamageEvent
 import com.dumbdogdiner.stickysurvival.task.RandomDropRunnable
 import com.dumbdogdiner.stickysurvival.util.game
 import com.dumbdogdiner.stickysurvival.util.settings
-import com.dumbdogdiner.stickysurvival.util.unregisterListener
 import com.google.common.collect.HashBiMap
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -34,19 +32,14 @@ import org.bukkit.Particle
 import org.bukkit.Sound
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
-import org.bukkit.event.Listener
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.Inventory
 
-class GameCarePackageComponent(val game: Game) : Listener {
+class GameCarePackageComponent(game: Game) : GameComponent(game) {
     private val chests = HashBiMap.create<Location, Inventory>()
     private val task = RandomDropRunnable(game)
-
-    init {
-        Bukkit.getPluginManager().registerEvents(this, StickySurvival.instance)
-    }
 
     @EventHandler
     fun startTask(event: GameEnableDamageEvent) {
@@ -59,7 +52,6 @@ class GameCarePackageComponent(val game: Game) : Listener {
     fun stopTask(event: GameCloseEvent) {
         if (event.game == game) {
             task.safelyCancel()
-            unregisterListener(this)
         }
     }
 

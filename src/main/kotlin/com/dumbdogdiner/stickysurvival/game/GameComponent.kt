@@ -21,29 +21,20 @@ package com.dumbdogdiner.stickysurvival.game
 import com.dumbdogdiner.stickysurvival.Game
 import com.dumbdogdiner.stickysurvival.StickySurvival
 import com.dumbdogdiner.stickysurvival.event.GameCloseEvent
-import com.dumbdogdiner.stickysurvival.event.GameStartEvent
-import com.dumbdogdiner.stickysurvival.task.TrackingCompassRunnable
+import com.dumbdogdiner.stickysurvival.util.unregisterListener
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
+import org.bukkit.event.EventPriority
+import org.bukkit.event.Listener
 
-class GameTrackingCompassComponent(game: Game) : GameComponent(game) {
-    private val task = TrackingCompassRunnable(game)
-
+abstract class GameComponent(val game: Game) : Listener {
     init {
+        @Suppress("leakingThis")
         Bukkit.getPluginManager().registerEvents(this, StickySurvival.instance)
     }
 
-    @EventHandler
-    fun startTask(event: GameStartEvent) {
-        if (event.game == game) {
-            task.maybeRunTaskEveryTick()
-        }
-    }
-
-    @EventHandler
-    fun stopTask(event: GameCloseEvent) {
-        if (event.game == game) {
-            task.safelyCancel()
-        }
+    @EventHandler(priority = EventPriority.HIGHEST)
+    fun unregister(event: GameCloseEvent) {
+        unregisterListener(this)
     }
 }

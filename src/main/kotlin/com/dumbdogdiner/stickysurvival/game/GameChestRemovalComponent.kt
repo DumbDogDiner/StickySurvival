@@ -19,25 +19,16 @@
 package com.dumbdogdiner.stickysurvival.game
 
 import com.dumbdogdiner.stickysurvival.Game
-import com.dumbdogdiner.stickysurvival.StickySurvival
-import com.dumbdogdiner.stickysurvival.event.GameCloseEvent
 import com.dumbdogdiner.stickysurvival.util.settings
-import com.dumbdogdiner.stickysurvival.util.unregisterListener
-import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.block.Chest
 import org.bukkit.event.EventHandler
-import org.bukkit.event.Listener
 import org.bukkit.event.world.ChunkLoadEvent
 import org.bukkit.inventory.DoubleChestInventory
 import kotlin.random.Random
 
-class GameChestRemovalComponent(val game: Game) : Listener {
+class GameChestRemovalComponent(game: Game) : GameComponent(game) {
     private val visitedChunks = mutableSetOf<Long>()
-
-    init {
-        Bukkit.getPluginManager().registerEvents(this, StickySurvival.instance)
-    }
 
     @EventHandler
     fun process(event: ChunkLoadEvent) {
@@ -58,10 +49,5 @@ class GameChestRemovalComponent(val game: Game) : Listener {
                     }
             }
         }
-    }
-
-    @EventHandler
-    fun unregister(event: GameCloseEvent) {
-        unregisterListener(this)
     }
 }
