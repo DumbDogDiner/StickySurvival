@@ -32,7 +32,7 @@ repositories {
         url = uri("https://maven.pkg.github.com/DumbDogDiner/StickyAPI/")
     }
 
-    val ghIvy = ivy {
+    val githubReleases = ivy {
         // https://github.com/ervinnnc/VoxelSniper/releases/download/v6.1.2/VoxelSniper-6.1.2.jar
         url = uri("https://github.com/")
         patternLayout { artifact("/[organisation]/[module]/releases/download/[revision]/[classifier].[ext]") }
@@ -40,9 +40,9 @@ repositories {
         metadataSources { artifact() }
     }
 
-    // Only use the Ivy repo for VoxelSniper - speeds up dependency resolution
+    // Only use the GitHub Releases Ivy repo for VoxelSniper - speeds up dependency resolution
     exclusiveContent {
-        forRepositories(ghIvy)
+        forRepositories(githubReleases)
         filter { includeGroup("ervinnnc") }
     }
 }
