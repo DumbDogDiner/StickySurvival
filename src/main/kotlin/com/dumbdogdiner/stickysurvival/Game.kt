@@ -21,9 +21,10 @@ package com.dumbdogdiner.stickysurvival
 import com.destroystokyo.paper.Title
 import com.dumbdogdiner.stickysurvival.config.KitConfig
 import com.dumbdogdiner.stickysurvival.config.WorldConfig
-import com.dumbdogdiner.stickysurvival.event.GameCloseEvent
+import com.dumbdogdiner.stickysurvival.event.BossBarNeedsUpdatingEvent
 import com.dumbdogdiner.stickysurvival.event.GameEnableDamageEvent
 import com.dumbdogdiner.stickysurvival.event.GameStartEvent
+import com.dumbdogdiner.stickysurvival.event.HologramNeedsUpdatingEvent
 import com.dumbdogdiner.stickysurvival.event.TributeAddEvent
 import com.dumbdogdiner.stickysurvival.event.TributeRemoveEvent
 import com.dumbdogdiner.stickysurvival.event.TributeWinEvent
@@ -44,6 +45,7 @@ import com.dumbdogdiner.stickysurvival.task.AutoQuitRunnable
 import com.dumbdogdiner.stickysurvival.task.TimerRunnable
 import com.dumbdogdiner.stickysurvival.util.broadcastMessage
 import com.dumbdogdiner.stickysurvival.util.broadcastSound
+import com.dumbdogdiner.stickysurvival.util.callSafe
 import com.dumbdogdiner.stickysurvival.util.freeze
 import com.dumbdogdiner.stickysurvival.util.info
 import com.dumbdogdiner.stickysurvival.util.loadPreGameHotbar
@@ -64,14 +66,14 @@ import org.bukkit.util.Vector
 import java.util.WeakHashMap
 import kotlin.math.roundToLong
 
-class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologram) {
+class Game(val world: World, val config: WorldConfig) {
     enum class Phase { WAITING, ACTIVE, COMPLETE }
 
     val noDamageTime = config.noDamageTime ?: settings.noDamageTime
 
     // Runnables
-    private val timer = TimerRunnable(this)
-    private val autoQuit = AutoQuitRunnable(this)
+    val timer = TimerRunnable(this)
+    val autoQuit = AutoQuitRunnable(this)
 
     // Player metadata
     private val kills = WeakHashMap<Player, Int>()
@@ -81,11 +83,8 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
     private val participants = mutableSetOf<Player>()
 
     val bossBarComponent = GameBossBarComponent(this)
-    val carePackageComponent = GameCarePackageComponent(this)
     val chestComponent = GameChestComponent(this)
-    val chestRemovalComponent = GameChestRemovalComponent(this)
     val spawnPointComponent = GameSpawnPointComponent(this)
-    val trackingCompassComponent = GameTrackingCompassComponent(this)
 
     // for debugging, trying to figure out why sometimes games end with zero players
     private val tributeLog = mutableListOf<String>()
@@ -95,25 +94,27 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
     var countdown = -1
         set(value) {
             field = value
-            bossBarComponent.update()
+            BossBarNeedsUpdatingEvent(this).callSafe()
         }
 
     var winner = null as Player?
         private set(value) {
             field = value
-            updateDisplays()
+            BossBarNeedsUpdatingEvent(this).callSafe()
+            HologramNeedsUpdatingEvent(this).callSafe()
         }
 
     var phase = Phase.WAITING
         private set(value) {
             field = value
-            updateDisplays()
+            BossBarNeedsUpdatingEvent(this).callSafe()
+            HologramNeedsUpdatingEvent(this).callSafe()
         }
 
     var noDamage = true
         private set(value) {
             field = value
-            bossBarComponent.update()
+            BossBarNeedsUpdatingEvent(this).callSafe()
         }
 
     init {
@@ -126,12 +127,13 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
             zBounds = config.zBounds,
         )
         world.worldBorder.setCenter(config.center.x, config.center.z)
-        bossBarComponent.update()
-    }
+        BossBarNeedsUpdatingEvent(this).callSafe()
 
-    private fun updateDisplays() {
-        hologram.update(this)
-        bossBarComponent.update()
+        // some components we don't need to hold onto, they will register themselves for events and unregister when the
+        // game ends.
+        GameCarePackageComponent(this)
+        GameChestRemovalComponent(this)
+        GameTrackingCompassComponent(this)
     }
 
     fun enableDamage() {
@@ -144,7 +146,7 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
         world.broadcastMessage(messages.chat.damageEnabled)
 
-        Bukkit.getPluginManager().callEvent(GameEnableDamageEvent(this))
+        GameEnableDamageEvent(this).callSafe()
     }
 
     fun addPlayer(player: Player): Boolean {
@@ -173,8 +175,7 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
         }
         tributes += player
 
-        val event = TributeAddEvent(player)
-        Bukkit.getPluginManager().callEvent(event)
+        TributeAddEvent(player).callSafe()
 
         player.freeze()
 
@@ -188,7 +189,8 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
             beginStartCountdown()
         }
 
-        updateDisplays()
+        BossBarNeedsUpdatingEvent(this).callSafe()
+        HologramNeedsUpdatingEvent(this).callSafe()
         return true
     }
 
@@ -223,14 +225,13 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
         phase = Phase.ACTIVE
 
-        Bukkit.getPluginManager().callEvent(GameStartEvent(this))
+        GameStartEvent(this).callSafe()
     }
 
     fun onPlayerQuit(player: Player) {
         tributes -= player
 
-        val event = TributeRemoveEvent(player)
-        Bukkit.getPluginManager().callEvent(event)
+        TributeRemoveEvent(player).callSafe()
 
         if (phase == Phase.WAITING) {
             spawnPointComponent.takePlayerSpawnPoint(player)
@@ -248,18 +249,12 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
         }
 
         if (world.players.none { it != player }) {
-            close()
+            WorldManager.unloadGame(this)
         } else {
             checkForWinner()
-            updateDisplays()
+            BossBarNeedsUpdatingEvent(this).callSafe()
+            HologramNeedsUpdatingEvent(this).callSafe()
         }
-    }
-
-    private fun close() {
-        Bukkit.getPluginManager().callEvent(GameCloseEvent(this))
-        timer.safelyCancel()
-        autoQuit.safelyCancel()
-        WorldManager.unloadGame(this)
     }
 
     fun onPlayerDeath(player: Player) {
@@ -270,8 +265,7 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
         tributes -= player
 
-        val event = TributeRemoveEvent(player)
-        Bukkit.getPluginManager().callEvent(event)
+        TributeRemoveEvent(player).callSafe()
 
         logTributes()
 
@@ -286,7 +280,8 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
         player.sendTitle(Title(messages.title.death, killerMessage))
         world.broadcastMessage(messages.chat.death.safeFormat(player.name))
         world.broadcastSound(Vector(0, 20, 0), Sound.ENTITY_GENERIC_EXPLODE, 4F, 0.75F)
-        updateDisplays()
+        BossBarNeedsUpdatingEvent(this).callSafe()
+        HologramNeedsUpdatingEvent(this).callSafe()
 
         checkForWinner()
     }
@@ -358,8 +353,7 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
         if (winner0 != null) {
             info("(debug.jcx): winner found! let's run an event to reward them...")
-            val event = TributeWinRewardEvent(winner0, this)
-            Bukkit.getPluginManager().callEvent(event)
+            TributeWinRewardEvent(winner0, this).callSafe()
         }
 
         phase = Phase.COMPLETE

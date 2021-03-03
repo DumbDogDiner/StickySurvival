@@ -19,30 +19,49 @@
 package com.dumbdogdiner.stickysurvival.game
 
 import com.dumbdogdiner.stickysurvival.Game
+import com.dumbdogdiner.stickysurvival.StickySurvival
+import com.dumbdogdiner.stickysurvival.event.GameCloseEvent
 import com.dumbdogdiner.stickysurvival.util.settings
-import org.bukkit.Chunk
+import com.dumbdogdiner.stickysurvival.util.unregisterListener
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.block.Chest
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import org.bukkit.event.world.ChunkLoadEvent
 import org.bukkit.inventory.DoubleChestInventory
 import kotlin.random.Random
 
-class GameChestRemovalComponent(val game: Game) {
+class GameChestRemovalComponent(val game: Game) : Listener {
     private val visitedChunks = mutableSetOf<Long>()
 
-    fun process(chunk: Chunk) {
-        val ratio = game.config.chestRatio
-        if (ratio >= 1.0) return // don't run this method if we aren't going to remove chests
-        val chests = chunk.tileEntities.filter { it.type == Material.CHEST || it.type in settings.bonusContainers }
-        if (chests.isEmpty()) return // ignore chunks with no chests
-        if (visitedChunks.add(chunk.chunkKey)) {
-            val cornucopia = game.config.cornucopia
-            chests.asSequence()
-                .filterNot { it is Chest && it.inventory is DoubleChestInventory } // ignore double chests
-                .filter { cornucopia?.contains(it.location) != true } // ignore chests in cornucopia
-                .forEach {
-                    // randomly remove
-                    if (Random.nextDouble() >= ratio) chunk.world.getBlockAt(it.location).type = Material.AIR
-                }
+    init {
+        Bukkit.getPluginManager().registerEvents(this, StickySurvival.instance)
+    }
+
+    @EventHandler
+    fun process(event: ChunkLoadEvent) {
+        if (event.world == game.world) {
+            val chunk = event.chunk
+            val ratio = game.config.chestRatio
+            if (ratio >= 1.0) return // don't run this method if we aren't going to remove chests
+            val chests = chunk.tileEntities.filter { it.type == Material.CHEST || it.type in settings.bonusContainers }
+            if (chests.isEmpty()) return // ignore chunks with no chests
+            if (visitedChunks.add(chunk.chunkKey)) {
+                val cornucopia = game.config.cornucopia
+                chests.asSequence()
+                    .filterNot { it is Chest && it.inventory is DoubleChestInventory } // ignore double chests
+                    .filter { cornucopia?.contains(it.location) != true } // ignore chests in cornucopia
+                    .forEach {
+                        // randomly remove
+                        if (Random.nextDouble() >= ratio) chunk.world.getBlockAt(it.location).type = Material.AIR
+                    }
+            }
         }
+    }
+
+    @EventHandler
+    fun unregister(event: GameCloseEvent) {
+        unregisterListener(this)
     }
 }

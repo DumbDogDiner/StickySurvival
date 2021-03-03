@@ -46,7 +46,6 @@ import org.bukkit.event.entity.FoodLevelChangeEvent
 import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.entity.PotionSplashEvent
 import org.bukkit.event.inventory.InventoryClickEvent
-import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.player.AsyncPlayerChatEvent
@@ -57,7 +56,6 @@ import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.event.player.PlayerToggleFlightEvent
-import org.bukkit.event.world.ChunkLoadEvent
 import java.util.WeakHashMap
 
 object GameEventsListener : Listener {
@@ -204,29 +202,11 @@ object GameEventsListener : Listener {
             event.isCancelled = true
         } else {
             val location = event.inventory.location ?: return
-            when (world.getBlockAt(location).type) {
-                Material.ENDER_CHEST -> {
-                    event.isCancelled = true
-                    event.player.openInventory(game.carePackageComponent[location])
-                }
-                Material.CHEST, in settings.bonusContainers -> {
-                    game.chestComponent.onChestOpen(location)
-                }
-                else -> Unit
+            val type = world.getBlockAt(location).type
+            if (type == Material.CHEST || type in settings.bonusContainers) {
+                game.chestComponent.onChestOpen(location)
             }
         }
-    }
-
-    @EventHandler
-    fun onInventoryClose(event: InventoryCloseEvent) {
-        val world = event.player.world
-        val game = world.game ?: return
-
-        if (event.inventory in game.carePackageComponent && event.inventory.viewers.none { it != event.player }) {
-            game.carePackageComponent -= event.inventory
-        }
-
-        event.inventory.location?.let { game.chestComponent.onChestClose(it) }
     }
 
     @EventHandler
@@ -333,11 +313,6 @@ object GameEventsListener : Listener {
         if (event.player.world.game?.playerIsTribute(event.player) == false) {
             event.isCancelled = true
         }
-    }
-
-    @EventHandler
-    fun onChunkLoad(event: ChunkLoadEvent) {
-        event.world.game?.chestRemovalComponent?.process(event.chunk)
     }
 
     @EventHandler

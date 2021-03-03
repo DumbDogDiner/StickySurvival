@@ -23,6 +23,7 @@ import com.dumbdogdiner.stickysurvival.StickySurvival
 import com.dumbdogdiner.stickysurvival.event.GameCloseEvent
 import com.dumbdogdiner.stickysurvival.event.GameEnableDamageEvent
 import com.dumbdogdiner.stickysurvival.task.RandomDropRunnable
+import com.dumbdogdiner.stickysurvival.util.game
 import com.dumbdogdiner.stickysurvival.util.settings
 import com.dumbdogdiner.stickysurvival.util.unregisterListener
 import com.google.common.collect.HashBiMap
@@ -31,8 +32,11 @@ import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.Particle
 import org.bukkit.Sound
+import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.inventory.InventoryCloseEvent
+import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.Inventory
 
@@ -59,44 +63,48 @@ class GameCarePackageComponent(val game: Game) : Listener {
         }
     }
 
-    /**
-     * Get or create a random chest inventory at the given location.
-     * @param location Where to consider this inventory
-     * @return A new or existing inventory, remembered to be at the given location
-     */
-    operator fun get(location: Location): Inventory {
-        return chests[location] ?: run {
-            val inv = Bukkit.createInventory(null, InventoryType.CHEST)
-            settings.randomChestLoot.insertItems(inv)
-            chests[location] = inv
-            inv
+    @EventHandler
+    fun onInventoryOpen(event: InventoryOpenEvent) {
+        val player = event.player as Player
+        // if event is for this game
+        if (player.world == game.world) {
+            // if game is not in waiting phase and the player is a tribute
+            if (game.phase != Game.Phase.WAITING && game.playerIsTribute(player)) {
+                // if the block is an ender chest
+                val location = event.inventory.location ?: return
+                if (game.world.getBlockAt(location).type == Material.ENDER_CHEST) {
+                    // open new or existing care package inventory
+                    event.isCancelled = true
+                    if (location !in chests) {
+                        val inv = Bukkit.createInventory(null, InventoryType.CHEST)
+                        settings.randomChestLoot.insertItems(inv)
+                        chests[location] = inv
+                    }
+                    event.player.openInventory(chests[location]!!)
+                }
+            }
         }
     }
 
-    /**
-     * Remove an inventory.
-     * @param inv The inventory to remove
-     */
-    operator fun minusAssign(inv: Inventory) {
-        // Get location or return
-        val location = chests.inverse()[inv] ?: return
-        // Remove from map
-        chests -= location
-        // Delete block
-        game.world.getBlockAt(location).type = Material.AIR
-        // drop items
-        inv.filterNotNull().forEach {
-            game.world.dropItemNaturally(location, it)
+    @EventHandler
+    fun onInventoryClose(event: InventoryCloseEvent) {
+        if (event.player.world == game.world) {
+            val inv = event.inventory
+            if (chests.containsValue(inv) && inv.viewers.none { it != event.player }) {
+                // Get location or return
+                val location = chests.inverse()[inv] ?: return
+                // Remove from map
+                chests -= location
+                // Delete block
+                game.world.getBlockAt(location).type = Material.AIR
+                // drop items
+                inv.filterNotNull().forEach {
+                    game.world.dropItemNaturally(location, it)
+                }
+                // kaboom!
+                game.world.playSound(location, Sound.ENTITY_GENERIC_EXPLODE, 0.5f, 1.0f)
+                game.world.spawnParticle(Particle.EXPLOSION_NORMAL, location, 10)
+            }
         }
-        // kaboom!
-        game.world.playSound(location, Sound.ENTITY_GENERIC_EXPLODE, 0.5f, 1.0f)
-        game.world.spawnParticle(Particle.EXPLOSION_NORMAL, location, 10)
     }
-
-    /**
-     * Check if this component contains a given inventory
-     * @param inv The inventory to search for
-     * @return True if this component contains the given inventory
-     */
-    operator fun contains(inv: Inventory) = chests.containsValue(inv)
 }

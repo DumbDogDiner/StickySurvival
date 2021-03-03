@@ -18,21 +18,28 @@
 
 package com.dumbdogdiner.stickysurvival
 
+import com.dumbdogdiner.stickysurvival.event.GameCloseEvent
+import com.dumbdogdiner.stickysurvival.event.HologramNeedsUpdatingEvent
 import com.dumbdogdiner.stickysurvival.manager.WorldManager
+import com.dumbdogdiner.stickysurvival.util.info
 import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.safeFormat
+import com.dumbdogdiner.stickysurvival.util.unregisterListener
 import com.dumbdogdiner.stickysurvival.util.worlds
+import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.ArmorStand
 import org.bukkit.entity.Entity
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Item
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.scheduler.BukkitRunnable
 import org.bukkit.util.Vector
 
-class LobbyHologram(val worldName: String) {
+class LobbyHologram(val worldName: String) : Listener {
     companion object {
         // use this key to identify and remove broken holograms, should the plugin fail to remove them
         val hologramKey = NamespacedKey(StickySurvival.instance, "hologram")
@@ -82,6 +89,21 @@ class LobbyHologram(val worldName: String) {
 
         armorStand1.customName = config.friendlyName
         update(null)
+        Bukkit.getPluginManager().registerEvents(this, StickySurvival.instance)
+    }
+
+    @EventHandler
+    fun onNeedsUpdate(event: HologramNeedsUpdatingEvent) {
+        if (event.game.config == config) {
+            update(event.game)
+        }
+    }
+
+    @EventHandler
+    fun onGameClose(event: GameCloseEvent) {
+        if (event.game.config == config) {
+            update(null)
+        }
     }
 
     fun cleanup() {
@@ -92,9 +114,11 @@ class LobbyHologram(val worldName: String) {
         floatingSword.ticksLived = Int.MAX_VALUE
         floatingSword.remove()
         keepItemTask.cancel()
+        unregisterListener(this)
     }
 
-    fun update(game: Game?) {
+    private fun update(game: Game?) {
+        info("Updating for ${game?.world?.name}")
         val areChunksForceLoaded = BooleanArray(armorStands.size)
         for ((i, armorStand) in armorStands.withIndex()) {
             areChunksForceLoaded[i] = armorStand.chunk.isForceLoaded

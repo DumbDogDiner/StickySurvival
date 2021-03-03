@@ -32,6 +32,7 @@ import org.bukkit.Location
 import org.bukkit.block.Container
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.inventory.DoubleChestInventory
 
 class GameChestComponent(val game: Game) : Listener {
@@ -49,8 +50,13 @@ class GameChestComponent(val game: Game) : Listener {
         maybeFill(location)
     }
 
-    fun onChestClose(location: Location) {
-        currentlyOpenChests -= location
+    @EventHandler
+    fun onChestClose(event: InventoryCloseEvent) {
+        if (event.player.world == game.world) {
+            event.inventory.location?.let {
+                currentlyOpenChests -= it
+            }
+        }
     }
 
     private fun maybeFill(location: Location) {

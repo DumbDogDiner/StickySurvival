@@ -29,6 +29,7 @@ import org.bukkit.DyeColor
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.enchantments.Enchantment
+import org.bukkit.event.Event
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.inventory.meta.PotionMeta
@@ -185,4 +186,15 @@ fun radiusForBounds(
     val z2 = (centerZ - zBounds.endInclusive).absoluteValue
     val z = max(z1, z2)
     return max(x, z)
+}
+
+fun Event.callSafe() {
+    val threadIsSync = Thread.holdsLock(this)
+    if (isAsynchronous && threadIsSync) {
+        spawn { callEvent() }
+    } else if (!isAsynchronous && !threadIsSync) {
+        schedule { callEvent() }
+    } else {
+        callEvent()
+    }
 }
