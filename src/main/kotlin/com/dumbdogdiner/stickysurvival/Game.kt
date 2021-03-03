@@ -82,8 +82,6 @@ class Game(val world: World, val config: WorldConfig) {
     private val tributes = mutableSetOf<Player>()
     private val participants = mutableSetOf<Player>()
 
-    val bossBarComponent = GameBossBarComponent(this)
-    val chestComponent = GameChestComponent(this)
     val spawnPointComponent = GameSpawnPointComponent(this)
 
     // for debugging, trying to figure out why sometimes games end with zero players
@@ -131,7 +129,9 @@ class Game(val world: World, val config: WorldConfig) {
 
         // some components we don't need to hold onto, they will register themselves for events and unregister when the
         // game ends.
+        GameBossBarComponent(this)
         GameCarePackageComponent(this)
+        GameChestComponent(this)
         GameChestRemovalComponent(this)
         GameTrackingCompassComponent(this)
     }
@@ -179,7 +179,6 @@ class Game(val world: World, val config: WorldConfig) {
 
         player.freeze()
 
-        bossBarComponent += player
         world.broadcastMessage(messages.chat.join.safeFormat(player.name))
 
         setKit(player, settings.kits.random())
@@ -239,7 +238,6 @@ class Game(val world: World, val config: WorldConfig) {
             logTributes()
         }
 
-        bossBarComponent -= player
         world.broadcastMessage(messages.chat.leave.safeFormat(player.name))
 
         if (phase == Phase.WAITING && tributes.size < config.minPlayers) {

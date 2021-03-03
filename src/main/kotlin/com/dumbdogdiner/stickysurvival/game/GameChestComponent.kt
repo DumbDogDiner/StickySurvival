@@ -24,30 +24,44 @@ import com.dumbdogdiner.stickysurvival.event.GameCloseEvent
 import com.dumbdogdiner.stickysurvival.event.GameEnableDamageEvent
 import com.dumbdogdiner.stickysurvival.task.ChestRefillRunnable
 import com.dumbdogdiner.stickysurvival.util.broadcastMessage
+import com.dumbdogdiner.stickysurvival.util.game
 import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.settings
 import com.dumbdogdiner.stickysurvival.util.unregisterListener
 import org.bukkit.Bukkit
 import org.bukkit.Location
+import org.bukkit.Material
 import org.bukkit.block.Container
+import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.inventory.InventoryCloseEvent
+import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.inventory.DoubleChestInventory
 
 class GameChestComponent(val game: Game) : Listener {
     var refillCount = 1
     private val filledChests = mutableMapOf<Location, Int>()
     private val currentlyOpenChests = mutableSetOf<Location>()
-    private val chestRefill = ChestRefillRunnable(game)
+    private val chestRefill = ChestRefillRunnable(this)
 
     init {
         Bukkit.getPluginManager().registerEvents(this, StickySurvival.instance)
     }
 
-    fun onChestOpen(location: Location) {
-        currentlyOpenChests += location
-        maybeFill(location)
+    @EventHandler
+    fun onInventoryOpen(event: InventoryOpenEvent) {
+        val player = event.player as Player
+        if (player.world.game == game) {
+            if (game.phase != Game.Phase.WAITING && game.playerIsTribute(player)) {
+                val location = event.inventory.location ?: return
+                val type = game.world.getBlockAt(location).type
+                if (type == Material.CHEST || type in settings.bonusContainers) {
+                    currentlyOpenChests += location
+                    maybeFill(location)
+                }
+            }
+        }
     }
 
     @EventHandler
@@ -87,7 +101,7 @@ class GameChestComponent(val game: Game) : Listener {
         }
     }
 
-    fun onChestRefill() {
+    fun refill() {
         refillCount += 1
         currentlyOpenChests.forEach { maybeFill(it) }
         game.world.broadcastMessage(messages.chat.refill)

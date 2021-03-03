@@ -200,12 +200,6 @@ object GameEventsListener : Listener {
 
             // don't let players open chests before the game starts and don't let spectators open chests
             event.isCancelled = true
-        } else {
-            val location = event.inventory.location ?: return
-            val type = world.getBlockAt(location).type
-            if (type == Material.CHEST || type in settings.bonusContainers) {
-                game.chestComponent.onChestOpen(location)
-            }
         }
     }
 

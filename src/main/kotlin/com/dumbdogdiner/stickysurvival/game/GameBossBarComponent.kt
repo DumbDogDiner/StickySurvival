@@ -29,9 +29,9 @@ import com.dumbdogdiner.stickysurvival.util.unregisterListener
 import org.bukkit.Bukkit
 import org.bukkit.boss.BarColor
 import org.bukkit.boss.BarStyle
-import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.player.PlayerChangedWorldEvent
 
 class GameBossBarComponent(val game: Game) : Listener {
     private val bossBar = Bukkit.createBossBar(null, BarColor.WHITE, BarStyle.SOLID)
@@ -52,11 +52,17 @@ class GameBossBarComponent(val game: Game) : Listener {
         Bukkit.getPluginManager().registerEvents(this, StickySurvival.instance)
     }
 
-    operator fun plusAssign(player: Player) = bossBar.addPlayer(player)
-    operator fun minusAssign(player: Player) = bossBar.removePlayer(player)
-
     private fun <T : Number, U : Number> divideClamp(t: T, u: U): Double {
         return (t.toDouble() / u.toDouble()).coerceIn(0.0..1.0)
+    }
+
+    @EventHandler
+    fun onPlayerChangedWorld(event: PlayerChangedWorldEvent) {
+        if (event.player.world == game.world) {
+            bossBar.addPlayer(event.player)
+        } else if (event.from == game.world) {
+            bossBar.removePlayer(event.player)
+        }
     }
 
     @EventHandler

@@ -26,7 +26,7 @@ import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.warn
 import org.bukkit.Sound
 
-class TimerRunnable(game: Game) : GameRunnable(game) {
+class TimerRunnable(val game: Game) : SafeRunnable() {
     override fun run() {
         game.countdown -= 1
 

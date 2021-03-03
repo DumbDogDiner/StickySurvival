@@ -18,10 +18,10 @@
 
 package com.dumbdogdiner.stickysurvival.task
 
-import com.dumbdogdiner.stickysurvival.Game
+import com.dumbdogdiner.stickysurvival.game.GameChestComponent
 
-class ChestRefillRunnable(game: Game) : GameRunnable(game) {
+class ChestRefillRunnable(val component: GameChestComponent) : SafeRunnable() {
     override fun run() {
-        game.chestComponent.onChestRefill()
+        component.refill()
     }
 }

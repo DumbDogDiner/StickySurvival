@@ -28,7 +28,7 @@ import org.bukkit.Location
 import org.bukkit.Material
 import kotlin.math.roundToInt
 
-class RandomDropRunnable(game: Game) : GameRunnable(game) {
+class RandomDropRunnable(val game: Game) : SafeRunnable() {
     override fun run() {
         val x = game.config.xBounds.random().roundToInt()
         val y = game.config.yBounds.endInclusive

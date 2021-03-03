@@ -24,7 +24,7 @@ import com.dumbdogdiner.stickysurvival.util.settings
 import org.bukkit.Material
 import kotlin.math.roundToInt
 
-class TrackingCompassRunnable(game: Game) : GameRunnable(game) {
+class TrackingCompassRunnable(val game: Game) : SafeRunnable() {
     override fun run() {
         val currentTributes = game.world.players.filter { game.playerIsTribute(it) }
         for (player in currentTributes) {
