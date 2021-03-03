@@ -193,7 +193,11 @@ fun Event.callSafe() {
     if (isAsynchronous && threadIsSync) {
         spawn { callEvent() }
     } else if (!isAsynchronous && !threadIsSync) {
-        schedule { callEvent() }
+        if (StickySurvival.instance.isEnabled) {
+            schedule { callEvent() }
+        } else {
+            synchronized(this) { callEvent() }
+        }
     } else {
         callEvent()
     }

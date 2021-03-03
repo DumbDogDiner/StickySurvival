@@ -127,7 +127,6 @@ object WorldManager {
     }
 
     fun unloadGame(game: Game) {
-        game.timer.safelyCancel()
         game.autoQuit.safelyCancel()
         GameCloseEvent(game).callSafe()
         val world = game.world

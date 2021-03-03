@@ -25,6 +25,8 @@ import com.dumbdogdiner.stickysurvival.event.BossBarNeedsUpdatingEvent
 import com.dumbdogdiner.stickysurvival.event.GameEnableDamageEvent
 import com.dumbdogdiner.stickysurvival.event.GameStartEvent
 import com.dumbdogdiner.stickysurvival.event.HologramNeedsUpdatingEvent
+import com.dumbdogdiner.stickysurvival.event.StartCountdownEvent
+import com.dumbdogdiner.stickysurvival.event.StopCountdownEvent
 import com.dumbdogdiner.stickysurvival.event.TributeAddEvent
 import com.dumbdogdiner.stickysurvival.event.TributeRemoveEvent
 import com.dumbdogdiner.stickysurvival.event.TributeWinEvent
@@ -33,6 +35,7 @@ import com.dumbdogdiner.stickysurvival.game.GameBossBarComponent
 import com.dumbdogdiner.stickysurvival.game.GameCarePackageComponent
 import com.dumbdogdiner.stickysurvival.game.GameChestComponent
 import com.dumbdogdiner.stickysurvival.game.GameChestRemovalComponent
+import com.dumbdogdiner.stickysurvival.game.GameCountdownComponent
 import com.dumbdogdiner.stickysurvival.game.GameSpawnPointComponent
 import com.dumbdogdiner.stickysurvival.game.GameTrackingCompassComponent
 import com.dumbdogdiner.stickysurvival.manager.AnimatedScoreboardManager
@@ -42,7 +45,6 @@ import com.dumbdogdiner.stickysurvival.manager.StatsManager
 import com.dumbdogdiner.stickysurvival.manager.WorldManager
 import com.dumbdogdiner.stickysurvival.stats.PlayerStats
 import com.dumbdogdiner.stickysurvival.task.AutoQuitRunnable
-import com.dumbdogdiner.stickysurvival.task.TimerRunnable
 import com.dumbdogdiner.stickysurvival.util.broadcastMessage
 import com.dumbdogdiner.stickysurvival.util.broadcastSound
 import com.dumbdogdiner.stickysurvival.util.callSafe
@@ -72,7 +74,6 @@ class Game(val world: World, val config: WorldConfig) {
     val noDamageTime = config.noDamageTime ?: settings.noDamageTime
 
     // Runnables
-    val timer = TimerRunnable(this)
     val autoQuit = AutoQuitRunnable(this)
 
     // Player metadata
@@ -131,6 +132,7 @@ class Game(val world: World, val config: WorldConfig) {
         // game ends.
         GameBossBarComponent(this)
         GameCarePackageComponent(this)
+        GameCountdownComponent(this)
         GameChestComponent(this)
         GameChestRemovalComponent(this)
         GameTrackingCompassComponent(this)
@@ -195,9 +197,8 @@ class Game(val world: World, val config: WorldConfig) {
 
     private fun beginStartCountdown() {
         countdown = settings.countdown
-        timer.maybeRunTaskTimer(1, 1)
-        world.broadcastMessage(messages.chat.countdown.safeFormat(settings.countdown))
         playCountdownClick()
+        StartCountdownEvent(this).callSafe()
     }
 
     fun playCountdownClick() {
@@ -241,9 +242,8 @@ class Game(val world: World, val config: WorldConfig) {
         world.broadcastMessage(messages.chat.leave.safeFormat(player.name))
 
         if (phase == Phase.WAITING && tributes.size < config.minPlayers) {
-            timer.safelyCancel()
             countdown = -1
-            world.broadcastMessage(messages.chat.countdownCancelled)
+            StopCountdownEvent(this).callSafe()
         }
 
         if (world.players.none { it != player }) {
@@ -324,7 +324,6 @@ class Game(val world: World, val config: WorldConfig) {
 
     private fun finalizeGame() {
         autoQuit.maybeRunTaskLater(settings.resultsTime)
-        timer.safelyCancel()
 
         val winner0 = winner
 
