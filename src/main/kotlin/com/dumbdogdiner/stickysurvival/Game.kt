@@ -23,6 +23,7 @@ import com.dumbdogdiner.stickysurvival.config.KitConfig
 import com.dumbdogdiner.stickysurvival.config.WorldConfig
 import com.dumbdogdiner.stickysurvival.event.GameCloseEvent
 import com.dumbdogdiner.stickysurvival.event.GameEnableDamageEvent
+import com.dumbdogdiner.stickysurvival.event.GameStartEvent
 import com.dumbdogdiner.stickysurvival.event.TributeAddEvent
 import com.dumbdogdiner.stickysurvival.event.TributeRemoveEvent
 import com.dumbdogdiner.stickysurvival.event.TributeWinEvent
@@ -32,6 +33,7 @@ import com.dumbdogdiner.stickysurvival.game.GameCarePackageComponent
 import com.dumbdogdiner.stickysurvival.game.GameChestComponent
 import com.dumbdogdiner.stickysurvival.game.GameChestRemovalComponent
 import com.dumbdogdiner.stickysurvival.game.GameSpawnPointComponent
+import com.dumbdogdiner.stickysurvival.game.GameTrackingCompassComponent
 import com.dumbdogdiner.stickysurvival.manager.AnimatedScoreboardManager
 import com.dumbdogdiner.stickysurvival.manager.HiddenPlayerManager
 import com.dumbdogdiner.stickysurvival.manager.LobbyInventoryManager
@@ -40,7 +42,6 @@ import com.dumbdogdiner.stickysurvival.manager.WorldManager
 import com.dumbdogdiner.stickysurvival.stats.PlayerStats
 import com.dumbdogdiner.stickysurvival.task.AutoQuitRunnable
 import com.dumbdogdiner.stickysurvival.task.TimerRunnable
-import com.dumbdogdiner.stickysurvival.task.TrackingCompassRunnable
 import com.dumbdogdiner.stickysurvival.util.broadcastMessage
 import com.dumbdogdiner.stickysurvival.util.broadcastSound
 import com.dumbdogdiner.stickysurvival.util.freeze
@@ -71,7 +72,6 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
     // Runnables
     private val timer = TimerRunnable(this)
     private val autoQuit = AutoQuitRunnable(this)
-    private val trackingCompass = TrackingCompassRunnable(this)
 
     // Player metadata
     private val kills = WeakHashMap<Player, Int>()
@@ -85,6 +85,7 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
     val chestComponent = GameChestComponent(this)
     val chestRemovalComponent = GameChestRemovalComponent(this)
     val spawnPointComponent = GameSpawnPointComponent(this)
+    val trackingCompassComponent = GameTrackingCompassComponent(this)
 
     // for debugging, trying to figure out why sometimes games end with zero players
     private val tributeLog = mutableListOf<String>()
@@ -218,11 +219,11 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
         world.broadcastMessage(messages.chat.start.safeFormat(noDamageTime))
 
-        trackingCompass.maybeRunTaskEveryTick()
-
         logTributes()
 
         phase = Phase.ACTIVE
+
+        Bukkit.getPluginManager().callEvent(GameStartEvent(this))
     }
 
     fun onPlayerQuit(player: Player) {
@@ -258,7 +259,6 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
         Bukkit.getPluginManager().callEvent(GameCloseEvent(this))
         timer.safelyCancel()
         autoQuit.safelyCancel()
-        trackingCompass.safelyCancel()
         WorldManager.unloadGame(this)
     }
 
