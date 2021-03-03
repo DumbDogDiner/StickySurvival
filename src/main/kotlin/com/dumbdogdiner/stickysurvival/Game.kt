@@ -24,6 +24,10 @@ import com.dumbdogdiner.stickysurvival.config.WorldConfig
 import com.dumbdogdiner.stickysurvival.event.GameCloseEvent
 import com.dumbdogdiner.stickysurvival.event.GameEnableDamageEvent
 import com.dumbdogdiner.stickysurvival.event.GameStartEvent
+import com.dumbdogdiner.stickysurvival.event.TributeAddEvent
+import com.dumbdogdiner.stickysurvival.event.TributeRemoveEvent
+import com.dumbdogdiner.stickysurvival.event.TributeWinEvent
+import com.dumbdogdiner.stickysurvival.event.TributeWinRewardEvent
 import com.dumbdogdiner.stickysurvival.game.GameBossBarComponent
 import com.dumbdogdiner.stickysurvival.game.GameCarePackageComponent
 import com.dumbdogdiner.stickysurvival.game.GameChestComponent
@@ -41,6 +45,7 @@ import com.dumbdogdiner.stickysurvival.task.TimerRunnable
 import com.dumbdogdiner.stickysurvival.util.broadcastMessage
 import com.dumbdogdiner.stickysurvival.util.broadcastSound
 import com.dumbdogdiner.stickysurvival.util.freeze
+import com.dumbdogdiner.stickysurvival.util.info
 import com.dumbdogdiner.stickysurvival.util.loadPreGameHotbar
 import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.radiusForBounds
@@ -167,6 +172,10 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
             return false
         }
         tributes += player
+
+        val event = TributeAddEvent(player)
+        Bukkit.getPluginManager().callEvent(event)
+
         player.freeze()
 
         bossBarComponent += player
@@ -220,6 +229,9 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
     fun onPlayerQuit(player: Player) {
         tributes -= player
 
+        val event = TributeRemoveEvent(player)
+        Bukkit.getPluginManager().callEvent(event)
+
         if (phase == Phase.WAITING) {
             spawnPointComponent.takePlayerSpawnPoint(player)
         } else {
@@ -257,6 +269,10 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
         }
 
         tributes -= player
+
+        val event = TributeRemoveEvent(player)
+        Bukkit.getPluginManager().callEvent(event)
+
         logTributes()
 
         for (item in player.inventory) {
@@ -319,6 +335,17 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
 
         val winner0 = winner
 
+        info("(debug.jcx): finalizeGame() - Found potential winner: ${winner0?.name}")
+        val event = TributeWinEvent(winner0)
+        Bukkit.getPluginManager().callEvent(event)
+
+        if (event.isCancelled) {
+            info("(debug.jcx): event was cancelled! not updating stats or economy.")
+            return
+        }
+
+        info("(debug.jcx): event still running! updating stats and economy...")
+
         for (player in participants) {
             StatsManager[player]?.let {
                 var (uuid, wins, losses, kills) = it
@@ -330,11 +357,18 @@ class Game(val world: World, val config: WorldConfig, val hologram: LobbyHologra
         StatsManager.updateTopStats()
 
         if (winner0 != null) {
-            StickySurvival.economy?.depositPlayer(winner0, settings.reward)
-            winner0.sendMessage(messages.chat.reward.safeFormat(if (settings.reward == settings.reward.roundToLong().toDouble()) settings.reward.toLong() else settings.reward))
+            info("(debug.jcx): winner found! let's run an event to reward them...")
+            val event = TributeWinRewardEvent(winner0, this)
+            Bukkit.getPluginManager().callEvent(event)
         }
 
         phase = Phase.COMPLETE
+    }
+
+    fun giveDefaultWinReward(winner: Player) {
+        info("(debug.jcx): triggered default reward event!")
+        StickySurvival.economy?.depositPlayer(winner, settings.reward)
+        winner.sendMessage(messages.chat.reward.safeFormat(if (settings.reward == settings.reward.roundToLong().toDouble()) settings.reward.toLong() else settings.reward))
     }
 
     fun playerIsTribute(player: Player) = player in tributes

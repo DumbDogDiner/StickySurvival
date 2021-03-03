@@ -21,6 +21,7 @@ package com.dumbdogdiner.stickysurvival.listener
 import com.destroystokyo.paper.event.player.PlayerAdvancementCriterionGrantEvent
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent
 import com.dumbdogdiner.stickysurvival.Game
+import com.dumbdogdiner.stickysurvival.event.TributeWinRewardEvent
 import com.dumbdogdiner.stickysurvival.gui.KitGUI
 import com.dumbdogdiner.stickysurvival.util.game
 import com.dumbdogdiner.stickysurvival.util.goToLobby
@@ -66,6 +67,14 @@ object GameEventsListener : Listener {
     // PlayerInteractEvent can fire lots of times when it should fire just once, so keep track of when players click to
     // ignore multiple events on the same tick
     private val clickTimes = WeakHashMap<Player, Int>()
+
+    // Run later (2nd last), just before MONITOR
+    // This way other plugins can listen for this event
+    // and cancel it so the default logic doesn't run
+    @EventHandler(priority = EventPriority.HIGHEST)
+    fun onTributeWinReward(event: TributeWinRewardEvent) {
+        event.game.giveDefaultWinReward(event.player)
+    }
 
     @EventHandler
     fun onBlockBreak(event: BlockBreakEvent) {
