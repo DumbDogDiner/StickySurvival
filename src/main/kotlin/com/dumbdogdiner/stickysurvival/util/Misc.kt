@@ -188,17 +188,26 @@ fun radiusForBounds(
     return max(x, z)
 }
 
+/**
+ * An extension to allow an event to be called without an exception, regardless of the context.
+ */
 fun Event.callSafe() {
+    // if this is true, we are running synchronously
     val threadIsSync = Thread.holdsLock(this)
     if (isAsynchronous && threadIsSync) {
+        // if this event is async and this context is not, spawn an async process and call this event there.
         spawn { callEvent() }
     } else if (!isAsynchronous && !threadIsSync) {
+        // if this context is async and this thread is not...
         if (StickySurvival.instance.isEnabled) {
+            // if the plugin is enabled, schedule a synchronous task.
             schedule { callEvent() }
         } else {
+            // if it's not (event called during onDisable), block until its completion
             synchronized(this) { callEvent() }
         }
     } else {
+        // thread sync matches event sync, just go ahead
         callEvent()
     }
 }
