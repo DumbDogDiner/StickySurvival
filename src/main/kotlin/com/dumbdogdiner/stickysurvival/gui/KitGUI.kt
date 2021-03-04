@@ -26,6 +26,7 @@ import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.settings
 import com.dumbdogdiner.stickysurvival.util.substituteAmpersand
+import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryOpenEvent
 import kotlin.math.ceil
@@ -46,7 +47,7 @@ class KitGUI : GUI(
             // if no custom name set, set the name to the kit's name
             if (!item.itemMeta.hasDisplayName()) {
                 item.itemMeta = item.itemMeta.also {
-                    it.setDisplayName(kit.name.substituteAmpersand())
+                    it.displayName(Component.text(kit.name.substituteAmpersand()))
                 }
             }
             // add slot to the GUI

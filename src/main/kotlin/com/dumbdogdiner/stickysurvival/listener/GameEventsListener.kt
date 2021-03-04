@@ -26,6 +26,7 @@ import com.dumbdogdiner.stickysurvival.gui.KitGUI
 import com.dumbdogdiner.stickysurvival.util.game
 import com.dumbdogdiner.stickysurvival.util.goToLobby
 import com.dumbdogdiner.stickysurvival.util.settings
+import io.papermc.paper.event.player.AsyncChatEvent
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.entity.EntityType
@@ -48,7 +49,6 @@ import org.bukkit.event.entity.PotionSplashEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.event.inventory.InventoryType
-import org.bukkit.event.player.AsyncPlayerChatEvent
 import org.bukkit.event.player.PlayerChangedWorldEvent
 import org.bukkit.event.player.PlayerDropItemEvent
 import org.bukkit.event.player.PlayerGameModeChangeEvent
@@ -301,7 +301,7 @@ object GameEventsListener : Listener {
     }
 
     @EventHandler
-    fun onAsyncPlayerChat(event: AsyncPlayerChatEvent) {
+    fun onAsyncChat(event: AsyncChatEvent) {
         // to simplify things, currently spectators cannot chat. it's possible to make it so that spectators see only
         // spectator messages, and tributes see only tribute messages, but this should be okay for now
         if (event.player.world.game?.tributesComponent?.contains(event.player) == false) {

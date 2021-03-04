@@ -60,6 +60,12 @@ tasks {
         dependsOn("ktlintFormat")
     }
 
+    compileKotlin {
+        kotlinOptions {
+            jvmTarget = "1.8"
+        }
+    }
+
     build {
         dependsOn("shadowJar")
     }

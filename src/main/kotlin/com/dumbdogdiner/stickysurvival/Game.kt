@@ -18,7 +18,6 @@
 
 package com.dumbdogdiner.stickysurvival
 
-import com.destroystokyo.paper.Title
 import com.dumbdogdiner.stickysurvival.config.WorldConfig
 import com.dumbdogdiner.stickysurvival.event.BossBarNeedsUpdatingEvent
 import com.dumbdogdiner.stickysurvival.event.GameEnableDamageEvent
@@ -50,6 +49,8 @@ import com.dumbdogdiner.stickysurvival.util.radiusForBounds
 import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.settings
 import com.dumbdogdiner.stickysurvival.util.spectate
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.title.Title
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.Sound
@@ -172,7 +173,7 @@ class Game(val world: World, val config: WorldConfig) {
 
         player.spectate()
 
-        player.sendTitle(Title(messages.title.death, killerMessage))
+        player.showTitle(Title.title(Component.text(messages.title.death), Component.text(killerMessage ?: "")))
         world.broadcastSound(Vector(0, 20, 0), Sound.ENTITY_GENERIC_EXPLODE, 4F, 0.75F)
         BossBarNeedsUpdatingEvent(this).callSafe()
         HologramNeedsUpdatingEvent(this).callSafe()

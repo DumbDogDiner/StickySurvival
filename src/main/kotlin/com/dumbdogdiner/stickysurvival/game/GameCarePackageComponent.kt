@@ -22,7 +22,6 @@ import com.dumbdogdiner.stickysurvival.Game
 import com.dumbdogdiner.stickysurvival.event.GameCloseEvent
 import com.dumbdogdiner.stickysurvival.event.GameEnableDamageEvent
 import com.dumbdogdiner.stickysurvival.task.RandomDropRunnable
-import com.dumbdogdiner.stickysurvival.util.game
 import com.dumbdogdiner.stickysurvival.util.settings
 import com.google.common.collect.HashBiMap
 import org.bukkit.Bukkit

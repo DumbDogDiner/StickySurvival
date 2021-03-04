@@ -20,6 +20,7 @@ package com.dumbdogdiner.stickysurvival.util
 
 import com.dumbdogdiner.stickysurvival.manager.HiddenPlayerManager
 import com.dumbdogdiner.stickysurvival.manager.LobbyInventoryManager
+import net.kyori.adventure.text.Component
 import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.attribute.Attribute
@@ -136,13 +137,13 @@ fun Player.goToLobby(): Boolean {
 
 private val selectKitItem = ItemStack(Material.BOW).apply {
     itemMeta = itemMeta.apply {
-        setDisplayName(messages.misc.selectKitItem)
+        displayName(Component.text(messages.misc.selectKitItem))
     }
 }
 
 private val quitGameItem = ItemStack(Material.RED_BED).apply {
     itemMeta = itemMeta.apply {
-        setDisplayName(messages.misc.quitGameItem)
+        displayName(Component.text(messages.misc.quitGameItem))
     }
 }
 

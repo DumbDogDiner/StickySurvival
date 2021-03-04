@@ -23,6 +23,7 @@ import com.dumbdogdiner.stickysurvival.manager.WorldManager
 import com.dumbdogdiner.stickysurvival.util.getMaterial
 import com.dumbdogdiner.stickysurvival.util.substituteAmpersand
 import com.dumbdogdiner.stickysurvival.util.warn
+import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
@@ -60,7 +61,7 @@ class Config(
     private val trackingCompass = ItemStack(Material.COMPASS).also { item ->
         item.lore = trackingCompassLore.map { it.substituteAmpersand() }
         item.itemMeta = (item.itemMeta as CompassMeta).also { meta ->
-            meta.setDisplayName(trackingCompassName.substituteAmpersand())
+            meta.displayName(Component.text(trackingCompassName.substituteAmpersand()))
         }
     }
 

@@ -23,6 +23,7 @@ import com.dumbdogdiner.stickysurvival.config.Config
 import com.dumbdogdiner.stickysurvival.config.ConfigHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Color
 import org.bukkit.DyeColor
@@ -56,6 +57,7 @@ fun getMaterial(name: String): Material {
 }
 
 fun getEnchantment(name: String): Enchantment {
+    @Suppress("deprecation")
     return Enchantment.getByName(name)
         ?: maybeKey(name)?.let { Enchantment.getByKey(it) }
         ?: throw IllegalArgumentException("No such enchantment: $name")
@@ -102,7 +104,7 @@ fun itemFromConfig(cfg: ConfigHelper): ItemStack {
         }
     }
     cfg["name"].maybe {
-        itemMeta.setDisplayName(it.asString().substituteAmpersand())
+        itemMeta.displayName(Component.text(it.asString().substituteAmpersand()))
     }
     cfg["effects"].maybe { effects ->
         if (itemMeta is PotionMeta) {

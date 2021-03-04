@@ -21,6 +21,7 @@ package com.dumbdogdiner.stickysurvival.task
 import com.dumbdogdiner.stickysurvival.Game
 import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.settings
+import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import kotlin.math.roundToInt
 
@@ -38,11 +39,13 @@ class TrackingCompassRunnable(val game: Game) : SafeRunnable() {
                     val loc = closestPlayer.location
                     player.compassTarget = loc
                     player.sendActionBar(
-                        settings.trackingCompassMessage.safeFormat(
-                            closestPlayer.name,
-                            loc.x.roundToInt(),
-                            loc.y.roundToInt(),
-                            loc.z.roundToInt(),
+                        Component.text(
+                            settings.trackingCompassMessage.safeFormat(
+                                closestPlayer.name,
+                                loc.x.roundToInt(),
+                                loc.y.roundToInt(),
+                                loc.z.roundToInt(),
+                            )
                         )
                     )
                 }
