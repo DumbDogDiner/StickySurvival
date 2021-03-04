@@ -101,8 +101,10 @@ class GameChestComponent(game: Game) : GameComponent(game) {
 
     @EventHandler
     fun startTask(event: GameEnableDamageEvent) {
-        if (game.config.chestRefill > 0) {
-            chestRefill.maybeRunTaskTimer(game.config.chestRefill, game.config.chestRefill)
+        if (event.game == game) {
+            if (game.config.chestRefill > 0) {
+                chestRefill.maybeRunTaskTimer(game.config.chestRefill, game.config.chestRefill)
+            }
         }
     }
 
