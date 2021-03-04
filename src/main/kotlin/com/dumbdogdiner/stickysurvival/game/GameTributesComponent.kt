@@ -79,10 +79,10 @@ class GameTributesComponent(game: Game) : GameComponent(game) {
             }
             // give a random kit to the player
             kits[player] = settings.kits.random()
-            // give the player the pre-game hotbar
-            player.loadPreGameHotbar()
             // freeze the player
             player.freeze()
+            // give the player the pre-game hotbar
+            player.loadPreGameHotbar()
             // add the player to the list
             tributes += player
             // call the event so components listening for this can react
