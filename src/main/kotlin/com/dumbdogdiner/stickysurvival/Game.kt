@@ -140,7 +140,9 @@ class Game(val world: World, val config: WorldConfig) {
     }
 
     fun onPlayerQuit(player: Player) {
-        TributeRemoveEvent(player, this, TributeRemoveEvent.Cause.QUIT).callSafe()
+        if (player in tributesComponent) {
+            TributeRemoveEvent(player, this, TributeRemoveEvent.Cause.QUIT).callSafe()
+        }
 
         if (phase == Phase.WAITING) {
             spawnPointComponent.takePlayerSpawnPoint(player)
