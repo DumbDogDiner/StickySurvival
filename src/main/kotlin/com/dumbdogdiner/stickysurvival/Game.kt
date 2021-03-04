@@ -133,14 +133,11 @@ class Game(val world: World, val config: WorldConfig) {
     }
 
     fun enableDamage() {
+        // mark that players can take damage
         noDamage = false
-
-        for (tribute in tributes) {
-            tribute.isInvulnerable = false
-        }
-
-        world.broadcastMessage(messages.chat.damageEnabled)
-
+        // make them no longer invulnerable
+        tributes.forEach { it.isInvulnerable = false }
+        // call the event
         GameEnableDamageEvent(this).callSafe()
     }
 
@@ -174,8 +171,6 @@ class Game(val world: World, val config: WorldConfig) {
 
         player.freeze()
 
-        world.broadcastMessage(messages.chat.join.safeFormat(player.name))
-
         setKit(player, settings.kits.random())
         player.loadPreGameHotbar()
 
@@ -204,8 +199,6 @@ class Game(val world: World, val config: WorldConfig) {
             tribute.isInvulnerable = true // no damage until noDamage is false
         }
 
-        world.broadcastMessage(messages.chat.start.safeFormat(noDamageTime))
-
         logTributes()
 
         phase = Phase.ACTIVE
@@ -216,7 +209,7 @@ class Game(val world: World, val config: WorldConfig) {
     fun onPlayerQuit(player: Player) {
         tributes -= player
 
-        TributeRemoveEvent(player).callSafe()
+        TributeRemoveEvent(player, this).callSafe()
 
         if (phase == Phase.WAITING) {
             spawnPointComponent.takePlayerSpawnPoint(player)
@@ -247,7 +240,7 @@ class Game(val world: World, val config: WorldConfig) {
 
         tributes -= player
 
-        TributeRemoveEvent(player).callSafe()
+        TributeRemoveEvent(player, this).callSafe()
 
         logTributes()
 

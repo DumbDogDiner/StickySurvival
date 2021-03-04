@@ -27,11 +27,8 @@ import com.dumbdogdiner.stickysurvival.event.StartCountdownEvent
 import com.dumbdogdiner.stickysurvival.event.StopCountdownEvent
 import com.dumbdogdiner.stickysurvival.event.TributeWinEvent
 import com.dumbdogdiner.stickysurvival.task.TimerRunnable
-import com.dumbdogdiner.stickysurvival.util.broadcastMessage
 import com.dumbdogdiner.stickysurvival.util.callSafe
 import com.dumbdogdiner.stickysurvival.util.game
-import com.dumbdogdiner.stickysurvival.util.messages
-import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.settings
 import org.bukkit.event.EventHandler
 
@@ -55,8 +52,6 @@ class GameCountdownComponent(game: Game) : GameComponent(game) {
             countdown = settings.countdown
             // start the timer
             task.maybeRunTaskTimer(1, 1)
-            // broadcast the message
-            game.world.broadcastMessage(messages.chat.countdown.safeFormat(settings.countdown))
             // play the sound
             game.playCountdownClick()
         }
@@ -83,9 +78,6 @@ class GameCountdownComponent(game: Game) : GameComponent(game) {
         if (event.game == game) {
             // cancel the timer
             stopTimer()
-
-            // broadcast a message
-            game.world.broadcastMessage(messages.chat.countdownCancelled)
         }
     }
 
