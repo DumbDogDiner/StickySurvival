@@ -5,7 +5,8 @@ import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.HandlerList
 
-class TributeRemoveEvent(val player: Player, val game: Game) : Event() {
+class TributeRemoveEvent(val player: Player, val game: Game, val cause: Cause) : Event() {
+    enum class Cause { DEATH, QUIT }
 
     companion object {
         private val HANDLERS = HandlerList()

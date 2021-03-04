@@ -48,7 +48,11 @@ object GameMessageBroadcastListener : Listener {
 
     @EventHandler
     fun onTributeRemove(event: TributeRemoveEvent) {
-        event.game.world.broadcastMessage(messages.chat.leave.safeFormat(event.player.name))
+        val message = when (event.cause) {
+            TributeRemoveEvent.Cause.DEATH -> messages.chat.death
+            TributeRemoveEvent.Cause.QUIT -> messages.chat.leave
+        }
+        event.game.world.broadcastMessage(message.safeFormat(event.player.name))
     }
 
     @EventHandler

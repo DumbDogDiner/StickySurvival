@@ -210,7 +210,7 @@ class Game(val world: World, val config: WorldConfig) {
     fun onPlayerQuit(player: Player) {
         tributes -= player
 
-        TributeRemoveEvent(player, this).callSafe()
+        TributeRemoveEvent(player, this, TributeRemoveEvent.Cause.QUIT).callSafe()
 
         if (phase == Phase.WAITING) {
             spawnPointComponent.takePlayerSpawnPoint(player)
@@ -239,7 +239,7 @@ class Game(val world: World, val config: WorldConfig) {
 
         tributes -= player
 
-        TributeRemoveEvent(player, this).callSafe()
+        TributeRemoveEvent(player, this, TributeRemoveEvent.Cause.DEATH).callSafe()
 
         logTributes()
 
@@ -252,7 +252,6 @@ class Game(val world: World, val config: WorldConfig) {
         player.spectate()
 
         player.sendTitle(Title(messages.title.death, killerMessage))
-        world.broadcastMessage(messages.chat.death.safeFormat(player.name))
         world.broadcastSound(Vector(0, 20, 0), Sound.ENTITY_GENERIC_EXPLODE, 4F, 0.75F)
         BossBarNeedsUpdatingEvent(this).callSafe()
         HologramNeedsUpdatingEvent(this).callSafe()
