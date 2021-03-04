@@ -86,7 +86,7 @@ object WorldManager {
             val game = getGameForWorldNamed(worldName)
                 ?: throw IllegalStateException("Player ${player.name} could not be put in $worldName")
             var result = null as Boolean?
-            schedule { result = game.addPlayer(player) }
+            schedule { result = game.tributesComponent.addTribute(player) }
             if (waitFor { result }) {
                 lastJoinTimes[player] = System.currentTimeMillis()
             } else {

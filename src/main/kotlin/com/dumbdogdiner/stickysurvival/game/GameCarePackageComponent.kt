@@ -61,7 +61,7 @@ class GameCarePackageComponent(game: Game) : GameComponent(game) {
         // if event is for this game
         if (player.world == game.world) {
             // if game is not in waiting phase and the player is a tribute
-            if (game.phase != Game.Phase.WAITING && game.playerIsTribute(player)) {
+            if (game.phase != Game.Phase.WAITING && player in game.tributesComponent) {
                 // if the block is an ender chest
                 val location = event.inventory.location ?: return
                 if (game.world.getBlockAt(location).type == Material.ENDER_CHEST) {

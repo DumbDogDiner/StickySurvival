@@ -125,7 +125,7 @@ class LobbyHologram(val worldName: String) : Listener {
             armorStand.chunk.isForceLoaded = true
         }
         if (game != null) {
-            val tributesLeft = game.getTributesLeft()
+            val tributesLeft = game.tributesComponent.size
             val spaceLeft = game.spawnPointComponent.getSpaceLeft()
             val minPlayers = game.config.minPlayers
             armorStand2.customName = when (game.phase) {

@@ -26,7 +26,7 @@ import kotlin.math.roundToInt
 
 class TrackingCompassRunnable(val game: Game) : SafeRunnable() {
     override fun run() {
-        val currentTributes = game.world.players.filter { game.playerIsTribute(it) }
+        val currentTributes = game.world.players.filter { it in game.tributesComponent }
         for (player in currentTributes) {
             val closestPlayer = currentTributes.asSequence().filter {
                 it != player // find all players that are not this player

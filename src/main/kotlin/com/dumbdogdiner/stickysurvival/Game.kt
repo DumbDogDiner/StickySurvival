@@ -19,18 +19,16 @@
 package com.dumbdogdiner.stickysurvival
 
 import com.destroystokyo.paper.Title
-import com.dumbdogdiner.stickysurvival.config.KitConfig
 import com.dumbdogdiner.stickysurvival.config.WorldConfig
 import com.dumbdogdiner.stickysurvival.event.BossBarNeedsUpdatingEvent
 import com.dumbdogdiner.stickysurvival.event.GameEnableDamageEvent
 import com.dumbdogdiner.stickysurvival.event.GameStartEvent
 import com.dumbdogdiner.stickysurvival.event.HologramNeedsUpdatingEvent
 import com.dumbdogdiner.stickysurvival.event.StartCountdownEvent
-import com.dumbdogdiner.stickysurvival.event.StopCountdownEvent
-import com.dumbdogdiner.stickysurvival.event.TributeAddEvent
 import com.dumbdogdiner.stickysurvival.event.TributeRemoveEvent
 import com.dumbdogdiner.stickysurvival.event.TributeWinEvent
 import com.dumbdogdiner.stickysurvival.event.TributeWinRewardEvent
+import com.dumbdogdiner.stickysurvival.event.UpdateStatsEvent
 import com.dumbdogdiner.stickysurvival.game.GameBossBarComponent
 import com.dumbdogdiner.stickysurvival.game.GameCarePackageComponent
 import com.dumbdogdiner.stickysurvival.game.GameChestComponent
@@ -38,28 +36,22 @@ import com.dumbdogdiner.stickysurvival.game.GameChestRemovalComponent
 import com.dumbdogdiner.stickysurvival.game.GameCountdownComponent
 import com.dumbdogdiner.stickysurvival.game.GameSpawnPointComponent
 import com.dumbdogdiner.stickysurvival.game.GameTrackingCompassComponent
+import com.dumbdogdiner.stickysurvival.game.GameTributesComponent
 import com.dumbdogdiner.stickysurvival.manager.AnimatedScoreboardManager
-import com.dumbdogdiner.stickysurvival.manager.HiddenPlayerManager
-import com.dumbdogdiner.stickysurvival.manager.LobbyInventoryManager
 import com.dumbdogdiner.stickysurvival.manager.StatsManager
 import com.dumbdogdiner.stickysurvival.manager.WorldManager
-import com.dumbdogdiner.stickysurvival.stats.PlayerStats
 import com.dumbdogdiner.stickysurvival.task.AutoQuitRunnable
 import com.dumbdogdiner.stickysurvival.util.broadcastMessage
 import com.dumbdogdiner.stickysurvival.util.broadcastSound
 import com.dumbdogdiner.stickysurvival.util.callSafe
-import com.dumbdogdiner.stickysurvival.util.freeze
 import com.dumbdogdiner.stickysurvival.util.info
-import com.dumbdogdiner.stickysurvival.util.loadPreGameHotbar
 import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.radiusForBounds
-import com.dumbdogdiner.stickysurvival.util.reset
 import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.settings
 import com.dumbdogdiner.stickysurvival.util.spectate
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
-import org.bukkit.GameMode
 import org.bukkit.Sound
 import org.bukkit.World
 import org.bukkit.enchantments.Enchantment
@@ -78,16 +70,10 @@ class Game(val world: World, val config: WorldConfig) {
 
     // Player metadata
     private val kills = WeakHashMap<Player, Int>()
-    private val kits = WeakHashMap<Player, KitConfig>()
-
-    private val tributes = mutableSetOf<Player>()
-    private val participants = mutableSetOf<Player>()
 
     val countdownComponent = GameCountdownComponent(this)
     val spawnPointComponent = GameSpawnPointComponent(this)
-
-    // for debugging, trying to figure out why sometimes games end with zero players
-    private val tributeLog = mutableListOf<String>()
+    val tributesComponent = GameTributesComponent(this)
 
     // specific values that require updating one or both displays
 
@@ -136,52 +122,8 @@ class Game(val world: World, val config: WorldConfig) {
     fun enableDamage() {
         // mark that players can take damage
         noDamage = false
-        // make them no longer invulnerable
-        tributes.forEach { it.isInvulnerable = false }
         // call the event
         GameEnableDamageEvent(this).callSafe()
-    }
-
-    fun addPlayer(player: Player): Boolean {
-        if (!player.hasPermission("stickysurvival.join")) {
-            return false // not allowed to join
-        }
-
-        if (phase != Phase.WAITING) {
-            LobbyInventoryManager.saveInventory(player)
-            player.spectate()
-            return if (!player.teleport(tributes.random().location)) {
-                player.reset()
-                HiddenPlayerManager.remove(player)
-                LobbyInventoryManager.restoreInventory(player)
-                false
-            } else {
-                true
-            }
-        }
-
-        LobbyInventoryManager.saveInventory(player)
-        player.inventory.clear()
-        if (!spawnPointComponent.givePlayerSpawnPoint(player)) {
-            LobbyInventoryManager.restoreInventory(player)
-            return false
-        }
-        tributes += player
-
-        TributeAddEvent(player).callSafe()
-
-        player.freeze()
-
-        setKit(player, settings.kits.random())
-        player.loadPreGameHotbar()
-
-        if (tributes.size >= config.minPlayers && countdownComponent.countdown == -1) {
-            StartCountdownEvent(this).callSafe()
-        }
-
-        BossBarNeedsUpdatingEvent(this).callSafe()
-        HologramNeedsUpdatingEvent(this).callSafe()
-        return true
     }
 
     fun playCountdownClick() {
@@ -193,39 +135,20 @@ class Game(val world: World, val config: WorldConfig) {
     }
 
     fun startGame() {
-        for (tribute in tributes) {
-            participants += tribute
-            tribute.reset(GameMode.SURVIVAL)
-            kits[tribute]?.giveTo(tribute)
-            tribute.isInvulnerable = true // no damage until noDamage is false
-        }
-
-        logTributes()
-
         phase = Phase.ACTIVE
-
         GameStartEvent(this).callSafe()
     }
 
     fun onPlayerQuit(player: Player) {
-        tributes -= player
-
         TributeRemoveEvent(player, this, TributeRemoveEvent.Cause.QUIT).callSafe()
 
         if (phase == Phase.WAITING) {
             spawnPointComponent.takePlayerSpawnPoint(player)
-        } else {
-            logTributes()
-        }
-
-        if (phase == Phase.WAITING && tributes.size < config.minPlayers) {
-            StopCountdownEvent(this).callSafe()
         }
 
         if (world.players.none { it != player }) {
             WorldManager.unloadGame(this)
         } else {
-            checkForWinner()
             BossBarNeedsUpdatingEvent(this).callSafe()
             HologramNeedsUpdatingEvent(this).callSafe()
         }
@@ -237,11 +160,7 @@ class Game(val world: World, val config: WorldConfig) {
             messages.title.killer.safeFormat(it.name)
         }
 
-        tributes -= player
-
         TributeRemoveEvent(player, this, TributeRemoveEvent.Cause.DEATH).callSafe()
-
-        logTributes()
 
         for (item in player.inventory) {
             if (item != null && !item.containsEnchantment(Enchantment.VANISHING_CURSE)) {
@@ -255,29 +174,22 @@ class Game(val world: World, val config: WorldConfig) {
         world.broadcastSound(Vector(0, 20, 0), Sound.ENTITY_GENERIC_EXPLODE, 4F, 0.75F)
         BossBarNeedsUpdatingEvent(this).callSafe()
         HologramNeedsUpdatingEvent(this).callSafe()
-
-        checkForWinner()
     }
 
     fun checkForWinner() {
         if (phase != Phase.ACTIVE) return
 
-        when (getTributesLeft()) {
-            1 -> {
-                winner = tributes.first().also { lastTribute ->
-                    world.broadcastMessage(messages.chat.winner.safeFormat(lastTribute.name))
-                }
-            }
-            0 -> {
+        val w = tributesComponent.winner()
+
+        when {
+            tributesComponent.size == 0 -> {
                 world.broadcastMessage("${ChatColor.RED}Zero players are left. This shouldn't happen. Tell the devs about this!")
-                world.broadcastMessage("${ChatColor.RED}Maybe this debug information will help:")
-                for (log in tributeLog) {
-                    world.broadcastMessage(log)
-                }
             }
-            else -> {
-                return
+            w != null -> {
+                world.broadcastMessage(messages.chat.winner.safeFormat(w.name))
+                winner = w
             }
+            else -> return
         }
 
         finalizeGame()
@@ -311,16 +223,9 @@ class Game(val world: World, val config: WorldConfig) {
             return
         }
 
-        info("(debug.jcx): event still running! updating stats and economy...")
+        UpdateStatsEvent(this).callSafe()
 
-        for (player in participants) {
-            StatsManager[player]?.let {
-                var (uuid, wins, losses, kills) = it
-                kills += killsFor(player)
-                if (player == winner0) wins += 1 else losses += 1
-                StatsManager[player] = PlayerStats(uuid, wins, losses, kills)
-            }
-        }
+        info("(debug.jcx): event still running! updating stats and economy...")
         StatsManager.updateTopStats()
 
         if (winner0 != null) {
@@ -337,21 +242,9 @@ class Game(val world: World, val config: WorldConfig) {
         winner.sendMessage(messages.chat.reward.safeFormat(if (settings.reward == settings.reward.roundToLong().toDouble()) settings.reward.toLong() else settings.reward))
     }
 
-    fun playerIsTribute(player: Player) = player in tributes
-
-    fun getTributesLeft() = tributes.size
-
-    fun setKit(player: Player, kit: KitConfig) {
-        kits[player] = kit
-    }
-
     fun killsFor(player: Player) = kills[player] ?: 0
 
     private fun awardKillTo(player: Player) {
         kills[player] = killsFor(player) + 1
-    }
-
-    private fun logTributes() {
-        tributeLog += "${tributes.joinToString()} at ${Bukkit.getServer().currentTick}"
     }
 }

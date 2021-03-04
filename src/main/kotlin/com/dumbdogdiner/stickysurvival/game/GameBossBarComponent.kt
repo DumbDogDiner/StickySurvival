@@ -71,7 +71,7 @@ class GameBossBarComponent(game: Game) : GameComponent(game) {
         if (event.game == game) {
             when (game.phase) {
                 Game.Phase.WAITING -> {
-                    val tributesLeft = game.getTributesLeft()
+                    val tributesLeft = game.tributesComponent.size
                     if (tributesLeft >= game.config.minPlayers) {
                         title = messages.bossBar.countdown.safeFormat(countdown)
                         progress = divideClamp(countdown, settings.countdown)

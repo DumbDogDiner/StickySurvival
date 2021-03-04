@@ -77,7 +77,7 @@ object GameEventsListener : Listener {
     @EventHandler
     fun onBlockBreak(event: BlockBreakEvent) {
         val game = event.block.world.game ?: return
-        if (!game.playerIsTribute(event.player)) {
+        if (event.player !in game.tributesComponent) {
             event.isCancelled = true // spectators may not break blocks
             return
         }
@@ -115,7 +115,7 @@ object GameEventsListener : Listener {
     fun onPotionSplash(event: PotionSplashEvent) {
         val game = event.potion.world.game ?: return
         for (entity in event.affectedEntities) {
-            if (entity is Player && !game.playerIsTribute(entity)) {
+            if (entity is Player && entity !in game.tributesComponent) {
                 event.setIntensity(entity, 0.0) // spectators may not receive splash potion effects
             }
         }
@@ -124,7 +124,7 @@ object GameEventsListener : Listener {
     @EventHandler
     fun onEntityDamageByEntity(event: EntityDamageByEntityEvent) {
         val game = event.entity.world.game ?: return
-        if (event.damager.type == EntityType.PLAYER && !game.playerIsTribute(event.damager as Player)) {
+        if (event.damager.type == EntityType.PLAYER && event.damager as Player !in game.tributesComponent) {
             event.isCancelled = true // spectators may not damage entities
         }
     }
@@ -140,7 +140,7 @@ object GameEventsListener : Listener {
     @EventHandler
     fun onPlayerInteractEntity(event: PlayerInteractEntityEvent) {
         val game = event.player.world.game ?: return
-        if (event.player.type == EntityType.PLAYER && !game.playerIsTribute(event.player)) {
+        if (event.player.type == EntityType.PLAYER && event.player !in game.tributesComponent) {
             event.isCancelled = true // spectators may not interact with entities
             return
         }
@@ -155,7 +155,7 @@ object GameEventsListener : Listener {
         val entity = event.entity
         if (entity is Player) {
             val game = entity.world.game ?: return
-            if (!game.playerIsTribute(entity)) {
+            if (entity !in game.tributesComponent) {
                 event.isCancelled = true
             }
         }
@@ -194,7 +194,7 @@ object GameEventsListener : Listener {
         val world = event.player.world
         val game = world.game ?: return
 
-        if (game.phase == Game.Phase.WAITING || !game.playerIsTribute(event.player as Player)) {
+        if (game.phase == Game.Phase.WAITING || event.player as Player !in game.tributesComponent) {
             // probably a gui, don't mess with it
             if (event.inventory.holder == null) return
 
@@ -264,13 +264,13 @@ object GameEventsListener : Listener {
     fun onPlayerInteract(event: PlayerInteractEvent) {
         val player = event.player
         val game = player.world.game ?: return
-        if (!game.playerIsTribute(event.player)) {
+        if (player !in game.tributesComponent) {
             event.isCancelled = true // spectators may not interact
         }
         // if a GUI is already open, do not handle GUI stuff here
         if (player.openInventory.type == InventoryType.CHEST) return
         val hasClickableHotbarItems =
-            !game.playerIsTribute(player) || // is a spectator, has spectator hotbar
+            player !in game.tributesComponent || // is a spectator, has spectator hotbar
                 game.phase == Game.Phase.WAITING // game has not yet started, has pre-game hotbar
         if (hasClickableHotbarItems) {
             // multiple events might fire at the same time, remember when the last event fired in order to catch the
@@ -304,7 +304,7 @@ object GameEventsListener : Listener {
     fun onAsyncPlayerChat(event: AsyncPlayerChatEvent) {
         // to simplify things, currently spectators cannot chat. it's possible to make it so that spectators see only
         // spectator messages, and tributes see only tribute messages, but this should be okay for now
-        if (event.player.world.game?.playerIsTribute(event.player) == false) {
+        if (event.player.world.game?.tributesComponent?.contains(event.player) == false) {
             event.isCancelled = true
         }
     }
@@ -312,7 +312,7 @@ object GameEventsListener : Listener {
     @EventHandler
     fun onPlayerToggleFlight(event: PlayerToggleFlightEvent) {
         val game = event.player.world.game ?: return
-        if (game.playerIsTribute(event.player)) {
+        if (event.player in game.tributesComponent) {
             event.isCancelled = true // players are not allowed to fly
             event.player.allowFlight = false // disable double-space to fly
             event.player.isFlying = false // stop the player flying
@@ -323,7 +323,7 @@ object GameEventsListener : Listener {
     @EventHandler
     fun onPlayerGameModeChange(event: PlayerGameModeChangeEvent) {
         val game = event.player.world.game ?: return
-        if (game.playerIsTribute(event.player)) {
+        if (event.player in game.tributesComponent) {
             event.isCancelled = true
             return
         }

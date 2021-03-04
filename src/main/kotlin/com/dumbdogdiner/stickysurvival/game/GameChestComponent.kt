@@ -45,7 +45,7 @@ class GameChestComponent(game: Game) : GameComponent(game) {
     fun onInventoryOpen(event: InventoryOpenEvent) {
         val player = event.player as Player
         if (player.world.game == game) {
-            if (game.phase != Game.Phase.WAITING && game.playerIsTribute(player)) {
+            if (game.phase != Game.Phase.WAITING && player in game.tributesComponent) {
                 val location = event.inventory.location ?: return
                 val type = game.world.getBlockAt(location).type
                 if (type == Material.CHEST || type in settings.bonusContainers) {

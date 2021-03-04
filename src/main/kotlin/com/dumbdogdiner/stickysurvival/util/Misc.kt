@@ -198,7 +198,7 @@ fun Event.callSafe() {
         // if this event is async and this context is not, spawn an async process and call this event there.
         spawn { callEvent() }
     } else if (!isAsynchronous && !threadIsSync) {
-        // if this context is async and this thread is not...
+        // if this context is async and this event is not...
         if (StickySurvival.instance.isEnabled) {
             // if the plugin is enabled, schedule a synchronous task.
             schedule { callEvent() }

@@ -50,7 +50,7 @@ object StickySurvivalExpansion : PlaceholderExpansion() {
                 when (params) {
                     "kills" -> game.killsFor(p).toString()
                     "world" -> game.config.friendlyName
-                    "tributes_left" -> game.getTributesLeft().toString()
+                    "tributes_left" -> game.tributesComponent.size.toString()
                     else -> null
                 }
             }

@@ -56,7 +56,7 @@ class KitGUI : GUI(
                 // get game or return
                 val game = player.world.game ?: return@addSlot
                 // set the kit
-                game.setKit(player, kit)
+                game.tributesComponent.setKit(player, kit)
                 // send a message
                 player.sendMessage(messages.chat.kitSelect.safeFormat(kit.name))
                 // close this GUI

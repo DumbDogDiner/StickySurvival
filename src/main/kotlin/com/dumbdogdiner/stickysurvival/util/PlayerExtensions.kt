@@ -114,7 +114,6 @@ fun Player.freeze() {
 fun Player.spectate() {
     HiddenPlayerManager.add(this)
     clearPotionEffects()
-    inventory.clear()
     isCollidable = false
     isInvulnerable = true
     foodLevel = 20
@@ -148,10 +147,12 @@ private val quitGameItem = ItemStack(Material.RED_BED).apply {
 }
 
 fun Player.loadPreGameHotbar() {
+    inventory.clear()
     inventory.setItem(0, selectKitItem)
     inventory.setItem(8, quitGameItem)
 }
 
 fun Player.loadSpectatorHotbar() {
+    inventory.clear()
     inventory.setItem(8, quitGameItem)
 }
