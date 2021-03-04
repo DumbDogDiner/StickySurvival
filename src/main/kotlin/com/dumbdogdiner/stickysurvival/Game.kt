@@ -112,6 +112,15 @@ class Game(val world: World, val config: WorldConfig) {
         }
 
     init {
+
+        // some components we don't need to hold onto, they will register themselves for events and unregister when the
+        // game ends.
+        GameBossBarComponent(this)
+        GameCarePackageComponent(this)
+        GameChestComponent(this)
+        GameChestRemovalComponent(this)
+        GameTrackingCompassComponent(this)
+
         AnimatedScoreboardManager.addWorld(world.name)
         world.isAutoSave = false
         world.worldBorder.size = 2.0 * radiusForBounds(
@@ -122,14 +131,6 @@ class Game(val world: World, val config: WorldConfig) {
         )
         world.worldBorder.setCenter(config.center.x, config.center.z)
         BossBarNeedsUpdatingEvent(this).callSafe()
-
-        // some components we don't need to hold onto, they will register themselves for events and unregister when the
-        // game ends.
-        GameBossBarComponent(this)
-        GameCarePackageComponent(this)
-        GameChestComponent(this)
-        GameChestRemovalComponent(this)
-        GameTrackingCompassComponent(this)
     }
 
     fun enableDamage() {
@@ -216,8 +217,6 @@ class Game(val world: World, val config: WorldConfig) {
         } else {
             logTributes()
         }
-
-        world.broadcastMessage(messages.chat.leave.safeFormat(player.name))
 
         if (phase == Phase.WAITING && tributes.size < config.minPlayers) {
             StopCountdownEvent(this).callSafe()

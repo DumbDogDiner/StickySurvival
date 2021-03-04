@@ -24,7 +24,6 @@ import com.dumbdogdiner.stickysurvival.StickySurvival
 import com.dumbdogdiner.stickysurvival.manager.WorldManager
 import com.dumbdogdiner.stickysurvival.util.game
 import com.dumbdogdiner.stickysurvival.util.goToLobby
-import com.dumbdogdiner.stickysurvival.util.schedule
 import com.dumbdogdiner.stickysurvival.util.spawn
 import com.dumbdogdiner.stickysurvival.util.worlds
 import dev.jorel.commandapi.CommandAPICommand
@@ -71,7 +70,7 @@ private val leaveCommand = CommandAPICommand("leave")
     .withRequirement { inGame(it) }
     .executesPlayer(
         PlayerCommandExecutor { player, _ ->
-            schedule { player.goToLobby() }
+            player.goToLobby()
         }
     )
 
@@ -81,12 +80,10 @@ private val reloadCommand = CommandAPICommand("reload")
         CommandExecutor { sender, _ ->
             spawn {
                 StickySurvival.instance.reloadConfig()
-                schedule {
-                    if (WorldManager.loadFromConfig()) {
-                        sender.sendMessage("The configuration was reloaded successfully.")
-                    } else {
-                        sender.sendMessage("The configuration could not be reloaded. The default configuration is being used as a fallback. See the console for more information.")
-                    }
+                if (WorldManager.loadFromConfig()) {
+                    sender.sendMessage("The configuration was reloaded successfully.")
+                } else {
+                    sender.sendMessage("The configuration could not be reloaded. The default configuration is being used as a fallback. See the console for more information.")
                 }
             }
         }
@@ -98,7 +95,7 @@ private val forceStartCommand = CommandAPICommand("forcestart")
     .withRequirement { (it as Player).world.game!!.phase == Game.Phase.WAITING }
     .executesPlayer(
         PlayerCommandExecutor { player, _ ->
-            schedule { player.world.game!!.forceStartGame() }
+            player.world.game!!.forceStartGame()
         }
     )
 
