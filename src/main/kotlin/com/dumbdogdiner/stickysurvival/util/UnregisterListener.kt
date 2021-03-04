@@ -18,7 +18,6 @@
 
 package com.dumbdogdiner.stickysurvival.util
 
-import com.dumbdogdiner.stickysurvival.StickySurvival
 import org.bukkit.event.EventHandler
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
@@ -29,6 +28,6 @@ fun unregisterListener(listener: Listener) {
         .forEach {
             val eventClass = it.parameters.first().type
             val handlerList = eventClass.getDeclaredMethod("getHandlerList").invoke(null) as HandlerList
-            handlerList.unregister(StickySurvival.instance)
+            handlerList.unregister(listener)
         }
 }
