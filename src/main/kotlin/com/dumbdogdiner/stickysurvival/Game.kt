@@ -47,6 +47,7 @@ import com.dumbdogdiner.stickysurvival.util.info
 import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.radiusForBounds
 import com.dumbdogdiner.stickysurvival.util.safeFormat
+import com.dumbdogdiner.stickysurvival.util.schedule
 import com.dumbdogdiner.stickysurvival.util.settings
 import com.dumbdogdiner.stickysurvival.util.spectate
 import net.kyori.adventure.text.Component
@@ -108,16 +109,18 @@ class Game(val world: World, val config: WorldConfig) {
         GameChestRemovalComponent(this)
         GameTrackingCompassComponent(this)
 
-        AnimatedScoreboardManager.addWorld(world.name)
-        world.isAutoSave = false
-        world.worldBorder.size = 2.0 * radiusForBounds(
-            centerX = config.center.x,
-            centerZ = config.center.z,
-            xBounds = config.xBounds,
-            zBounds = config.zBounds,
-        )
-        world.worldBorder.setCenter(config.center.x, config.center.z)
-        BossBarNeedsUpdatingEvent(this).callSafe()
+        schedule {
+            AnimatedScoreboardManager.addWorld(world.name)
+            world.isAutoSave = false
+            world.worldBorder.size = 2.0 * radiusForBounds(
+                centerX = config.center.x,
+                centerZ = config.center.z,
+                xBounds = config.xBounds,
+                zBounds = config.zBounds,
+            )
+            world.worldBorder.setCenter(config.center.x, config.center.z)
+            BossBarNeedsUpdatingEvent(this).callSafe()
+        }
     }
 
     fun enableDamage() {
