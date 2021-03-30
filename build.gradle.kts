@@ -49,7 +49,8 @@ dependencies {
 
     compileOnly("me.clip:placeholderapi:2.10.9")
 
-    implementation("com.dumbdogdiner:stickyapi:2.1.0")
+    implementation("com.dumbdogdiner:stickyapi-bukkit:3.0.2")
+    implementation("com.dumbdogdiner:stickyapi-common:3.0.2")
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.2")
 
     implementation("dev.jorel", "commandapi-shade", "5.8")
