@@ -19,7 +19,6 @@
 package com.dumbdogdiner.stickysurvival.game
 
 import com.dumbdogdiner.stickysurvival.Game
-import com.dumbdogdiner.stickysurvival.util.warn
 import org.bukkit.Location
 import org.bukkit.entity.Player
 import java.util.WeakHashMap
@@ -51,14 +50,5 @@ class GameSpawnPointComponent(game: Game) : GameComponent(game) {
         free += selected
     }
 
-    fun getSpaceLeft(): Int {
-        val result = game.config.maxPlayers - used.size
-        return if (result < 0) {
-            warn("More players in a game in ${game.config.friendlyName} than allowed!")
-            warn("Maximum: ${game.config.maxPlayers} Present: ${used.size}")
-            0
-        } else {
-            result
-        }
-    }
+    fun getSpaceLeft() = free.size
 }

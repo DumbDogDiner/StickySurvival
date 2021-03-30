@@ -27,7 +27,6 @@ class WorldConfig(
     val friendlyName: String,
     val icon: Material,
     val minPlayers: Int,
-    val maxPlayers: Int,
     val noDamageTime: Int?,
     val chestRefill: Long,
     val time: Int,
@@ -35,7 +34,6 @@ class WorldConfig(
     val xBounds: ClosedFloatingPointRange<Double>,
     val yBounds: ClosedFloatingPointRange<Double>,
     val zBounds: ClosedFloatingPointRange<Double>,
-    val center: Location,
     val borderStart: Int,
     val borderEnd: Int,
     val borderFinalSize: Double,
@@ -47,7 +45,6 @@ class WorldConfig(
         cfg["friendly name"].asStringOr(worldName),
         getMaterial(cfg["icon"].asString()),
         cfg["min players"].asInt(),
-        cfg["max players"].maybe { it.asInt() } ?: cfg["spawn points"].map { it }.size,
         cfg["no damage time"].maybe { it.asInt() },
         cfg["chest refill"].asLongOr(-1),
         cfg["time"].asInt(),
@@ -57,14 +54,6 @@ class WorldConfig(
         cfg["bounds"].let { fixRange(it["min"]["x"].asDouble()..it["max"]["x"].asDouble()) { a, b -> a..b } },
         cfg["bounds"].let { fixRange(it["min"]["y"].asDouble()..it["max"]["y"].asDouble()) { a, b -> a..b } },
         cfg["bounds"].let { fixRange(it["min"]["z"].asDouble()..it["max"]["z"].asDouble()) { a, b -> a..b } },
-        cfg["center"].let {
-            Location(
-                null,
-                it["x"].asDouble(),
-                it["y"].asDouble(),
-                it["z"].asDouble(),
-            )
-        },
         cfg["border"]["starts shrinking"].asInt(),
         cfg["border"]["stops shrinking"].asInt(),
         cfg["border"]["final size"].asDouble(),

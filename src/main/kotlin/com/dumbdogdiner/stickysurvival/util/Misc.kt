@@ -40,7 +40,6 @@ import org.bukkit.scheduler.BukkitTask
 import java.util.Collections
 import java.util.IllegalFormatException
 import java.util.WeakHashMap
-import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.random.Random
 
@@ -176,17 +175,11 @@ fun ClosedFloatingPointRange<Double>.random(): Double {
 }
 
 fun radiusForBounds(
-    centerX: Double,
     xBounds: ClosedFloatingPointRange<Double>,
-    centerZ: Double,
     zBounds: ClosedFloatingPointRange<Double>
 ): Double {
-    val x1 = (centerX - xBounds.start).absoluteValue
-    val x2 = (centerX - xBounds.endInclusive).absoluteValue
-    val x = max(x1, x2)
-    val z1 = (centerZ - zBounds.start).absoluteValue
-    val z2 = (centerZ - zBounds.endInclusive).absoluteValue
-    val z = max(z1, z2)
+    val x = (xBounds.endInclusive - xBounds.start) / 2
+    val z = (zBounds.endInclusive - zBounds.start) / 2
     return max(x, z)
 }
 

@@ -25,8 +25,6 @@ Its structure is as follows:
     The icon for this world. Currently, this is only displayed in the hologram.
 - **min players**:
     The minimum number of players that can play a game in this world.
-- **max players**:
-    The maximum number of players that can play a game in this world.
 - **no damage time** *(optional)*:
     Overrides the default in `config.yml`.
 - **chest refill** *(optional)*:

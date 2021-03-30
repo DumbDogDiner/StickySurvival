@@ -113,12 +113,12 @@ class Game(val world: World, val config: WorldConfig) {
             AnimatedScoreboardManager.addWorld(world.name)
             world.isAutoSave = false
             world.worldBorder.size = 2.0 * radiusForBounds(
-                centerX = config.center.x,
-                centerZ = config.center.z,
                 xBounds = config.xBounds,
                 zBounds = config.zBounds,
             )
-            world.worldBorder.setCenter(config.center.x, config.center.z)
+            val centerX = config.xBounds.let { (it.start + it.endInclusive) / 2 }
+            val centerZ = config.zBounds.let { (it.start + it.endInclusive) / 2 }
+            world.worldBorder.setCenter(centerX, centerZ)
             BossBarNeedsUpdatingEvent(this).callSafe()
         }
     }
