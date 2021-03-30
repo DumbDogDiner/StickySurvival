@@ -28,6 +28,7 @@ import com.dumbdogdiner.stickysurvival.util.settings
 import com.dumbdogdiner.stickysurvival.util.substituteAmpersand
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
+import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 import kotlin.math.ceil
 
@@ -69,7 +70,16 @@ class KitGUI : GUI(
     }
 
     override fun onInventoryOpen(event: InventoryOpenEvent) {
+        val player = event.player as Player
         // sounds are fun!
-        SoundUtil.sendQuiet(event.player as Player)
+        SoundUtil.sendQuiet(player)
+        // Add player to viewer set
+        player.world.game!!.kitGUIViewers += player
+    }
+
+    override fun onInventoryClose(event: InventoryCloseEvent) {
+        val player = event.player as Player
+        // Remove player to viewer set
+        player.world.game!!.kitGUIViewers -= player
     }
 }

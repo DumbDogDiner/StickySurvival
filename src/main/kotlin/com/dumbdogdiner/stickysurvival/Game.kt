@@ -45,6 +45,7 @@ import com.dumbdogdiner.stickysurvival.util.broadcastSound
 import com.dumbdogdiner.stickysurvival.util.callSafe
 import com.dumbdogdiner.stickysurvival.util.info
 import com.dumbdogdiner.stickysurvival.util.messages
+import com.dumbdogdiner.stickysurvival.util.newWeakSet
 import com.dumbdogdiner.stickysurvival.util.radiusForBounds
 import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.schedule
@@ -69,6 +70,9 @@ class Game(val world: World, val config: WorldConfig) {
 
     // Runnables
     val autoQuit = AutoQuitRunnable(this)
+
+    // people viewing the kit GUI - might put this into a component later
+    val kitGUIViewers = newWeakSet<Player>()
 
     // Player metadata
     private val kills = WeakHashMap<Player, Int>()
@@ -140,6 +144,9 @@ class Game(val world: World, val config: WorldConfig) {
 
     fun startGame() {
         phase = Phase.ACTIVE
+        // Close inventory for those viewing the Kit GUI (this needs to be put somewhere else soon)
+        kitGUIViewers.forEach { it.closeInventory() }
+        kitGUIViewers.clear()
         GameStartEvent(this).callSafe()
     }
 
