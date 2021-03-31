@@ -81,6 +81,36 @@ private val borderCommand = CommandAPICommand("border")
     .withSubcommand(borderGetCommand)
     .withSubcommand(borderSetCommand)
 
+/***********************************************************************
+* @author CoffeeFox(Endersky#1404)
+* @since 1.0.0-beta
+*
+* Determines the amount of spawn points, and allows user to
+* set minimum players as long as it's not larger than the
+* amount of spawn points
+*
+***********************************************************************/
+
+private val minPlayerCommand = CommandAPICommand("minplayers")
+    .withPermission("stickysurvival.setup")
+    .withArguments(IntegerArgument("amount"))
+    .executesPlayer(
+        PlayerCommandExecutor { sender, args ->
+            spawn {
+                val minPlayers = args[0] as Int
+                withConfig(sender) { // checks to make sure command is valid
+                    val list = (it.getList("spawn points") ?: listOf()).toMutableList()
+                    if (minPlayers > list.size) {
+                        sender.sendMessage("Minimum players cannot be larger than number of spawn points")
+                    } else {
+                        it.set("min players", minPlayers) // sets min players if everything works
+                        sender.sendMessage("Minimum players updated successfully.")
+                    }
+                }
+            }
+        }
+    )
+
 private val spawnAddCommand = CommandAPICommand("add")
     .withPermission("stickysurvival.setup")
     .executesPlayer(
@@ -149,6 +179,7 @@ val sgSetupCommand = CommandAPICommand("sgsetup")
     .withPermission("stickysurvival.setup")
     .withSubcommand(borderCommand)
     .withSubcommand(spawnCommand)
+    .withSubcommand(minPlayerCommand)
 
 private fun withConfig(player: Player, mutates: Boolean = true, block: (YamlConfiguration) -> Unit): Boolean {
     val name = player.world.name
