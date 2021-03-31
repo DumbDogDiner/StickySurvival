@@ -78,7 +78,7 @@ tasks {
     spigot {
         authors = listOf("spazzylemons")
         softDepends = listOf("AnimatedScoreboard", "PlaceholderAPI", "Vault")
-        depends = listOf()
+        depends = listOf("WorldEdit")
 
         // Construct a new version string including git info
         version = "${project.version}_${versioning.info.display}"
