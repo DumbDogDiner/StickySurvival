@@ -36,6 +36,7 @@ import com.dumbdogdiner.stickysurvival.stats.PlayerStats
 import com.dumbdogdiner.stickysurvival.util.callSafe
 import com.dumbdogdiner.stickysurvival.util.freeze
 import com.dumbdogdiner.stickysurvival.util.loadPreGameHotbar
+import com.dumbdogdiner.stickysurvival.util.loadSpectatorHotbar
 import com.dumbdogdiner.stickysurvival.util.reset
 import com.dumbdogdiner.stickysurvival.util.settings
 import com.dumbdogdiner.stickysurvival.util.spectate
@@ -109,6 +110,8 @@ class GameTributesComponent(game: Game) : GameComponent(game) {
                 HiddenPlayerManager.remove(player)
                 LobbyInventoryManager.restoreInventory(player)
             }
+            // give the player the spectator hotbar
+            player.loadSpectatorHotbar()
             return success
         }
     }
