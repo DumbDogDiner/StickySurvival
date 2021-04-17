@@ -109,9 +109,10 @@ class GameTributesComponent(game: Game) : GameComponent(game) {
                 player.reset()
                 HiddenPlayerManager.remove(player)
                 LobbyInventoryManager.restoreInventory(player)
+            } else {
+                // give the player the spectator hotbar
+                player.loadSpectatorHotbar()
             }
-            // give the player the spectator hotbar
-            player.loadSpectatorHotbar()
             return success
         }
     }
