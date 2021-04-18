@@ -18,7 +18,12 @@
 
 package com.dumbdogdiner.stickysurvival.stats
 
+import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.statements.UpdateBuilder
+import org.jetbrains.exposed.sql.update
 
 object SurvivalGamesStats : Table() {
     val id = uuid("id")
@@ -27,4 +32,9 @@ object SurvivalGamesStats : Table() {
     val kills = integer("kills")
 
     override val primaryKey = PrimaryKey(id)
+
+    fun updateOrInsert(where: SqlExpressionBuilder.() -> Op<Boolean>, action: (UpdateBuilder<*>) -> Unit) {
+        val updateResult = update(where) { action(it) }
+        if (updateResult == 0) insert { action(it) }
+    }
 }

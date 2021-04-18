@@ -37,7 +37,6 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.statements.StatementContext
 import org.jetbrains.exposed.sql.statements.expandArgs
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 import java.util.UUID
 
 object StatsManager {
@@ -74,14 +73,8 @@ object StatsManager {
             val uuid = player.uniqueId
             transaction(db) {
                 addLogger(logger)
-                if (SurvivalGamesStats.select { SurvivalGamesStats.id eq uuid }.empty()) {
-                    SurvivalGamesStats.insert {
-                        stats.putIntoDB { key, value -> it[key] = value }
-                    }
-                } else {
-                    SurvivalGamesStats.update({ SurvivalGamesStats.id eq uuid }) {
-                        stats.putIntoDB { key, value -> it[key] = value }
-                    }
+                SurvivalGamesStats.updateOrInsert({ SurvivalGamesStats.id eq uuid }) {
+                    stats.putIntoDB { key, value -> it[key] = value }
                 }
             }
             cache.update(stats)
