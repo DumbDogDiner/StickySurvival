@@ -25,11 +25,8 @@ import com.dumbdogdiner.stickysurvival.util.info
 import com.dumbdogdiner.stickysurvival.util.schedule
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.Expression
-import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SortOrder
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.plus
 import org.jetbrains.exposed.sql.SqlLogger
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.addLogger
@@ -57,9 +54,6 @@ object StatsManager {
     var db = null as Database?
 
     val topWins = arrayOfNulls<Pair<UUID, Int>>(10)
-    val topLosses = arrayOfNulls<Pair<UUID, Int>>(10)
-    val topKills = arrayOfNulls<Pair<UUID, Int>>(10)
-    val topGames = arrayOfNulls<Pair<UUID, Int>>(10)
 
     private var topStatsNeedUpdating = false
 
@@ -124,22 +118,14 @@ object StatsManager {
         if (db != null) {
             transaction(db) {
                 addLogger(logger)
-                fun loadTopStat(
-                    expr: Expression<Int>,
-                    array: Array<Pair<UUID, Int>?>,
-                    calculator: (ResultRow) -> Int = { it[expr] }
-                ) {
-                    SurvivalGamesStats.selectAll().orderBy(expr, SortOrder.DESC).take(10).withIndex().forEach { (i, v) ->
-                        array[i] = v[SurvivalGamesStats.id] to calculator(v)
+                SurvivalGamesStats
+                    .selectAll()
+                    .orderBy(SurvivalGamesStats.wins, SortOrder.DESC)
+                    .take(10)
+                    .withIndex()
+                    .forEach { (i, v) ->
+                        topWins[i] = v[SurvivalGamesStats.id] to v[SurvivalGamesStats.wins]
                     }
-                }
-
-                loadTopStat(SurvivalGamesStats.wins, topWins)
-                loadTopStat(SurvivalGamesStats.losses, topLosses)
-                loadTopStat(SurvivalGamesStats.kills, topKills)
-                loadTopStat(SurvivalGamesStats.wins + SurvivalGamesStats.losses, topGames) {
-                    it[SurvivalGamesStats.wins] + it[SurvivalGamesStats.losses]
-                }
             }
         }
     }
