@@ -31,9 +31,7 @@ repositories {
         }
         url = uri("https://maven.pkg.github.com/DumbDogDiner/StickyAPI/")
     }
-
     maven("https://raw.githubusercontent.com/JorelAli/CommandAPI/mvn-repo/")
-
 
     val githubReleases = ivy {
         // https://github.com/ervinnnc/VoxelSniper/releases/download/v6.1.2/VoxelSniper-6.1.2.jar
@@ -65,16 +63,11 @@ dependencies {
 
     compileOnly("me.clip:placeholderapi:2.10.9")
 
-<<<<<<< HEAD
-    // VoxelSniper Jar
+    // VoxelSniper Jar (via GitHub releases)
     compileOnly("ervinnnc:VoxelSniper:v6.1.2:VoxelSniper-6.1.2@jar")
 
-    implementation("de.tr7zw:item-nbt-api-plugin:2.7.1")
-    implementation("com.dumbdogdiner:stickyapi:2.1.0")
-=======
     implementation("com.dumbdogdiner:stickyapi-bukkit:3.0.2")
     implementation("com.dumbdogdiner:stickyapi-common:3.0.2")
->>>>>>> origin/master
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.2")
 
     implementation("dev.jorel", "commandapi-shade", "5.8")
@@ -101,13 +94,8 @@ tasks {
 
     spigot {
         authors = listOf("spazzylemons")
-<<<<<<< HEAD
         softDepends = listOf("AnimatedScoreboard", "PlaceholderAPI", "Vault", "VoxelSniper")
-        depends = listOf()
-=======
-        softDepends = listOf("AnimatedScoreboard", "PlaceholderAPI", "Vault")
         depends = listOf("WorldEdit")
->>>>>>> origin/master
 
         // Construct a new version string including git info
         version = "${project.version}_${versioning.info.display}"

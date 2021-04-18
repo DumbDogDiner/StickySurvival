@@ -1,7 +1,7 @@
 package com.dumbdogdiner.stickysurvival.listener
 
-import com.dumbdogdiner.stickysurvival.events.TributeAddEvent
-import com.dumbdogdiner.stickysurvival.events.TributeRemoveEvent
+import com.dumbdogdiner.stickysurvival.event.TributeAddEvent
+import com.dumbdogdiner.stickysurvival.event.TributeRemoveEvent
 import com.thevoxelbox.voxelsniper.VoxelProfileManager
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
