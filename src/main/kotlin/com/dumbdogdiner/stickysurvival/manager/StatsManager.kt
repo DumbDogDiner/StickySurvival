@@ -22,6 +22,7 @@ import com.dumbdogdiner.stickyapi.common.cache.Cache
 import com.dumbdogdiner.stickysurvival.stats.PlayerStats
 import com.dumbdogdiner.stickysurvival.stats.SurvivalGamesStats
 import com.dumbdogdiner.stickysurvival.util.info
+import com.dumbdogdiner.stickysurvival.util.schedule
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Expression
@@ -60,6 +61,8 @@ object StatsManager {
     val topKills = arrayOfNulls<Pair<UUID, Int>>(10)
     val topGames = arrayOfNulls<Pair<UUID, Int>>(10)
 
+    private var topStatsNeedUpdating = false
+
     operator fun get(player: Player) = if (db == null) null else {
         val uuid = player.uniqueId
         cache[uuid.toString()] ?: run {
@@ -87,7 +90,14 @@ object StatsManager {
                     }
                 }
             }
-            cache.put(stats)
+            cache.update(stats)
+            topStatsNeedUpdating = true
+            schedule {
+                if (topStatsNeedUpdating) {
+                    updateTopStats()
+                    topStatsNeedUpdating = false
+                }
+            }
         }
     }
 
@@ -110,7 +120,7 @@ object StatsManager {
         )
     }
 
-    fun updateTopStats() {
+    private fun updateTopStats() {
         if (db != null) {
             transaction(db) {
                 addLogger(logger)

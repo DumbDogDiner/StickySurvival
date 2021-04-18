@@ -37,7 +37,6 @@ import com.dumbdogdiner.stickysurvival.game.GameSpawnPointComponent
 import com.dumbdogdiner.stickysurvival.game.GameTrackingCompassComponent
 import com.dumbdogdiner.stickysurvival.game.GameTributesComponent
 import com.dumbdogdiner.stickysurvival.manager.AnimatedScoreboardManager
-import com.dumbdogdiner.stickysurvival.manager.StatsManager
 import com.dumbdogdiner.stickysurvival.manager.WorldManager
 import com.dumbdogdiner.stickysurvival.task.AutoQuitRunnable
 import com.dumbdogdiner.stickysurvival.util.broadcastMessage
@@ -236,10 +235,8 @@ class Game(val world: World, val config: WorldConfig) {
             return
         }
 
-        UpdateStatsEvent(this).callSafe()
-
         info("(debug.jcx): event still running! updating stats and economy...")
-        StatsManager.updateTopStats()
+        UpdateStatsEvent(this).callSafe()
 
         if (winner0 != null) {
             info("(debug.jcx): winner found! let's run an event to reward them...")
