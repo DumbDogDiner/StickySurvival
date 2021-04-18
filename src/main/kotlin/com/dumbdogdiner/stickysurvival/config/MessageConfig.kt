@@ -23,6 +23,7 @@ import com.dumbdogdiner.stickysurvival.config.language.ChatMessages
 import com.dumbdogdiner.stickysurvival.config.language.LobbyMessages
 import com.dumbdogdiner.stickysurvival.config.language.MiscMessages
 import com.dumbdogdiner.stickysurvival.config.language.TitleMessages
+import com.dumbdogdiner.stickysurvival.config.language.VoxelSniperMessages
 import com.dumbdogdiner.stickysurvival.config.language.loadMessages
 
 class MessageConfig(
@@ -31,12 +32,14 @@ class MessageConfig(
     val lobby: LobbyMessages,
     val title: TitleMessages,
     val misc: MiscMessages,
+    val voxelsniper: VoxelSniperMessages,
 ) {
     constructor(cfg: ConfigHelper) : this(
         loadMessages(ChatMessages::class, cfg["chat"]),
         loadMessages(BossBarMessages::class, cfg["boss bar"]),
         loadMessages(LobbyMessages::class, cfg["lobby"]),
         loadMessages(TitleMessages::class, cfg["title"]),
-        loadMessages(MiscMessages::class, cfg["misc"])
+        loadMessages(MiscMessages::class, cfg["misc"]),
+        loadMessages(VoxelSniperMessages::class, cfg["voxelsniper"]),
     )
 }

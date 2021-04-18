@@ -2,9 +2,9 @@ package com.dumbdogdiner.stickysurvival.listener
 
 import com.dumbdogdiner.stickysurvival.event.TributeAddEvent
 import com.dumbdogdiner.stickysurvival.event.TributeRemoveEvent
+import com.dumbdogdiner.stickysurvival.util.messages
 import com.thevoxelbox.voxelsniper.VoxelProfileManager
 import org.bukkit.Bukkit
-import org.bukkit.ChatColor
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 
@@ -47,7 +47,7 @@ object GameTriggersListener : Listener {
             sniper.isEnabled = false
 
             // Inform the player that their sniper has been disabled
-            event.player.sendMessage("${ChatColor.YELLOW}VoxelSniper has been disabled for you while in-game!")
+            event.player.sendMessage(messages.voxelsniper.disabled)
         }
     }
 
@@ -61,7 +61,7 @@ object GameTriggersListener : Listener {
             if (!sniper.isEnabled) sniper.isEnabled = true
 
             // Inform the player that their sniper has been disabled
-            event.player.sendMessage("${ChatColor.YELLOW}VoxelSniper has been re-enabled for you!")
+            event.player.sendMessage(messages.voxelsniper.enabled)
         }
     }
 }
