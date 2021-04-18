@@ -21,7 +21,7 @@ package com.dumbdogdiner.stickysurvival.task
 import com.dumbdogdiner.stickysurvival.Game
 import com.dumbdogdiner.stickysurvival.manager.WorldManager
 
-class AutoQuitRunnable(game: Game) : GameRunnable(game) {
+class AutoQuitRunnable(val game: Game) : SafeRunnable() {
     override fun run() {
         WorldManager.unloadGame(game)
     }

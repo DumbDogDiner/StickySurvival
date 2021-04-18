@@ -18,12 +18,11 @@
 
 package com.dumbdogdiner.stickysurvival.task
 
-import com.dumbdogdiner.stickysurvival.Game
 import com.dumbdogdiner.stickysurvival.StickySurvival
 import org.bukkit.Bukkit
 import org.bukkit.scheduler.BukkitRunnable
 
-abstract class GameRunnable(protected val game: Game) : BukkitRunnable() {
+abstract class SafeRunnable : BukkitRunnable() {
     fun maybeRunTask() = ifNotScheduled {
         runTask(StickySurvival.instance)
     }

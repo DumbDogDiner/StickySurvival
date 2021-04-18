@@ -18,14 +18,7 @@
 
 package com.dumbdogdiner.stickysurvival.config.language
 
-import com.dumbdogdiner.stickysurvival.config.ConfigHelper
-
 class TitleMessages(
     val death: String,
     val killer: String,
-) {
-    constructor(cfg: ConfigHelper) : this(
-        cfg.loadMessage("death"),
-        cfg.loadMessage("killer"),
-    )
-}
+)

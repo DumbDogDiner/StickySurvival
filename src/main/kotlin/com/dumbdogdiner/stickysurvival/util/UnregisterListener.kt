@@ -1,6 +1,6 @@
 /*
  * StickySurvival - an implementation of the Survival Games minigame
- * Copyright (C) 2020 Dumb Dog Diner <dumbdogdiner.com>
+ * Copyright (C) 2021 Dumb Dog Diner <dumbdogdiner.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,13 +16,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.dumbdogdiner.stickysurvival.config.language
+package com.dumbdogdiner.stickysurvival.util
 
-class BossBarMessages(
-    val waiting: String,
-    val countdown: String,
-    val noDamage: String,
-    val active: String,
-    val winner: String,
-    val draw: String,
-)
+import org.bukkit.event.EventHandler
+import org.bukkit.event.HandlerList
+import org.bukkit.event.Listener
+
+fun unregisterListener(listener: Listener) {
+    listener::class.java.methods.asSequence()
+        .filter { it.annotations.filterIsInstance<EventHandler>().any() }
+        .forEach {
+            val eventClass = it.parameters.first().type
+            val handlerList = eventClass.getDeclaredMethod("getHandlerList").invoke(null) as HandlerList
+            handlerList.unregister(listener)
+        }
+}

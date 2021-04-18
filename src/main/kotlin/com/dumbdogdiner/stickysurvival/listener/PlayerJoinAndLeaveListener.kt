@@ -36,7 +36,7 @@ object PlayerJoinAndLeaveListener : Listener {
 
     @EventHandler
     fun onPlayerQuit(event: PlayerQuitEvent) {
-        if (event.player.world.game != null) event.quitMessage = null
+        if (event.player.world.game != null) event.quitMessage(null)
         event.player.goToLobby()
         HiddenPlayerManager.remove(event.player)
         LobbyInventoryManager.unloadInventory(event.player)

@@ -28,7 +28,7 @@ import org.bukkit.Location
 import org.bukkit.Material
 import kotlin.math.roundToInt
 
-class RandomDropRunnable(game: Game) : GameRunnable(game) {
+class RandomDropRunnable(val game: Game) : SafeRunnable() {
     override fun run() {
         val x = game.config.xBounds.random().roundToInt()
         val y = game.config.yBounds.endInclusive
@@ -36,5 +36,6 @@ class RandomDropRunnable(game: Game) : GameRunnable(game) {
         val location = Location(game.world, x.toDouble() + 0.5, y, z.toDouble() + 0.5)
         game.world.broadcastMessage(messages.chat.randomChestDrop.safeFormat(x, z))
         game.world.spawnFallingBlock(location, Bukkit.getServer().createBlockData(Material.DRIED_KELP_BLOCK))
+        game.world.getChunkAt(location).isForceLoaded = true
     }
 }

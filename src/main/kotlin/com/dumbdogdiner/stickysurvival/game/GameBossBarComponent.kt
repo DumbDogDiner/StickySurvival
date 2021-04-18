@@ -19,23 +19,19 @@
 package com.dumbdogdiner.stickysurvival.game
 
 import com.dumbdogdiner.stickysurvival.Game
+import com.dumbdogdiner.stickysurvival.event.BossBarNeedsUpdatingEvent
+import com.dumbdogdiner.stickysurvival.event.GameCloseEvent
 import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.settings
 import org.bukkit.Bukkit
 import org.bukkit.boss.BarColor
 import org.bukkit.boss.BarStyle
-import org.bukkit.entity.Player
+import org.bukkit.event.EventHandler
+import org.bukkit.event.player.PlayerChangedWorldEvent
 
-class GameBossBarComponent(val game: Game) {
+class GameBossBarComponent(game: Game) : GameComponent(game) {
     private val bossBar = Bukkit.createBossBar(null, BarColor.WHITE, BarStyle.SOLID)
-
-    operator fun plusAssign(player: Player) = bossBar.addPlayer(player)
-    operator fun minusAssign(player: Player) = bossBar.removePlayer(player)
-
-    fun clear() {
-        bossBar.removeAll()
-    }
 
     private var title
         get() = bossBar.title
@@ -53,39 +49,59 @@ class GameBossBarComponent(val game: Game) {
         return (t.toDouble() / u.toDouble()).coerceIn(0.0..1.0)
     }
 
-    fun update() {
-        when (game.phase) {
-            Game.Phase.WAITING -> {
-                val tributesLeft = game.getTributesLeft()
-                if (tributesLeft >= game.config.minPlayers) {
-                    title = messages.bossBar.countdown.safeFormat(game.countdown)
-                    progress = divideClamp(game.countdown, settings.countdown)
-                    color = BarColor.YELLOW
-                } else {
-                    title = messages.bossBar.waiting.safeFormat(game.config.minPlayers - tributesLeft)
-                    progress = divideClamp(tributesLeft, game.config.minPlayers)
-                    color = BarColor.RED
+    @EventHandler
+    fun onPlayerChangedWorld(event: PlayerChangedWorldEvent) {
+        if (event.player.world == game.world) {
+            bossBar.addPlayer(event.player)
+        } else if (event.from == game.world) {
+            bossBar.removePlayer(event.player)
+        }
+    }
+
+    @EventHandler
+    fun cleanup(event: GameCloseEvent) {
+        if (event.game == game) {
+            bossBar.removeAll()
+        }
+    }
+
+    @EventHandler
+    fun update(event: BossBarNeedsUpdatingEvent) {
+        val countdown = game.countdownComponent.countdown
+        if (event.game == game) {
+            when (game.phase) {
+                Game.Phase.WAITING -> {
+                    val tributesLeft = game.tributesComponent.size
+                    if (tributesLeft >= game.config.minPlayers) {
+                        title = messages.bossBar.countdown.safeFormat(countdown)
+                        progress = divideClamp(countdown, settings.countdown)
+                        color = BarColor.YELLOW
+                    } else {
+                        title = messages.bossBar.waiting.safeFormat(game.config.minPlayers - tributesLeft)
+                        progress = divideClamp(tributesLeft, game.config.minPlayers)
+                        color = BarColor.RED
+                    }
                 }
-            }
-            Game.Phase.ACTIVE -> {
-                if (game.noDamage) {
-                    title = messages.bossBar.noDamage.safeFormat(game.countdown)
-                    progress = divideClamp(game.countdown, game.noDamageTime)
-                    color = BarColor.PURPLE
-                } else {
-                    title = messages.bossBar.active.safeFormat(game.countdown / 60, game.countdown % 60)
-                    progress = divideClamp(game.countdown, game.config.time)
-                    color = BarColor.GREEN
+                Game.Phase.ACTIVE -> {
+                    if (game.noDamage) {
+                        title = messages.bossBar.noDamage.safeFormat(countdown)
+                        progress = divideClamp(countdown, game.noDamageTime)
+                        color = BarColor.PURPLE
+                    } else {
+                        title = messages.bossBar.active.safeFormat(countdown / 60, countdown % 60)
+                        progress = divideClamp(countdown, game.config.time)
+                        color = BarColor.GREEN
+                    }
                 }
-            }
-            Game.Phase.COMPLETE -> {
-                progress = 1.0
-                game.winner?.name?.let {
-                    title = messages.bossBar.winner.safeFormat(it)
-                    color = BarColor.BLUE
-                } ?: run {
-                    title = messages.bossBar.draw
-                    color = BarColor.WHITE
+                Game.Phase.COMPLETE -> {
+                    progress = 1.0
+                    game.winner?.name?.let {
+                        title = messages.bossBar.winner.safeFormat(it)
+                        color = BarColor.BLUE
+                    } ?: run {
+                        title = messages.bossBar.draw
+                        color = BarColor.WHITE
+                    }
                 }
             }
         }

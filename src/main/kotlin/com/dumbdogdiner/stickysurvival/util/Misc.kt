@@ -21,15 +21,16 @@ package com.dumbdogdiner.stickysurvival.util
 import com.dumbdogdiner.stickysurvival.StickySurvival
 import com.dumbdogdiner.stickysurvival.config.Config
 import com.dumbdogdiner.stickysurvival.config.ConfigHelper
-import de.tr7zw.nbtapi.NBTContainer
-import de.tr7zw.nbtapi.NBTItem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Color
 import org.bukkit.DyeColor
-import org.bukkit.Keyed
+import org.bukkit.Material
 import org.bukkit.NamespacedKey
+import org.bukkit.enchantments.Enchantment
+import org.bukkit.event.Event
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.inventory.meta.PotionMeta
@@ -39,58 +40,36 @@ import org.bukkit.scheduler.BukkitTask
 import java.util.Collections
 import java.util.IllegalFormatException
 import java.util.WeakHashMap
-import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.random.Random
 
-inline fun <reified T : Keyed> getKeyed(name: String) = NamespacedKey.minecraft(name).let { key ->
-    (T::class.java.getDeclaredMethod("values").invoke(null) as Array<*>).first {
-        (it as T).key == key
-    } as T
+private fun maybeKey(name: String): NamespacedKey? = try {
+    NamespacedKey.minecraft(name)
+} catch (_: IllegalArgumentException) {
+    null
 }
 
-fun itemFromConfig(cfg: ConfigHelper): ItemStack {
-    var stack = ItemStack(getKeyed(cfg["item"].asString()), cfg["amount"].asIntOr(1))
-    val itemMeta = stack.itemMeta
-    cfg["color"].maybe {
-        val color = if (it.isA(Number::class)) {
-            Color.fromRGB(it.asInt())
-        } else {
-            DyeColor.valueOf(it.asString().toUpperCase()).color
-        }
-        when (itemMeta) {
-            is LeatherArmorMeta -> itemMeta.setColor(color)
-            is PotionMeta -> itemMeta.color = color
-        }
-    }
-    cfg["name"].maybe {
-        itemMeta.setDisplayName(it.asString().substituteAmpersand())
-    }
-    cfg["effects"].maybe { effects ->
-        if (itemMeta is PotionMeta) {
-            for (effect in effects.map { effectFromConfig(it) }) {
-                itemMeta.addCustomEffect(effect, true)
-            }
-        }
-    }
-    stack.itemMeta = itemMeta
-    cfg["enchantments"].maybeGet()?.mapEntries { name, level ->
-        stack.addUnsafeEnchantment(getKeyed(name), level.asInt())
-    }
-    cfg["lore"].maybe {
-        stack.lore = it.map { line -> line.asString().substituteAmpersand() }
-    }
-    cfg["data"].maybe { data ->
-        val nbt = NBTItem.convertItemtoNBT(stack)
-        nbt.mergeCompound(NBTContainer(data.asString()))
-        stack = NBTItem.convertNBTtoItem(nbt)
-    }
-    return stack
+fun getMaterial(name: String): Material {
+    return Material.getMaterial(name)
+        ?: maybeKey(name)?.let { key -> Material.values().firstOrNull { it.key == key } }
+        ?: throw IllegalArgumentException("No such material: $name")
+}
+
+fun getEnchantment(name: String): Enchantment {
+    @Suppress("deprecation")
+    return Enchantment.getByName(name)
+        ?: maybeKey(name)?.let { Enchantment.getByKey(it) }
+        ?: throw IllegalArgumentException("No such enchantment: $name")
+}
+
+fun getPotionEffectType(name: String): PotionEffectType {
+    return PotionEffectType.getByName(name)
+        ?: effectTypes[name]
+        ?: throw IllegalArgumentException("No such potion effect: $name")
 }
 
 // some effect names are different between object and minecraft name
-
-val effects = PotionEffectType.values().map {
+private val effectTypes = PotionEffectType.values().map {
     it.name.toLowerCase() to it
 }.toMap().toMutableMap().also {
     fun fixType(name: String, type: PotionEffectType) {
@@ -108,9 +87,43 @@ val effects = PotionEffectType.values().map {
     fixType("resistance", PotionEffectType.DAMAGE_RESISTANCE)
 }
 
+fun itemFromConfig(cfg: ConfigHelper): ItemStack {
+    val material = getMaterial(cfg["item"].asString())
+    val stack = ItemStack(material, cfg["amount"].asIntOr(1))
+    val itemMeta = stack.itemMeta
+    cfg["color"].maybe {
+        val color = if (it.isA(Number::class)) {
+            Color.fromRGB(it.asInt())
+        } else {
+            DyeColor.valueOf(it.asString().toUpperCase()).color
+        }
+        when (itemMeta) {
+            is LeatherArmorMeta -> itemMeta.setColor(color)
+            is PotionMeta -> itemMeta.color = color
+        }
+    }
+    cfg["name"].maybe {
+        itemMeta.displayName(Component.text(it.asString().substituteAmpersand()))
+    }
+    cfg["effects"].maybe { effects ->
+        if (itemMeta is PotionMeta) {
+            for (effect in effects.map { effectFromConfig(it) }) {
+                itemMeta.addCustomEffect(effect, true)
+            }
+        }
+    }
+    stack.itemMeta = itemMeta
+    cfg["enchantments"].maybeGet()?.mapEntries { name, level ->
+        stack.addUnsafeEnchantment(getEnchantment(name), level.asInt())
+    }
+    cfg["lore"].maybe {
+        stack.lore = it.map { line -> line.asString().substituteAmpersand() }
+    }
+    return stack
+}
+
 fun effectFromConfig(cfg: ConfigHelper): PotionEffect {
-    val name = cfg["type"].asString()
-    val type = effects[name] ?: throw IllegalArgumentException("Effect $name does not exist")
+    val type = getPotionEffectType(cfg["type"].asString())
     val duration = cfg["duration"].let {
         when {
             it.isA(String::class) && it.asString() == "forever" -> Int.MAX_VALUE
@@ -162,16 +175,34 @@ fun ClosedFloatingPointRange<Double>.random(): Double {
 }
 
 fun radiusForBounds(
-    centerX: Double,
     xBounds: ClosedFloatingPointRange<Double>,
-    centerZ: Double,
     zBounds: ClosedFloatingPointRange<Double>
 ): Double {
-    val x1 = (centerX - xBounds.start).absoluteValue
-    val x2 = (centerX - xBounds.endInclusive).absoluteValue
-    val x = max(x1, x2)
-    val z1 = (centerZ - zBounds.start).absoluteValue
-    val z2 = (centerZ - zBounds.endInclusive).absoluteValue
-    val z = max(z1, z2)
+    val x = (xBounds.endInclusive - xBounds.start) / 2
+    val z = (zBounds.endInclusive - zBounds.start) / 2
     return max(x, z)
+}
+
+/**
+ * An extension to allow an event to be called without an exception, regardless of the context.
+ */
+fun Event.callSafe() {
+    // if this is true, we are running synchronously
+    val threadIsSync = Thread.holdsLock(this)
+    if (isAsynchronous && threadIsSync) {
+        // if this event is async and this context is not, spawn an async process and call this event there.
+        spawn { callEvent() }
+    } else if (!isAsynchronous && !threadIsSync) {
+        // if this context is async and this event is not...
+        if (StickySurvival.instance.isEnabled) {
+            // if the plugin is enabled, schedule a synchronous task.
+            schedule { callEvent() }
+        } else {
+            // if it's not (event called during onDisable), block until its completion
+            synchronized(this) { callEvent() }
+        }
+    } else {
+        // thread sync matches event sync, just go ahead
+        callEvent()
+    }
 }

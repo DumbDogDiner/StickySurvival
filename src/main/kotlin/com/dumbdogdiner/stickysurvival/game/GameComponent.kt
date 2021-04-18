@@ -19,36 +19,24 @@
 package com.dumbdogdiner.stickysurvival.game
 
 import com.dumbdogdiner.stickysurvival.Game
-import org.bukkit.Location
-import org.bukkit.entity.Player
-import java.util.WeakHashMap
+import com.dumbdogdiner.stickysurvival.StickySurvival
+import com.dumbdogdiner.stickysurvival.event.GameCloseEvent
+import com.dumbdogdiner.stickysurvival.util.unregisterListener
+import org.bukkit.Bukkit
+import org.bukkit.event.EventHandler
+import org.bukkit.event.EventPriority
+import org.bukkit.event.Listener
 
-class GameSpawnPointComponent(game: Game) : GameComponent(game) {
-    private val free = game.config.spawnPoints.map {
-        it.apply {
-            world = game.world
-        }
-    }.toMutableSet()
-
-    private val used = WeakHashMap<Player, Location>()
-
-    fun givePlayerSpawnPoint(player: Player): Boolean {
-        val selected = free.randomOrNull() ?: return false
-        free -= selected
-        used += player to selected
-        return if (player.teleport(selected)) {
-            true
-        } else {
-            used -= player
-            free += selected
-            false
-        }
+abstract class GameComponent(val game: Game) : Listener {
+    init {
+        @Suppress("leakingThis")
+        Bukkit.getPluginManager().registerEvents(this, StickySurvival.instance)
     }
 
-    fun takePlayerSpawnPoint(player: Player) {
-        val selected = used.remove(player) ?: return
-        free += selected
+    @EventHandler(priority = EventPriority.HIGHEST)
+    fun unregister(event: GameCloseEvent) {
+        if (event.game == game) {
+            unregisterListener(this)
+        }
     }
-
-    fun getSpaceLeft() = free.size
 }

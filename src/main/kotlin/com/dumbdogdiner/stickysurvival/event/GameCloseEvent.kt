@@ -1,6 +1,6 @@
 /*
  * StickySurvival - an implementation of the Survival Games minigame
- * Copyright (C) 2020 Dumb Dog Diner <dumbdogdiner.com>
+ * Copyright (C) 2021 Dumb Dog Diner <dumbdogdiner.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,9 +16,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.dumbdogdiner.stickysurvival.config.language
+package com.dumbdogdiner.stickysurvival.event
 
-import com.dumbdogdiner.stickysurvival.config.ConfigHelper
-import com.dumbdogdiner.stickysurvival.util.substituteAmpersand
+import com.dumbdogdiner.stickysurvival.Game
+import org.bukkit.event.Event
+import org.bukkit.event.HandlerList
 
-internal fun ConfigHelper.loadMessage(messageName: String) = this[messageName].asString().substituteAmpersand()
+/**
+ * An internal event used for triggering component logic.
+ */
+class GameCloseEvent(val game: Game) : Event(false) {
+    override fun getHandlers() = Companion.handlers
+
+    companion object {
+        val handlers = HandlerList()
+
+        @JvmStatic
+        fun getHandlerList() = Companion.handlers
+    }
+}

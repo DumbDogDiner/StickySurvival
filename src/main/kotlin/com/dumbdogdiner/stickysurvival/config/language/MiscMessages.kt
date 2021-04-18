@@ -1,6 +1,6 @@
 /*
  * StickySurvival - an implementation of the Survival Games minigame
- * Copyright (C) 2020 Dumb Dog Diner <dumbdogdiner.com>
+ * Copyright (C) 2021 Dumb Dog Diner <dumbdogdiner.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,11 +18,8 @@
 
 package com.dumbdogdiner.stickysurvival.config.language
 
-class BossBarMessages(
-    val waiting: String,
-    val countdown: String,
-    val noDamage: String,
-    val active: String,
-    val winner: String,
-    val draw: String,
+class MiscMessages(
+    val kitGuiTitle: String,
+    val quitGameItem: String,
+    val selectKitItem: String,
 )

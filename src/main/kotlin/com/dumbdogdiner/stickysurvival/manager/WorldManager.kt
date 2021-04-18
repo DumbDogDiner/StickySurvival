@@ -23,6 +23,8 @@ import com.dumbdogdiner.stickysurvival.LobbyHologram
 import com.dumbdogdiner.stickysurvival.StickySurvival
 import com.dumbdogdiner.stickysurvival.config.Config
 import com.dumbdogdiner.stickysurvival.config.ConfigHelper
+import com.dumbdogdiner.stickysurvival.event.GameCloseEvent
+import com.dumbdogdiner.stickysurvival.util.callSafe
 import com.dumbdogdiner.stickysurvival.util.goToLobby
 import com.dumbdogdiner.stickysurvival.util.info
 import com.dumbdogdiner.stickysurvival.util.newWeakSet
@@ -84,7 +86,7 @@ object WorldManager {
             val game = getGameForWorldNamed(worldName)
                 ?: throw IllegalStateException("Player ${player.name} could not be put in $worldName")
             var result = null as Boolean?
-            schedule { result = game.addPlayer(player) }
+            schedule { result = game.tributesComponent.addTribute(player) }
             if (waitFor { result }) {
                 lastJoinTimes[player] = System.currentTimeMillis()
             } else {
@@ -121,15 +123,12 @@ object WorldManager {
             ) ?: throw IllegalStateException("World for $worldName couldn't be made into an arena")
         }
         val world0 = waitFor { world }
-        val hologram = holograms.find {
-            it.worldName == worldName
-        } ?: throw IllegalStateException("World $worldName is missing hologram")
-        loadedGames += Game(world0, config, hologram)
+        loadedGames += Game(world0, config)
     }
 
     fun unloadGame(game: Game) {
-        game.bossBarComponent.clear()
-        game.hologram.update(null)
+        game.autoQuit.safelyCancel()
+        GameCloseEvent(game).callSafe()
         val world = game.world
         val name = world.name
 
@@ -149,7 +148,7 @@ object WorldManager {
     }
 
     fun unloadAll() {
-        for (game in loadedGames) {
+        for (game in loadedGames.toMutableSet()) {
             unloadGame(game)
         }
 

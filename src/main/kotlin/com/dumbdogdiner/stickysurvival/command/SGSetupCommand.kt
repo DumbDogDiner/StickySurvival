@@ -18,180 +18,180 @@
 
 package com.dumbdogdiner.stickysurvival.command
 
-import com.dumbdogdiner.stickyapi.bukkit.command.BukkitCommandBuilder
-import com.dumbdogdiner.stickyapi.common.command.ExitCode
 import com.dumbdogdiner.stickysurvival.StickySurvival
 import com.dumbdogdiner.stickysurvival.manager.WorldManager
 import com.dumbdogdiner.stickysurvival.util.schedule
+import com.dumbdogdiner.stickysurvival.util.spawn
 import com.sk89q.worldedit.WorldEdit
 import com.sk89q.worldedit.bukkit.BukkitPlayer
 import com.sk89q.worldedit.bukkit.BukkitWorld
 import com.sk89q.worldedit.extension.platform.permission.ActorSelectorLimits
 import com.sk89q.worldedit.math.BlockVector3
+import dev.jorel.commandapi.CommandAPICommand
+import dev.jorel.commandapi.arguments.IntegerArgument
+import dev.jorel.commandapi.executors.PlayerCommandExecutor
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 
-private val spawnAdd = cmd("add") { sender, _, _ ->
-    sender as Player
-    try {
-        withConfig(sender) {
-            val spawnPointsYaml = (it.getList("spawn points") ?: listOf()).toMutableList()
-            spawnPointsYaml += mapOf(
-                "x" to sender.location.x,
-                "y" to sender.location.y,
-                "z" to sender.location.z,
-                "yaw" to sender.location.yaw,
-                "pitch" to sender.location.pitch,
-            )
-            it.set("spawn points", spawnPointsYaml)
-        } ?: return@cmd ExitCode.EXIT_ERROR_SILENT
-        sender.sendMessage("Spawn point added successfully.")
-        ExitCode.EXIT_SUCCESS
-    } catch (e: Exception) {
-        e.printStackTrace()
-        sender.sendMessage(e.message ?: return@cmd ExitCode.EXIT_ERROR)
-        ExitCode.EXIT_ERROR_SILENT
-    }
-}.requiresPlayer().permission("stickysurvival.setup")
+private val worldEdit = WorldEdit.getInstance()
 
-private val spawnList = cmd("list") { sender, _, _ ->
-    sender as Player
-    try {
-        withConfig(sender, mutates = false) {
-            sender.sendMessage("Spawn points for this world:")
-            it.getList("spawn points")?.withIndex()?.forEach { (i, spawnPoint) ->
-                sender.sendMessage("${i + 1}: $spawnPoint")
+private val borderGetCommand = CommandAPICommand("get")
+    .withPermission("stickysurvival.setup")
+    .executesPlayer(
+        PlayerCommandExecutor { sender, _ ->
+            val selector = worldEdit.sessionManager[BukkitPlayer(sender)].getRegionSelector(BukkitWorld(sender.world))
+            spawn {
+                val success = withConfig(sender, mutates = false) {
+                    val limits = ActorSelectorLimits.forActor(BukkitPlayer(sender))
+                    val point1 = BlockVector3.at(it.getInt("bounds.min.x"), it.getInt("bounds.min.y"), it.getInt("bounds.min.z"))
+                    val point2 = BlockVector3.at(it.getInt("bounds.max.x"), it.getInt("bounds.max.y"), it.getInt("bounds.max.z"))
+                    selector.selectPrimary(point1, limits)
+                    selector.selectSecondary(point2, limits)
+                }
+                if (success) sender.sendMessage("The border has been loaded into the region.")
             }
-        } ?: return@cmd ExitCode.EXIT_ERROR_SILENT
-        ExitCode.EXIT_SUCCESS
-    } catch (e: Exception) {
-        e.printStackTrace()
-        sender.sendMessage(e.message ?: return@cmd ExitCode.EXIT_ERROR)
-        ExitCode.EXIT_ERROR_SILENT
-    }
-}.requiresPlayer().permission("stickysurvival.setup")
-
-private val spawnRemove = cmd("remove", int("index")) { sender, args, _ ->
-    sender as Player
-    try {
-        val index = args.getInt("index")
-        // bound check
-        var success = false
-        withConfig(sender) {
-            val list = (it.getList("spawn points") ?: listOf()).toMutableList()
-            if (index > 0 && index <= list.size) {
-                list.removeAt(index - 1)
-                it.set("spawn points", list)
-                success = true
-            }
-        } ?: return@cmd ExitCode.EXIT_ERROR_SILENT
-        if (success) {
-            sender.sendMessage("Spawn point removed successfully.")
-            ExitCode.EXIT_SUCCESS
-        } else {
-            sender.sendMessage("That spawn point is out of bounds - run /sgsetup spawn list")
-            ExitCode.EXIT_ERROR_SILENT
         }
-    } catch (e: Exception) {
-        e.printStackTrace()
-        sender.sendMessage(e.message ?: return@cmd ExitCode.EXIT_ERROR)
-        ExitCode.EXIT_ERROR_SILENT
-    }
-}.requiresPlayer().permission("stickysurvival.setup")
+    )
 
-private val spawn = cmdStub("spawn")
-    .subCommand(spawnAdd)
-    .subCommand(spawnList)
-    .subCommand(spawnRemove)
-    .requiresPlayer()
-    .permission("stickysurvival.setup")
-
-private val borderGet = cmd("get") { sender, _, _ ->
-    sender as Player
-    val worldEdit = WorldEdit.getInstance()
-    val session = worldEdit.sessionManager[BukkitPlayer(sender)]
-    val selector = session.getRegionSelector(BukkitWorld(sender.world))
-    withConfig(sender, mutates = false) {
-        val limits = ActorSelectorLimits.forActor(BukkitPlayer(sender))
-        val point1 = BlockVector3.at(it.getInt("bounds.min.x"), it.getInt("bounds.min.y"), it.getInt("bounds.min.z"))
-        val point2 = BlockVector3.at(it.getInt("bounds.max.x"), it.getInt("bounds.max.y"), it.getInt("bounds.max.z"))
-        selector.selectPrimary(point1, limits)
-        selector.selectSecondary(point2, limits)
-    } ?: return@cmd ExitCode.EXIT_ERROR_SILENT
-    sender.sendMessage("The border has been loaded into the region.")
-    ExitCode.EXIT_SUCCESS
-}.requiresPlayer().permission("stickysurvival.setup")
-
-private val borderSet = cmd("set") { sender, _, _ ->
-    sender as Player
-    val worldEdit = WorldEdit.getInstance()
-    val world = BukkitWorld(sender.world)
-    val session = worldEdit.sessionManager[BukkitPlayer(sender)]
-    if (!session.isSelectionDefined(world)) {
-        sender.sendMessage("You don't have a region selected!")
-        ExitCode.EXIT_ERROR_SILENT
-    } else {
-        val selection = session.getSelection(world)
-        val min = selection.minimumPoint
-        val max = selection.maximumPoint
-        withConfig(sender) {
-            it.set("bounds.min.x", min.x)
-            it.set("bounds.min.y", min.y)
-            it.set("bounds.min.z", min.z)
-            it.set("bounds.max.x", max.x)
-            it.set("bounds.max.y", max.y)
-            it.set("bounds.max.z", max.z)
-        } ?: return@cmd ExitCode.EXIT_ERROR_SILENT
-        sender.sendMessage("The border has been updated.")
-        ExitCode.EXIT_SUCCESS
-    }
-}.requiresPlayer().permission("stickysurvival.setup")
-
-private val border = cmdStub("border")
-    .subCommand(borderGet)
-    .subCommand(borderSet)
-    .onExecute { sender, _, _ ->
-        sender.sendMessage("This command is now /sgsetup border set")
-        ExitCode.EXIT_ERROR_SILENT
-    }
-    .requiresPlayer()
-    .permission("stickysurvival.setup")
-
-val sgSetupCommandBuilder: BukkitCommandBuilder = cmdStub("sgsetup")
-    .requiresPlayer()
-    .permission("stickysurvival.setup")
-    .onTabComplete { _, _, args ->
-        val argArray = args.rawArgs.toTypedArray()
-        when {
-            argArray.matches("border", ANY) -> {
-                setOf("get", "set").filter { it.startsWith(argArray[1]) }.toMutableList()
+private val borderSetCommand = CommandAPICommand("set")
+    .withPermission("stickysurvival.setup")
+    .withRequirement { it is Player }
+    .withRequirement { worldEdit.sessionManager[BukkitPlayer(it as Player)].isSelectionDefined(BukkitWorld(it.world)) }
+    .executesPlayer(
+        PlayerCommandExecutor { sender, _ ->
+            val selection = worldEdit.sessionManager[BukkitPlayer(sender)].getSelection(BukkitWorld(sender.world))
+            val min = selection.minimumPoint
+            val max = selection.maximumPoint
+            spawn {
+                val success = withConfig(sender) {
+                    it.set("bounds.min.x", min.x)
+                    it.set("bounds.min.y", min.y)
+                    it.set("bounds.min.z", min.z)
+                    it.set("bounds.max.x", max.x)
+                    it.set("bounds.max.y", max.y)
+                    it.set("bounds.max.z", max.z)
+                }
+                if (success) sender.sendMessage("The border has been updated.")
             }
-
-            argArray.matches("spawn", ANY) -> {
-                setOf("add", "list", "remove").filter { it.startsWith(argArray[1]) }.toMutableList()
-            }
-
-            argArray.matches(ANY) -> {
-                setOf("border", "spawn").filter { it.startsWith(argArray[0]) }.toMutableList()
-            }
-
-            else -> mutableListOf()
         }
-    }
-    .subCommand(border)
-    .subCommand(spawn)
+    )
 
-private fun withConfig(player: Player, mutates: Boolean = true, block: (YamlConfiguration) -> Unit): Unit? {
+private val borderCommand = CommandAPICommand("border")
+    .withPermission("stickysurvival.setup")
+    .withSubcommand(borderGetCommand)
+    .withSubcommand(borderSetCommand)
+
+/***********************************************************************
+* @author CoffeeFox(Endersky#1404)
+* @since 1.0.0-beta
+*
+* Determines the amount of spawn points, and allows user to
+* set minimum players as long as it's not larger than the
+* amount of spawn points
+*
+***********************************************************************/
+
+private val minPlayerCommand = CommandAPICommand("minplayers")
+    .withPermission("stickysurvival.setup")
+    .withArguments(IntegerArgument("amount"))
+    .executesPlayer(
+        PlayerCommandExecutor { sender, args ->
+            spawn {
+                val minPlayers = args[0] as Int
+                withConfig(sender) { // checks to make sure command is valid
+                    val list = (it.getList("spawn points") ?: listOf()).toMutableList()
+                    if (minPlayers > list.size) {
+                        sender.sendMessage("Minimum players cannot be larger than number of spawn points")
+                    } else {
+                        it.set("min players", minPlayers) // sets min players if everything works
+                        sender.sendMessage("Minimum players updated successfully.")
+                    }
+                }
+            }
+        }
+    )
+
+private val spawnAddCommand = CommandAPICommand("add")
+    .withPermission("stickysurvival.setup")
+    .executesPlayer(
+        PlayerCommandExecutor { sender, _ ->
+            spawn {
+                val success = withConfig(sender) {
+                    val spawnPointsYaml = (it.getList("spawn points") ?: listOf()).toMutableList()
+                    spawnPointsYaml += mapOf(
+                        "x" to sender.location.x,
+                        "y" to sender.location.y,
+                        "z" to sender.location.z,
+                        "yaw" to sender.location.yaw,
+                        "pitch" to sender.location.pitch,
+                    )
+                    it.set("spawn points", spawnPointsYaml)
+                }
+                if (success) sender.sendMessage("Spawn point added successfully.")
+            }
+        }
+    )
+
+private val spawnListCommand = CommandAPICommand("list")
+    .withPermission("stickysurvival.setup")
+    .executesPlayer(
+        PlayerCommandExecutor { sender, _ ->
+            spawn {
+                withConfig(sender, mutates = false) {
+                    sender.sendMessage("Spawn points for this world:")
+                    it.getList("spawn points")?.withIndex()?.forEach { (i, spawnPoint) ->
+                        sender.sendMessage("${i + 1}: $spawnPoint")
+                    }
+                }
+            }
+        }
+    )
+
+private val spawnRemoveCommand = CommandAPICommand("remove")
+    .withPermission("stickysurvival.setup")
+    .withArguments(IntegerArgument("index"))
+    .executesPlayer(
+        PlayerCommandExecutor { sender, args ->
+            spawn {
+                val index = args[0] as Int
+                val success = withConfig(sender) {
+                    val list = (it.getList("spawn points") ?: listOf()).toMutableList()
+                    // bound check
+                    if (index > 0 && index <= list.size) {
+                        list.removeAt(index - 1)
+                        it.set("spawn points", list)
+                    } else {
+                        sender.sendMessage("That spawn point is out of bounds - run /sgsetup spawn list")
+                    }
+                }
+                if (success) sender.sendMessage("Spawn point removed successfully.")
+            }
+        }
+    )
+
+private val spawnCommand = CommandAPICommand("spawn")
+    .withPermission("stickysurvival.setup")
+    .withSubcommand(spawnAddCommand)
+    .withSubcommand(spawnListCommand)
+    .withSubcommand(spawnRemoveCommand)
+
+val sgSetupCommand = CommandAPICommand("sgsetup")
+    .withPermission("stickysurvival.setup")
+    .withSubcommand(borderCommand)
+    .withSubcommand(spawnCommand)
+    .withSubcommand(minPlayerCommand)
+
+private fun withConfig(player: Player, mutates: Boolean = true, block: (YamlConfiguration) -> Unit): Boolean {
     val name = player.world.name
     val file = StickySurvival.instance.dataFolder.resolve("worlds").resolve("$name.yml")
     if (!file.exists()) {
         player.sendMessage("The config file doesn't exist! You'll have to create a stub yourself. (TODO add a config wizard)")
-        return null
+        return false
     }
     val config = YamlConfiguration.loadConfiguration(file)
     if (config.getKeys(true).isEmpty()) {
         player.sendMessage("Config file was empty when reading. Check the console! If the file couldn't be opened, try restarting the server.")
-        return null
+        return false
     }
 
     block(config)
@@ -205,5 +205,5 @@ private fun withConfig(player: Player, mutates: Boolean = true, block: (YamlConf
         }
     }
 
-    return Unit // is this smart? is this dumb? whatever this is, this is what happens when i code at 9 pm
+    return true
 }

@@ -19,23 +19,23 @@
 package com.dumbdogdiner.stickysurvival.listener
 
 import com.dumbdogdiner.stickysurvival.util.warn
+import io.papermc.paper.event.player.AsyncChatEvent
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
-import org.bukkit.event.player.AsyncPlayerChatEvent
 
 object PerWorldChatListener : Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
-    fun onAsyncPlayerChat(event: AsyncPlayerChatEvent) {
+    fun onAsyncChat(event: AsyncChatEvent) {
         if (event.isCancelled) return
-        val recipients = event.recipients
+        val recipients = event.recipients()
         val playersToHideMessageFrom = recipients.filter { it.world != event.player.world }
         try {
             for (player in playersToHideMessageFrom) {
                 recipients -= player
             }
         } catch (e: UnsupportedOperationException) {
-            warn("Unable to modify recipients for message: ${event.message}")
+            warn("Unable to modify recipients for message: ${event.message()}")
             e.printStackTrace()
         }
     }

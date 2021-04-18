@@ -21,12 +21,13 @@ package com.dumbdogdiner.stickysurvival.task
 import com.dumbdogdiner.stickysurvival.Game
 import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.settings
+import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import kotlin.math.roundToInt
 
-class TrackingCompassRunnable(game: Game) : GameRunnable(game) {
+class TrackingCompassRunnable(val game: Game) : SafeRunnable() {
     override fun run() {
-        val currentTributes = game.world.players.filter { game.playerIsTribute(it) }
+        val currentTributes = game.world.players.filter { it in game.tributesComponent }
         for (player in currentTributes) {
             val closestPlayer = currentTributes.asSequence().filter {
                 it != player // find all players that are not this player
@@ -38,11 +39,13 @@ class TrackingCompassRunnable(game: Game) : GameRunnable(game) {
                     val loc = closestPlayer.location
                     player.compassTarget = loc
                     player.sendActionBar(
-                        settings.trackingCompassMessage.safeFormat(
-                            closestPlayer.name,
-                            loc.x.roundToInt(),
-                            loc.y.roundToInt(),
-                            loc.z.roundToInt(),
+                        Component.text(
+                            settings.trackingCompassMessage.safeFormat(
+                                closestPlayer.name,
+                                loc.x.roundToInt(),
+                                loc.y.roundToInt(),
+                                loc.z.roundToInt(),
+                            )
                         )
                     )
                 }

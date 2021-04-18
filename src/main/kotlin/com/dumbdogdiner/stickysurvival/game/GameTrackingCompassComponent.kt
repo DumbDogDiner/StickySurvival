@@ -19,36 +19,31 @@
 package com.dumbdogdiner.stickysurvival.game
 
 import com.dumbdogdiner.stickysurvival.Game
-import org.bukkit.Location
-import org.bukkit.entity.Player
-import java.util.WeakHashMap
+import com.dumbdogdiner.stickysurvival.StickySurvival
+import com.dumbdogdiner.stickysurvival.event.GameCloseEvent
+import com.dumbdogdiner.stickysurvival.event.GameStartEvent
+import com.dumbdogdiner.stickysurvival.task.TrackingCompassRunnable
+import org.bukkit.Bukkit
+import org.bukkit.event.EventHandler
 
-class GameSpawnPointComponent(game: Game) : GameComponent(game) {
-    private val free = game.config.spawnPoints.map {
-        it.apply {
-            world = game.world
-        }
-    }.toMutableSet()
+class GameTrackingCompassComponent(game: Game) : GameComponent(game) {
+    private val task = TrackingCompassRunnable(game)
 
-    private val used = WeakHashMap<Player, Location>()
+    init {
+        Bukkit.getPluginManager().registerEvents(this, StickySurvival.instance)
+    }
 
-    fun givePlayerSpawnPoint(player: Player): Boolean {
-        val selected = free.randomOrNull() ?: return false
-        free -= selected
-        used += player to selected
-        return if (player.teleport(selected)) {
-            true
-        } else {
-            used -= player
-            free += selected
-            false
+    @EventHandler
+    fun startTask(event: GameStartEvent) {
+        if (event.game == game) {
+            task.maybeRunTaskEveryTick()
         }
     }
 
-    fun takePlayerSpawnPoint(player: Player) {
-        val selected = used.remove(player) ?: return
-        free += selected
+    @EventHandler
+    fun stopTask(event: GameCloseEvent) {
+        if (event.game == game) {
+            task.safelyCancel()
+        }
     }
-
-    fun getSpaceLeft() = free.size
 }

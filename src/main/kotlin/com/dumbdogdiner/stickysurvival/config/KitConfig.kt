@@ -27,6 +27,7 @@ import org.bukkit.potion.PotionEffect
 
 class KitConfig(
     val name: String,
+    val icon: ItemStack,
     private val helmet: ItemStack?,
     private val chestplate: ItemStack?,
     private val leggings: ItemStack?,
@@ -36,6 +37,7 @@ class KitConfig(
 ) {
     constructor(name: String, cfg: ConfigHelper) : this(
         name,
+        itemFromConfig(cfg["icon"]),
         cfg["helmet"].maybe { itemFromConfig(it) },
         cfg["chestplate"].maybe { itemFromConfig(it) },
         cfg["leggings"].maybe { itemFromConfig(it) },
