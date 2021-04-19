@@ -13,6 +13,8 @@ plugins {
     id("eclipse")
 
     id("net.nemerosa.versioning") version "2.14.0"
+
+    id("com.diffplug.spotless") version "5.12.1"
 }
 
 group = "com.dumbdogdiner"
@@ -59,6 +61,7 @@ dependencies {
 tasks {
     ktlintKotlinScriptCheck {
         dependsOn("ktlintFormat")
+        dependsOn("spotlessApply")
     }
 
     compileKotlin {
@@ -73,6 +76,13 @@ tasks {
 
     shadowJar {
         archiveClassifier.set("")
+    }
+
+    configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+        encoding("UTF-8") // all formats will be interpreted as UTF-8
+        kotlin {
+            licenseHeaderFile(project.file("LICENSE_HEADER"))
+        }
     }
 
     spigot {
