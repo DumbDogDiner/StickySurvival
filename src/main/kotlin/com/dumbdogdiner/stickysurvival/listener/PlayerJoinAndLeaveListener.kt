@@ -22,7 +22,9 @@ import com.dumbdogdiner.stickysurvival.manager.HiddenPlayerManager
 import com.dumbdogdiner.stickysurvival.manager.LobbyInventoryManager
 import com.dumbdogdiner.stickysurvival.util.game
 import com.dumbdogdiner.stickysurvival.util.goToLobby
+import com.dumbdogdiner.stickysurvival.util.reset
 import org.bukkit.event.EventHandler
+import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
@@ -34,9 +36,12 @@ object PlayerJoinAndLeaveListener : Listener {
         HiddenPlayerManager.sendHiddenPlayers(event.player)
     }
 
-    @EventHandler
+    // We use the lowest priority so this runs FIRST
+    // (ie. before StickyCommands syncs player state)
+    @EventHandler(priority = EventPriority.LOWEST)
     fun onPlayerQuit(event: PlayerQuitEvent) {
         if (event.player.world.game != null) event.quitMessage(null)
+        event.player.reset()
         event.player.goToLobby()
         HiddenPlayerManager.remove(event.player)
         LobbyInventoryManager.unloadInventory(event.player)

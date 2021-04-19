@@ -46,6 +46,7 @@ import com.dumbdogdiner.stickysurvival.util.info
 import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.newWeakSet
 import com.dumbdogdiner.stickysurvival.util.radiusForBounds
+import com.dumbdogdiner.stickysurvival.util.reset
 import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.dumbdogdiner.stickysurvival.util.schedule
 import com.dumbdogdiner.stickysurvival.util.settings
@@ -156,6 +157,7 @@ class Game(val world: World, val config: WorldConfig) {
 
         if (phase == Phase.WAITING) {
             spawnPointComponent.takePlayerSpawnPoint(player)
+            player.reset()
         }
 
         if (world.players.none { it != player }) {
