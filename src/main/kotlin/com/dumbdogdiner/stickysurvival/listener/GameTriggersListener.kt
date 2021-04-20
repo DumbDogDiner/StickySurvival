@@ -1,5 +1,6 @@
 package com.dumbdogdiner.stickysurvival.listener
 
+import com.dumbdogdiner.stickysurvival.StickySurvival
 import com.dumbdogdiner.stickysurvival.event.TributeAddEvent
 import com.dumbdogdiner.stickysurvival.event.TributeRemoveEvent
 import com.dumbdogdiner.stickysurvival.util.messages
@@ -23,30 +24,40 @@ import org.bukkit.inventory.ItemStack
  */
 object GameTriggersListener : Listener {
 
+    // Simple class for easier debug logging
+    private class GTLLogger(val topic: String) {
+        fun log(msg: String) {
+            StickySurvival.instance.logger.info("(GameTriggers debug - $topic): $msg")
+        }
+    }
+
     //region Utils (VoxelSniper, WorldEdit)
 
     private fun getVoxelProfileManager(): VoxelProfileManager? {
+        // Create a instance of GTLLogger for logging
+        val logger = GTLLogger("getVoxelProfileManager")
+
         if (Bukkit.getServer().pluginManager.isPluginEnabled("VoxelSniper")) {
-            Bukkit.getLogger().info("(debug) gVPM: plugin enabled!")
+            Bukkit.getLogger().info("plugin enabled!")
             // Make sure the VoxelSniper plugin is loaded before trying to get VoxelProfileManager
             val voxelProfileManager = VoxelProfileManager.getInstance()
 
-            Bukkit.getLogger().info("(debug) gVPM: is null: " + (voxelProfileManager == null).toString())
+            logger.log("is null: ${(voxelProfileManager == null)}")
 
             if (voxelProfileManager != null) {
-                Bukkit.getLogger().info("(debug) gVPM: successfully found!")
+                logger.log("found voxelProfileManager!")
                 // VoxelProfileManager is available, return the instance of it
                 return voxelProfileManager
             } else {
 
-                Bukkit.getLogger().info("(debug) gVPM: plugin enabled but instance is null!")
+                logger.log("plugin enabled but instance is null!")
                 // For whatever reason, the plugin is enabled but the instance is null.
                 // This shouldn't happen!
                 return null
             }
         } else {
 
-            Bukkit.getLogger().info("(debug) gVPM: plugin is not loaded!")
+            logger.log("plugin is not loaded!")
             // Plugin is not loaded
             return null
         }
@@ -87,19 +98,21 @@ object GameTriggersListener : Listener {
 
         // Run only if we get a WorldEdit LocalSession for the player (ie. WorldEdit is installed + working)
         getWorldEditLocalSession(event.player)?.let { localSession ->
+            val logger = GTLLogger("onTributeAdd/WorldEdit[${event.player}]")
+
             // Get the ItemType of the (default) selection wand
             val type = getWorldEditWoodenAxeItemType()
 
             // Print some debug info
-            event.player.sendMessage("Found tool of type: " + type.richName)
-            event.player.sendMessage("Found getTool of: " + localSession.getTool(type))
+            logger.log("Found tool of type: ${type.richName}")
+            logger.log("Found tool: ${localSession.getTool(type)}")
+            logger.log("Found tool matches wand item?: ${type.id.equals(localSession.wandItem)}")
 
-            event.player.sendMessage("Matches wand item?" + type.id.equals(localSession.wandItem))
-
-            event.player.sendMessage("Unbinding tool...")
             // Unbind the selection wand
             localSession.setTool(type, null)
-            event.player.sendMessage("tool unbinded")
+
+            // Inform the player
+            event.player.sendMessage("&WorldEdit has been disabled for you while in-game!")
         }
     }
 
@@ -119,25 +132,27 @@ object GameTriggersListener : Listener {
 
         // Run only if we get a WorldEdit LocalSession for the player (ie. WorldEdit is installed + working)
         getWorldEditLocalSession(event.player)?.let { localSession ->
+            val logger = GTLLogger("onTributeRemove/WorldEdit[${event.player}]")
+
             // Get the ItemType of the (default) selection wand
             val type = getWorldEditWoodenAxeItemType()
 
             // Print some debug info
-            event.player.sendMessage("Found tool of type: " + type.richName)
-            event.player.sendMessage("Found getTool of: " + localSession.getTool(type))
-
-            event.player.sendMessage("Matches wand item?" + type.id.equals(localSession.wandItem))
+            logger.log("Found tool of type: ${type.richName}")
+            logger.log("Found tool: ${localSession.getTool(type)}")
+            logger.log("Found tool matches wand item?: ${type.id.equals(localSession.wandItem)}")
 
             // Re-bind the selection wand to the wooden axe
             localSession.setTool(type, SelectionWand())
 
+            // Inform the player
+            event.player.sendMessage("&WorldEdit has been re-enabled for you!")
+
             // Print some more debug info (so we can check that the re-bind worked)
-            event.player.sendMessage("Re-bound selectionWand to wooden pick! Re-checking...")
-
-            event.player.sendMessage("Found tool of type: " + type.richName)
-            event.player.sendMessage("Found getTool of: " + localSession.getTool(type))
-
-            event.player.sendMessage("Matches wand item?" + type.id.equals(localSession.wandItem))
+            logger.log("Re-bound selectionWand to wooden pick! Re-checking...")
+            logger.log("Found tool of type: ${type.richName}")
+            logger.log("Found tool: ${localSession.getTool(type)}")
+            logger.log("Found tool matches wand item?: ${type.id.equals(localSession.wandItem)}")
         }
     }
 }
