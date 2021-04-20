@@ -27,7 +27,7 @@ object GameTriggersListener : Listener {
     // Simple class for easier debug logging
     private class GTLLogger(val topic: String) {
         fun log(msg: String) {
-            StickySurvival.instance.logger.info("(GameTriggers debug - $topic): $msg")
+            StickySurvival.instance.logger.info("[GameTriggers $topic]: $msg")
         }
     }
 
@@ -98,7 +98,7 @@ object GameTriggersListener : Listener {
 
         // Run only if we get a WorldEdit LocalSession for the player (ie. WorldEdit is installed + working)
         getWorldEditLocalSession(event.player)?.let { localSession ->
-            val logger = GTLLogger("onTributeAdd/WorldEdit[${event.player}]")
+            val logger = GTLLogger("onTributeAdd/WorldEdit[${event.player.name}]")
 
             // Get the ItemType of the (default) selection wand
             val type = getWorldEditWoodenAxeItemType()
@@ -132,7 +132,7 @@ object GameTriggersListener : Listener {
 
         // Run only if we get a WorldEdit LocalSession for the player (ie. WorldEdit is installed + working)
         getWorldEditLocalSession(event.player)?.let { localSession ->
-            val logger = GTLLogger("onTributeRemove/WorldEdit[${event.player}]")
+            val logger = GTLLogger("onTributeRemove/WorldEdit[${event.player.name}]")
 
             // Get the ItemType of the (default) selection wand
             val type = getWorldEditWoodenAxeItemType()
