@@ -150,7 +150,7 @@ object GameTriggersListener : Listener {
             event.player.sendMessage(messages.external.featureEnabled.safeFormat("WorldEdit"))
 
             // Print some more debug info (so we can check that the re-bind worked)
-            logger.log("Re-bound selectionWand to wooden pick! Re-checking...")
+            logger.log("Re-bound selection wand! Re-checking...")
             logger.log("Found tool of type: ${type.richName}")
             logger.log("Found tool: ${localSession.getTool(type)}")
             logger.log("Found tool matches wand item?: ${type.id.equals(localSession.wandItem)}")
