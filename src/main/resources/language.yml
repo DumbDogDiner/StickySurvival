@@ -52,6 +52,6 @@ misc:
   quit game item: "&c&lQuit game"
   select kit item: "&d&lSelect kit"
 
-voxelsniper:
-  disabled: "&eVoxelSniper has been disabled for you while in-game!"
-  enabled: "&eVoxelSniper has been re-enabled for you!"
+external:
+  feature disabled: "&e%s has been disabled for you while in-game!"
+  feature enabled: "&e%s has been re-enabled for you!"

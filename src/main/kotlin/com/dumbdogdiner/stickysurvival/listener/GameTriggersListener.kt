@@ -4,6 +4,7 @@ import com.dumbdogdiner.stickysurvival.StickySurvival
 import com.dumbdogdiner.stickysurvival.event.TributeAddEvent
 import com.dumbdogdiner.stickysurvival.event.TributeRemoveEvent
 import com.dumbdogdiner.stickysurvival.util.messages
+import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.sk89q.worldedit.LocalSession
 import com.sk89q.worldedit.WorldEdit
 import com.sk89q.worldedit.bukkit.BukkitAdapter
@@ -93,7 +94,7 @@ object GameTriggersListener : Listener {
             sniper.isEnabled = false
 
             // Inform the player that their sniper has been disabled
-            event.player.sendMessage(messages.voxelsniper.disabled)
+            event.player.sendMessage(messages.external.featureDisabled.safeFormat("VoxelSniper"))
         }
 
         // Run only if we get a WorldEdit LocalSession for the player (ie. WorldEdit is installed + working)
@@ -112,7 +113,7 @@ object GameTriggersListener : Listener {
             localSession.setTool(type, null)
 
             // Inform the player
-            event.player.sendMessage("&WorldEdit has been disabled for you while in-game!")
+            event.player.sendMessage(messages.external.featureDisabled.safeFormat("WorldEdit"))
         }
     }
 
@@ -127,7 +128,7 @@ object GameTriggersListener : Listener {
             if (!sniper.isEnabled) sniper.isEnabled = true
 
             // Inform the player that their sniper has been disabled
-            event.player.sendMessage(messages.voxelsniper.enabled)
+            event.player.sendMessage(messages.external.featureEnabled.safeFormat("VoxelSniper"))
         }
 
         // Run only if we get a WorldEdit LocalSession for the player (ie. WorldEdit is installed + working)
@@ -146,7 +147,7 @@ object GameTriggersListener : Listener {
             localSession.setTool(type, SelectionWand())
 
             // Inform the player
-            event.player.sendMessage("&WorldEdit has been re-enabled for you!")
+            event.player.sendMessage(messages.external.featureEnabled.safeFormat("WorldEdit"))
 
             // Print some more debug info (so we can check that the re-bind worked)
             logger.log("Re-bound selectionWand to wooden pick! Re-checking...")
