@@ -13,6 +13,7 @@ import com.sk89q.worldedit.world.item.ItemType
 import com.thevoxelbox.voxelsniper.VoxelProfileManager
 import org.bukkit.Bukkit
 import org.bukkit.Material
+import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.inventory.ItemStack
@@ -39,7 +40,7 @@ object GameTriggersListener : Listener {
         val logger = GTLLogger("getVoxelProfileManager")
 
         if (Bukkit.getServer().pluginManager.isPluginEnabled("VoxelSniper")) {
-            Bukkit.getLogger().info("plugin enabled!")
+            logger.log("plugin enabled!")
             // Make sure the VoxelSniper plugin is loaded before trying to get VoxelProfileManager
             val voxelProfileManager = VoxelProfileManager.getInstance()
 
@@ -64,7 +65,7 @@ object GameTriggersListener : Listener {
         }
     }
 
-    private fun getWorldEditLocalSession(player: org.bukkit.entity.Player): LocalSession? {
+    private fun getWorldEditLocalSession(player: Player): LocalSession? {
         // Make sure WorldEdit is actually enabled
         if (Bukkit.getServer().pluginManager.isPluginEnabled("WorldEdit")) {
             val actor = BukkitAdapter.adapt(player)
