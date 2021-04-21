@@ -21,11 +21,13 @@ package com.dumbdogdiner.stickysurvival.listener
 import com.destroystokyo.paper.event.player.PlayerAdvancementCriterionGrantEvent
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent
 import com.dumbdogdiner.stickysurvival.Game
+import com.dumbdogdiner.stickysurvival.StickySurvival
 import com.dumbdogdiner.stickysurvival.event.TributeWinRewardEvent
 import com.dumbdogdiner.stickysurvival.gui.KitGUI
 import com.dumbdogdiner.stickysurvival.util.game
 import com.dumbdogdiner.stickysurvival.util.goToLobby
 import com.dumbdogdiner.stickysurvival.util.settings
+import com.sk89q.worldedit.bukkit.WorldEditPlugin
 import io.papermc.paper.event.player.AsyncChatEvent
 import org.bukkit.Bukkit
 import org.bukkit.Material
@@ -50,6 +52,7 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.player.PlayerChangedWorldEvent
+import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import org.bukkit.event.player.PlayerDropItemEvent
 import org.bukkit.event.player.PlayerGameModeChangeEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
@@ -326,6 +329,45 @@ object GameEventsListener : Listener {
         if (event.player in game.tributesComponent) {
             event.isCancelled = true
             return
+        }
+    }
+
+    /**
+     * Bukkit event handler to supplement GameTriggers
+     * Prevents WorldEdit commands (eg. //wand, /tool, //pos1, etc) from running for players in-game
+     */
+    @EventHandler
+    fun onPlayerCommandPreprocess(event: PlayerCommandPreprocessEvent) {
+        val game = event.player.world.game ?: return
+        val pluginManager = Bukkit.getServer().pluginManager
+
+        // Check if the player is in-game && WorldEdit is enabled
+        if (
+            event.player in game.tributesComponent &&
+            pluginManager.isPluginEnabled("WorldEdit")
+        ) {
+            // Get the WorldEdit plugin class
+            val worldEditPlugin = pluginManager.getPlugin("WorldEdit") as WorldEditPlugin
+
+            // CommandManager command names are strings without the first '/'
+            // eg. '//wand' in-game becomes '/wand'
+            // eg. '/worldedit' in-game becomes 'worldedit'
+            val commandManager = worldEditPlugin.worldEdit.platformManager.platformCommandManager.commandManager
+
+            // Get the first section of the command being called
+            val cmdMsg = event.message.split(" ")[0]
+
+            // Strip the first character (the '/') from the string
+            // Now the cmd val matches the same format as WorldEdit's CommandManager! (see above comment)
+            val cmd = cmdMsg.substring(1)
+
+            // Check if the command exists in the (WorldEdit) Command Manager
+            // aka. check if the command was a WorldEdit command
+            if (commandManager.containsCommand(cmd)) {
+                // If so, log to console and cancel the event so the command doesn't run.
+                StickySurvival.instance.logger.info("${event.player.name} tried to issue WorldEdit command '${event.message}' but is in-game!")
+                event.isCancelled = true
+            }
         }
     }
 }
