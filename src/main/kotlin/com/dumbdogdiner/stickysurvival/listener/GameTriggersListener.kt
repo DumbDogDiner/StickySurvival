@@ -76,7 +76,7 @@ object GameTriggersListener : Listener {
     }
 
     private fun getWorldEditWoodenAxeItemType(): ItemType {
-        // Get the ItemType for a wooden axe (default wg wand)
+        // Get the ItemType for a wooden axe (default selection wand)
         val item = ItemStack(Material.WOODEN_AXE)
         val baseItemStack = BukkitAdapter.adapt(item)
         return baseItemStack.type
