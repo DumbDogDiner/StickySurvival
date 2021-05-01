@@ -55,6 +55,7 @@ import org.bukkit.event.player.PlayerGameModeChangeEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerMoveEvent
+import org.bukkit.event.player.PlayerPickupArrowEvent
 import org.bukkit.event.player.PlayerToggleFlightEvent
 import java.util.WeakHashMap
 
@@ -158,6 +159,15 @@ object GameEventsListener : Listener {
             if (entity !in game.tributesComponent) {
                 event.isCancelled = true
             }
+        }
+    }
+
+    @EventHandler
+    fun onPlayerPickupArrow(event: PlayerPickupArrowEvent) {
+        val entity = event.player
+        val game = entity.world.game ?: return
+        if (entity !in game.tributesComponent) {
+            event.isCancelled = true
         }
     }
 
