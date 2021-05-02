@@ -53,7 +53,9 @@ dependencies {
     implementation("com.dumbdogdiner:stickyapi-common:3.0.2")
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.2")
 
-    implementation("dev.jorel", "commandapi-shade", "5.8")
+    compileOnly("dev.jorel:commandapi-annotations:5.10")
+    kapt("dev.jorel:commandapi-annotations:5.10")
+    implementation("dev.jorel:commandapi-shade:5.10")
 }
 
 tasks {

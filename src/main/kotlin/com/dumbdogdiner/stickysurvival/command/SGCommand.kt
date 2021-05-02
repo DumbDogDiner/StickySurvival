@@ -27,93 +27,95 @@ import com.dumbdogdiner.stickysurvival.util.goToLobby
 import com.dumbdogdiner.stickysurvival.util.schedule
 import com.dumbdogdiner.stickysurvival.util.spawn
 import com.dumbdogdiner.stickysurvival.util.worlds
-import dev.jorel.commandapi.CommandAPICommand
-import dev.jorel.commandapi.arguments.GreedyStringArgument
-import dev.jorel.commandapi.executors.CommandExecutor
-import dev.jorel.commandapi.executors.PlayerCommandExecutor
+import dev.jorel.commandapi.annotations.Alias
+import dev.jorel.commandapi.annotations.Command
+import dev.jorel.commandapi.annotations.Permission
+import dev.jorel.commandapi.annotations.Subcommand
+import dev.jorel.commandapi.annotations.arguments.AGreedyStringArgument
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
-private fun inGame(sender: CommandSender) = (sender as? Player)?.world?.game != null
+@Command("survivalgames")
+@Alias("sg")
+object SGCommand {
+    @Subcommand("join")
+    @Permission("stickysurvival.join")
+    @JvmStatic fun join(player: Player, @AGreedyStringArgument name: String) {
+        // TODO override tab suggestions for world name
+        if (player.world.game != null) {
+            player.sendMessage("You cannot run that command while in-game!")
+            return
+        }
 
-private val joinCommand = CommandAPICommand("join")
-    .withPermission("stickysurvival.join")
-    .withRequirement { it is Player }
-    .withRequirement { !inGame(it) }
-    .withRequirement { !WorldManager.isPlayerWaitingToJoin(it as Player) }
-    .withArguments(
-        GreedyStringArgument("world")
-            .overrideSuggestions { _ -> worlds.values.map { it.friendlyName }.toTypedArray() }
-    )
-    .executesPlayer(
-        PlayerCommandExecutor { player, args ->
-            val worldName = worlds
-                .asSequence()
-                .filter { (_, world) -> world.friendlyName == args[0] as String }
-                .firstOrNull()?.key
-            if (worldName == null) {
-                player.sendMessage("That world does not exist!")
-            } else spawn {
-                try {
-                    if (!WorldManager.putPlayerInWorldNamed(player, worldName)) {
-                        printError(ExitCode.EXIT_INVALID_STATE, player)
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    e.message?.let { player.sendMessage(it) } ?: printError(ExitCode.EXIT_ERROR, player)
+        if (WorldManager.isPlayerWaitingToJoin(player)) {
+            player.sendMessage("You are already joining a game!")
+            return
+        }
+        val worldName = worlds
+            .asSequence()
+            .filter { (_, world) -> world.friendlyName == name }
+            .firstOrNull()?.key
+        if (worldName == null) {
+            player.sendMessage("That world does not exist!")
+            return
+        }
+
+        spawn {
+            try {
+                if (!WorldManager.putPlayerInWorldNamed(player, worldName)) {
+                    printError(ExitCode.EXIT_INVALID_STATE, player)
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                e.message?.let { player.sendMessage(it) } ?: printError(ExitCode.EXIT_ERROR, player)
             }
         }
-    )
+    }
 
-private val leaveCommand = CommandAPICommand("leave")
-    .withPermission("stickysurvival.leave")
-    .withRequirement { inGame(it) }
-    .executesPlayer(
-        PlayerCommandExecutor { player, _ ->
-            player.goToLobby()
+    @Subcommand("leave")
+    @Permission("stickysurvival.leave")
+    @JvmStatic fun leave(player: Player) {
+        if (player.world.game == null) {
+            player.sendMessage("You are not in a game!")
+            return
         }
-    )
 
-private val reloadCommand = CommandAPICommand("reload")
-    .withPermission("stickysurvival.reload")
-    .executes(
-        CommandExecutor { sender, _ ->
-            spawn {
-                StickySurvival.instance.reloadConfig()
-                schedule {
-                    if (WorldManager.loadFromConfig()) {
-                        sender.sendMessage("The configuration was reloaded successfully.")
-                    } else {
-                        sender.sendMessage("The configuration could not be reloaded. The default configuration is being used as a fallback. See the console for more information.")
-                    }
-                }
+        player.goToLobby()
+    }
+
+    @Subcommand("reload")
+    @Permission("stickysurvival.reload")
+    @JvmStatic fun reload(sender: CommandSender) {
+        StickySurvival.instance.reloadConfig()
+        schedule {
+            if (WorldManager.loadFromConfig()) {
+                sender.sendMessage("The configuration was reloaded successfully.")
+            } else {
+                sender.sendMessage("The configuration could not be reloaded. The default configuration is being used as a fallback. See the console for more information.")
             }
         }
-    )
+    }
 
-private val forceStartCommand = CommandAPICommand("forcestart")
-    .withPermission("stickysurvival.forcestart")
-    .withRequirement { inGame(it) }
-    .withRequirement { (it as Player).world.game!!.phase == Game.Phase.WAITING }
-    .executesPlayer(
-        PlayerCommandExecutor { player, _ ->
-            player.world.game!!.forceStartGame()
+    @Subcommand("forcestart")
+    @Permission("stickysurvival.forcestart")
+    @JvmStatic fun forceStart(player: Player) {
+        val game = player.world.game
+        if (game == null) {
+            player.sendMessage("You are not in a game!")
+            return
         }
-    )
 
-private val versionCommand = CommandAPICommand("version")
-    .withPermission("stickysurvival.version")
-    .executes(
-        CommandExecutor { sender, _ ->
-            sender.sendMessage("You are running version ${StickySurvival.version}")
+        if (game.phase != Game.Phase.WAITING) {
+            player.sendMessage("The game has already begun!")
+            return
         }
-    )
 
-val sgCommand = CommandAPICommand("survivalgames")
-    .withAliases("sg")
-    .withSubcommand(joinCommand)
-    .withSubcommand(leaveCommand)
-    .withSubcommand(reloadCommand)
-    .withSubcommand(forceStartCommand)
-    .withSubcommand(versionCommand)
+        game.forceStartGame()
+    }
+
+    @Subcommand("version")
+    @Permission("stickysurvival.version")
+    @JvmStatic fun version(sender: CommandSender) {
+        sender.sendMessage("You are running version ${StickySurvival.version}")
+    }
+}

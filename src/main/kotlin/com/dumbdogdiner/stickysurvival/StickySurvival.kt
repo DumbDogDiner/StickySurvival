@@ -19,7 +19,7 @@
 package com.dumbdogdiner.stickysurvival
 
 import com.dumbdogdiner.stickyapi.bukkit.util.StartupUtil
-import com.dumbdogdiner.stickysurvival.command.sgCommand
+import com.dumbdogdiner.stickysurvival.command.SGCommand
 import com.dumbdogdiner.stickysurvival.command.sgSetupCommand
 import com.dumbdogdiner.stickysurvival.config.Config
 import com.dumbdogdiner.stickysurvival.config.ConfigHelper
@@ -91,7 +91,7 @@ class StickySurvival : JavaPlugin() {
         // commandapi-shade init, part 2
         CommandAPI.onEnable(this)
 
-        sgCommand.register()
+        CommandAPI.registerCommand(SGCommand.javaClass)
         sgSetupCommand.register()
 
         for (
