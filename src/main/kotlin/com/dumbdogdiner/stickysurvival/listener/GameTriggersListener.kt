@@ -47,15 +47,15 @@ object GameTriggersListener : Listener {
 
             logger.log("is null: ${voxelProfileManager == null}")
 
-            if (voxelProfileManager != null) {
+            return if (voxelProfileManager != null) {
                 logger.log("found voxelProfileManager!")
                 // VoxelProfileManager is available, return the instance of it
-                return voxelProfileManager
+                voxelProfileManager
             } else {
                 logger.log("plugin enabled but instance is null!")
                 // For whatever reason, the plugin is enabled but the instance is null.
                 // This shouldn't happen!
-                return null
+                null
             }
         } else {
             logger.log("plugin is not loaded!")
