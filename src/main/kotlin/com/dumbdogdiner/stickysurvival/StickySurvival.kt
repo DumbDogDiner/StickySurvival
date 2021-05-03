@@ -26,6 +26,7 @@ import com.dumbdogdiner.stickysurvival.config.ConfigHelper
 import com.dumbdogdiner.stickysurvival.listener.FasterWorldLoadsListener
 import com.dumbdogdiner.stickysurvival.listener.GameEventsListener
 import com.dumbdogdiner.stickysurvival.listener.GameMessageBroadcastListener
+import com.dumbdogdiner.stickysurvival.listener.GameTriggersListener
 import com.dumbdogdiner.stickysurvival.listener.LobbyHologramListener
 import com.dumbdogdiner.stickysurvival.listener.PerWorldChatListener
 import com.dumbdogdiner.stickysurvival.listener.PlayerJoinAndLeaveListener
@@ -100,6 +101,7 @@ class StickySurvival : JavaPlugin() {
                 LobbyHologramListener,
                 GameEventsListener,
                 GameMessageBroadcastListener,
+                GameTriggersListener,
                 PlayerJoinAndLeaveListener,
                 PerWorldChatListener,
             )

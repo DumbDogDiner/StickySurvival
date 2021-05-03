@@ -51,3 +51,7 @@ misc:
   kit gui title: "Select a kit"
   quit game item: "&c&lQuit game"
   select kit item: "&d&lSelect kit"
+
+external:
+  feature disabled: "&e%s has been disabled for you while in-game!"
+  feature enabled: "&e%s has been re-enabled for you!"
