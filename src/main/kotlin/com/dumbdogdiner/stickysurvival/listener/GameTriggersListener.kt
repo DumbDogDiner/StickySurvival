@@ -3,6 +3,7 @@ package com.dumbdogdiner.stickysurvival.listener
 import com.dumbdogdiner.stickysurvival.StickySurvival
 import com.dumbdogdiner.stickysurvival.event.TributeAddEvent
 import com.dumbdogdiner.stickysurvival.event.TributeRemoveEvent
+import com.dumbdogdiner.stickysurvival.util.info
 import com.dumbdogdiner.stickysurvival.util.messages
 import com.dumbdogdiner.stickysurvival.util.safeFormat
 import com.sk89q.worldedit.LocalSession
@@ -29,7 +30,7 @@ object GameTriggersListener : Listener {
     // Simple class for easier debug logging
     private class GTLLogger(val topic: String) {
         fun log(msg: String) {
-            StickySurvival.instance.logger.info("[GameTriggers $topic]: $msg")
+            info("[GameTriggers $topic]: $msg")
         }
     }
 
@@ -44,21 +45,19 @@ object GameTriggersListener : Listener {
             // Make sure the VoxelSniper plugin is loaded before trying to get VoxelProfileManager
             val voxelProfileManager = VoxelProfileManager.getInstance()
 
-            logger.log("is null: ${(voxelProfileManager == null)}")
+            logger.log("is null: ${voxelProfileManager == null}")
 
             if (voxelProfileManager != null) {
                 logger.log("found voxelProfileManager!")
                 // VoxelProfileManager is available, return the instance of it
                 return voxelProfileManager
             } else {
-
                 logger.log("plugin enabled but instance is null!")
                 // For whatever reason, the plugin is enabled but the instance is null.
                 // This shouldn't happen!
                 return null
             }
         } else {
-
             logger.log("plugin is not loaded!")
             // Plugin is not loaded
             return null
@@ -70,7 +69,7 @@ object GameTriggersListener : Listener {
         if (Bukkit.getServer().pluginManager.isPluginEnabled("WorldEdit")) {
             val actor = BukkitAdapter.adapt(player)
             val sessionManager = WorldEdit.getInstance().sessionManager
-            return sessionManager.get(actor)
+            return sessionManager[actor]
         }
         return null
     }
@@ -108,7 +107,7 @@ object GameTriggersListener : Listener {
             // Print some debug info
             logger.log("Found tool of type: ${type.richName}")
             logger.log("Found tool: ${localSession.getTool(type)}")
-            logger.log("Found tool matches wand item?: ${type.id.equals(localSession.wandItem)}")
+            logger.log("Found tool matches wand item?: ${type.id == localSession.wandItem}")
 
             // Unbind the selection wand
             localSession.setTool(type, null)
@@ -142,7 +141,7 @@ object GameTriggersListener : Listener {
             // Print some debug info
             logger.log("Found tool of type: ${type.richName}")
             logger.log("Found tool: ${localSession.getTool(type)}")
-            logger.log("Found tool matches wand item?: ${type.id.equals(localSession.wandItem)}")
+            logger.log("Found tool matches wand item?: ${type.id == localSession.wandItem}")
 
             // Re-bind the selection wand to the wooden axe
             localSession.setTool(type, SelectionWand())
@@ -154,7 +153,7 @@ object GameTriggersListener : Listener {
             logger.log("Re-bound selection wand! Re-checking...")
             logger.log("Found tool of type: ${type.richName}")
             logger.log("Found tool: ${localSession.getTool(type)}")
-            logger.log("Found tool matches wand item?: ${type.id.equals(localSession.wandItem)}")
+            logger.log("Found tool matches wand item?: ${type.id == localSession.wandItem}")
         }
     }
 }

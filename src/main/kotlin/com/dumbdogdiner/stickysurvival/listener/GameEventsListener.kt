@@ -26,6 +26,7 @@ import com.dumbdogdiner.stickysurvival.event.TributeWinRewardEvent
 import com.dumbdogdiner.stickysurvival.gui.KitGUI
 import com.dumbdogdiner.stickysurvival.util.game
 import com.dumbdogdiner.stickysurvival.util.goToLobby
+import com.dumbdogdiner.stickysurvival.util.info
 import com.dumbdogdiner.stickysurvival.util.settings
 import com.sk89q.worldedit.bukkit.WorldEditPlugin
 import io.papermc.paper.event.player.AsyncChatEvent
@@ -365,7 +366,7 @@ object GameEventsListener : Listener {
             // aka. check if the command was a WorldEdit command
             if (commandManager.containsCommand(cmd)) {
                 // If so, log to console and cancel the event so the command doesn't run.
-                StickySurvival.instance.logger.info("${event.player.name} tried to issue WorldEdit command '${event.message}' but is in-game!")
+                info("${event.player.name} tried to issue WorldEdit command '${event.message}' but is in-game!")
                 event.isCancelled = true
             }
         }
