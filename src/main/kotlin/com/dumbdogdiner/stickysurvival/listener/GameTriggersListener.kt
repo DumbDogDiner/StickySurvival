@@ -124,8 +124,8 @@ object GameTriggersListener : Listener {
             // Get the sniper for the player that joined a game
             val sniper = voxelProfileManager.getSniperForPlayer(event.player)
 
-            // Enable the sniper if it is disabled
-            if (!sniper.isEnabled) sniper.isEnabled = true
+            // (Re-)enable the sniper
+            sniper.isEnabled = true
 
             // Inform the player that their sniper has been disabled
             event.player.sendMessage(messages.external.featureEnabled.safeFormat("VoxelSniper"))
