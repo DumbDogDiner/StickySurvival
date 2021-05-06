@@ -336,7 +336,7 @@ object GameEventsListener : Listener {
     @EventHandler
     fun onPlayerGameModeChange(event: PlayerGameModeChangeEvent) {
         val game = event.player.world.game ?: return
-        if (event.player in game.tributesComponent) {
+        if (event.player in game.tributesComponent && game.phase == Game.Phase.ACTIVE) {
             event.isCancelled = true
             return
         }
