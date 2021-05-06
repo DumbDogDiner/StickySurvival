@@ -1,6 +1,5 @@
 package com.dumbdogdiner.stickysurvival.listener
 
-import com.dumbdogdiner.stickysurvival.StickySurvival
 import com.dumbdogdiner.stickysurvival.event.TributeAddEvent
 import com.dumbdogdiner.stickysurvival.event.TributeRemoveEvent
 import com.dumbdogdiner.stickysurvival.util.info
