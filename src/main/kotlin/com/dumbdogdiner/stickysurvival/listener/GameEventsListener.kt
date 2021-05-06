@@ -30,6 +30,7 @@ import com.dumbdogdiner.stickysurvival.util.settings
 import com.sk89q.worldedit.bukkit.WorldEditPlugin
 import io.papermc.paper.event.player.AsyncChatEvent
 import org.bukkit.Bukkit
+import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.ItemFrame
@@ -336,7 +337,12 @@ object GameEventsListener : Listener {
     @EventHandler
     fun onPlayerGameModeChange(event: PlayerGameModeChangeEvent) {
         val game = event.player.world.game ?: return
-        if (event.player in game.tributesComponent && game.phase == Game.Phase.ACTIVE) {
+        if (event.player in game.tributesComponent &&
+            // Only allow gamemode changes if you are in the WAITING phase and are switching to Survival
+            // GameStartEvent switches you to survival; this is an extra check so you can't switch to other modes while waiting
+            // (This is a workaround to keep all existing functionality)
+            (game.phase != Game.Phase.WAITING || event.newGameMode != GameMode.SURVIVAL)
+        ) {
             event.isCancelled = true
             return
         }
