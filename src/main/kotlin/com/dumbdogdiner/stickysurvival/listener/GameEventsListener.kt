@@ -307,9 +307,10 @@ object GameEventsListener : Listener {
                 }
             }
         } else {
-            // Player has a normal hotbar (eg. in active game), so implement in-game mechanics here
+            // Player has a normal hotbar (eg. in active game)
+            // Implement special item in-game mechanics here!
 
-            // Launchable fireball mechanic
+            // Launchable / Throwable fireball mechanic
             if (
                 event.item != null && // event.item is not null (should always be true)
                 game.phase == Game.Phase.ACTIVE && // game active
@@ -325,6 +326,9 @@ object GameEventsListener : Listener {
                 // player.inventory.remove(event.item!!) doesn't work here (removes from **all** matching slots)
                 if (event.item!!.amount == 1) player.inventory.setItem(slot, null)
                 else event.item!!.amount -= 1
+
+                // Lastly, cancel the event
+                event.isCancelled = true
             }
         }
     }
