@@ -33,6 +33,7 @@ import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.entity.EntityType
+import org.bukkit.entity.Fireball
 import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -277,16 +278,23 @@ object GameEventsListener : Listener {
     @EventHandler
     fun onPlayerInteract(event: PlayerInteractEvent) {
         val player = event.player
+        // Only continue if the player is in a game world
         val game = player.world.game ?: return
-        if (player !in game.tributesComponent) {
-            event.isCancelled = true // spectators may not interact
-        }
+
+        // (From now, only spectators, tributes and waiting players are allowed)
+
+        // Cancel if player is spectating (not allowed to interact)
+        event.isCancelled = (player !in game.tributesComponent)
+
         // if a GUI is already open, do not handle GUI stuff here
         if (player.openInventory.type == InventoryType.CHEST) return
-        val hasClickableHotbarItems =
+
+        val hasCustomHotbar =
             player !in game.tributesComponent || // is a spectator, has spectator hotbar
                 game.phase == Game.Phase.WAITING // game has not yet started, has pre-game hotbar
-        if (hasClickableHotbarItems) {
+
+        // If the player has a custom hotbar (eg spectating, waiting pre-game) only allow certain items to be used
+        if (hasCustomHotbar) {
             // multiple events might fire at the same time, remember when the last event fired in order to catch the
             // first and ignore the rest
             val currentTick = Bukkit.getCurrentTick()
@@ -298,6 +306,30 @@ object GameEventsListener : Listener {
                     Material.BOW -> KitGUI().open(player)
                     else -> Unit
                 }
+            }
+        } else {
+            // Player has a normal hotbar (eg. in active game)
+            // Implement special item in-game mechanics here!
+
+            // Launchable / Throwable fireball mechanic
+            if (
+                event.item != null && // event.item is not null (should always be true)
+                game.phase == Game.Phase.ACTIVE && // game active
+                event.material == Material.FIRE_CHARGE // fire-charge is being used
+            ) {
+                // Spawn the projectile
+                player.launchProjectile(Fireball::class.java)
+
+                // Get the inventory slot of the fire charge itemstack being used
+                val slot = player.inventory.heldItemSlot
+
+                // Inventory management
+                // player.inventory.remove(event.item!!) doesn't work here (removes from **all** matching slots)
+                if (event.item!!.amount == 1) player.inventory.setItem(slot, null)
+                else event.item!!.amount -= 1
+
+                // Lastly, cancel the event
+                event.isCancelled = true
             }
         }
     }
