@@ -92,7 +92,8 @@ class Game(val world: World, val config: WorldConfig) {
         }
 
     var phase = Phase.WAITING
-        set(value) {
+        // setter is now internal as startGame() logic has been moved to GameStartComponent
+        internal set(value) {
             field = value
             BossBarNeedsUpdatingEvent(this).callSafe()
             HologramNeedsUpdatingEvent(this).callSafe()
