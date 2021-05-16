@@ -6,6 +6,8 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 
 class GameStartComponent(game: Game) : GameComponent(game) {
+    // Monitor priority: called LAST.
+    // "Act when an event happens, but not change the outcome"
     @EventHandler(priority = EventPriority.MONITOR)
     fun onGameStart(event: GameStartEvent) {
         val game = event.game
