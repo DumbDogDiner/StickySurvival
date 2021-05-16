@@ -50,5 +50,9 @@ class GameSpawnPointComponent(game: Game) : GameComponent(game) {
         free += selected
     }
 
+    fun getPlayerSpawnPoint(player: Player): Location? {
+        return used[player]
+    }
+
     fun getSpaceLeft() = free.size
 }
