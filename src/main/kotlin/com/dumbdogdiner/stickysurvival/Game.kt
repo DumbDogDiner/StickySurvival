@@ -34,6 +34,7 @@ import com.dumbdogdiner.stickysurvival.game.GameChestComponent
 import com.dumbdogdiner.stickysurvival.game.GameChestRemovalComponent
 import com.dumbdogdiner.stickysurvival.game.GameCountdownComponent
 import com.dumbdogdiner.stickysurvival.game.GameSpawnPointComponent
+import com.dumbdogdiner.stickysurvival.game.GameStartComponent
 import com.dumbdogdiner.stickysurvival.game.GameTrackingCompassComponent
 import com.dumbdogdiner.stickysurvival.game.GameTributesComponent
 import com.dumbdogdiner.stickysurvival.manager.AnimatedScoreboardManager
@@ -91,7 +92,8 @@ class Game(val world: World, val config: WorldConfig) {
         }
 
     var phase = Phase.WAITING
-        private set(value) {
+        // setter is now internal as startGame() logic has been moved to GameStartComponent
+        internal set(value) {
             field = value
             BossBarNeedsUpdatingEvent(this).callSafe()
             HologramNeedsUpdatingEvent(this).callSafe()
@@ -112,6 +114,7 @@ class Game(val world: World, val config: WorldConfig) {
         GameChestComponent(this)
         GameChestRemovalComponent(this)
         GameTrackingCompassComponent(this)
+        GameStartComponent(this)
 
         schedule {
             AnimatedScoreboardManager.addWorld(world.name)
@@ -143,10 +146,6 @@ class Game(val world: World, val config: WorldConfig) {
     }
 
     fun startGame() {
-        phase = Phase.ACTIVE
-        // Close inventory for those viewing the Kit GUI (this needs to be put somewhere else soon)
-        kitGUIViewers.forEach { it.closeInventory() }
-        kitGUIViewers.clear()
         GameStartEvent(this).callSafe()
     }
 
