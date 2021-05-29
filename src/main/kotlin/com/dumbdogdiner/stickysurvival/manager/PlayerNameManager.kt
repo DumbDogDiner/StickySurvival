@@ -21,7 +21,9 @@ package com.dumbdogdiner.stickysurvival.manager
 import com.dumbdogdiner.stickyapi.common.cache.Cache
 import com.dumbdogdiner.stickyapi.common.cache.Cacheable
 import com.google.gson.Gson
+import com.google.gson.JsonParser
 import org.bukkit.Bukkit
+import java.io.IOException
 import java.net.URL
 import java.util.UUID
 
@@ -50,8 +52,17 @@ object PlayerNameManager {
                 // Attempt to query Ashcon for the information
                 queryAshcon(uuid).username
             } catch (e: Exception) {
-                // If all else fails, return null
+                if (e is IOException) {
+                    // TODO use an API with proper HTTP exceptions
+                    e.message?.let { message ->
+                        if ("400" in message) {
+                            // status code 400, probably... let's try the xuid
+                            return queryXbox(uuid).username
+                        }
+                    }
+                }
                 e.printStackTrace()
+                // If all else fails, return null
                 null
             }
     }
@@ -78,6 +89,23 @@ object PlayerNameManager {
         val response = URL("https://api.ashcon.app/mojang/v2/user/$uuid").openStream().use {
             // Use Gson to serialize what we need
             Gson().fromJson(it.reader(), UUIDToUsername::class.java)
+        }
+        // Cache the response and return it
+        cache.put(response)
+        return response
+    }
+
+    private fun queryXbox(uuid: UUID): UUIDToUsername {
+        // Make query
+        val response = URL("https://xbl-api.prouser123.me/profile/xuid/${uuid.leastSignificantBits}").openStream().use {
+            val gamertag = JsonParser().parse(it.reader())
+                .asJsonObject["profileUsers"]
+                .asJsonArray[0]
+                .asJsonObject["settings"]
+                .asJsonArray
+                .find { setting -> setting.asJsonObject["id"].asString == "Gamertag" }!!
+                .asJsonObject["value"].asString
+            UUIDToUsername(uuid, gamertag)
         }
         // Cache the response and return it
         cache.put(response)
