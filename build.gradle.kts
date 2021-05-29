@@ -92,13 +92,6 @@ tasks {
 
     shadowJar {
         archiveClassifier.set("")
-        // Relocate various dependencies to avoid conflicts
-        val pkg = "com.dumbdogdiner.stickysurvival.libs"
-        relocate("com.dumbdogdiner.stickyapi", "$pkg.stickyapi")
-        relocate("kotlinx", "$pkg.kotlinx")
-        relocate("kotlin", "$pkg.kotlin")
-        relocate("dev.jorel.commandapi", "$pkg.commandapi")
-        relocate("org.jetbrains.exposed", "$pkg.exposed")
     }
 
     spigot {
