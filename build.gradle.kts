@@ -49,9 +49,12 @@ repositories {
 }
 
 dependencies {
+    // java 8 fix src: https://stackoverflow.com/questions/64049153/error-while-launching-a-kotlin-coroutine-on-dispatchers-io
     implementation(kotlin("stdlib"))
+    implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.4.2")
 
     implementation("org.jetbrains.exposed:exposed-core:0.29.1")
     implementation("org.jetbrains.exposed:exposed-dao:0.29.1")
