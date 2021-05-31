@@ -33,6 +33,7 @@ import com.dumbdogdiner.stickysurvival.game.GameCarePackageComponent
 import com.dumbdogdiner.stickysurvival.game.GameChestComponent
 import com.dumbdogdiner.stickysurvival.game.GameChestRemovalComponent
 import com.dumbdogdiner.stickysurvival.game.GameCountdownComponent
+import com.dumbdogdiner.stickysurvival.game.GameScoreboardComponent
 import com.dumbdogdiner.stickysurvival.game.GameSpawnPointComponent
 import com.dumbdogdiner.stickysurvival.game.GameStartComponent
 import com.dumbdogdiner.stickysurvival.game.GameTrackingCompassComponent
@@ -115,6 +116,7 @@ class Game(val world: World, val config: WorldConfig) {
         GameChestRemovalComponent(this)
         GameTrackingCompassComponent(this)
         GameStartComponent(this)
+        GameScoreboardComponent(this)
 
         schedule {
             AnimatedScoreboardManager.addWorld(world.name)

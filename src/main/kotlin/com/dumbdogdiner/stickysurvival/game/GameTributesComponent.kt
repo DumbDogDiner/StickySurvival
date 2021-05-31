@@ -62,6 +62,12 @@ class GameTributesComponent(game: Game) : GameComponent(game) {
         }
     }
 
+    internal fun tributeIterator(loop: (Player) -> Unit) {
+        tributes.forEach {
+            loop(it)
+        }
+    }
+
     fun addTribute(player: Player): Boolean {
         if (!player.hasPermission("stickysurvival.join")) {
             // not allowed to join

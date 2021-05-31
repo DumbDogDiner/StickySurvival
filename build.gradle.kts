@@ -21,6 +21,7 @@ version = "1.0.0-beta"
 repositories {
     mavenCentral()
     jitpack()
+    maven("https://s01.oss.sonatype.org/content/repositories/snapshots")
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
     maven("https://repo.codemc.org/repository/maven-public/")
     maven("https://maven.enginehub.org/repo/")
@@ -69,6 +70,9 @@ dependencies {
     // VoxelSniper Jar (via GitHub releases)
     compileOnly("ervinnnc:VoxelSniper:v6.1.2:VoxelSniper-6.1.2@jar")
 
+    // FastBoard scoreboard API
+    implementation("fr.mrmicky:fastboard:1.2.0-SNAPSHOT")
+
     implementation("com.dumbdogdiner:stickyapi-bukkit:3.0.2")
     implementation("com.dumbdogdiner:stickyapi-common:3.0.2")
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.2")
@@ -95,6 +99,7 @@ tasks {
 
     shadowJar {
         archiveClassifier.set("")
+        relocate("fr.mrmicky.fastboard", "com.dumbdogdiner.stickysurvival.libs.fastboard")
     }
 
     spigot {
